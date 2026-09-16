@@ -41,8 +41,12 @@ async function request<S extends z.ZodType>(
   })
 
   if (!response.ok) throw await ApiError.fromResponse(response)
-  const data: unknown = response.status === 204 ? undefined : await response.json()
-  return schema.parse(data)
+  const raw: unknown = response.status === 204 ? undefined : await response.json()
+  const payload =
+    raw !== null && typeof raw === 'object' && 'data' in raw && 'success' in raw
+      ? (raw as { data: unknown }).data
+      : raw
+  return schema.parse(payload)
 }
 
 // Pass `z.undefined()` as the schema for endpoints that return no body (204).

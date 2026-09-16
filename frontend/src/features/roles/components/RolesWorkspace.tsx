@@ -37,7 +37,7 @@ export function RolesWorkspace({ onEditDetails }: { onEditDetails: (role: Role) 
   }
 
   const list = roles.data
-  const selected = list.find((role) => role.id === roleId) ?? list[0]
+  const selected = list.find((role) => role.id === roleId || role.code === roleId) ?? list[0]
   if (!selected) return <p className="text-ink-muted">No roles yet. Add one to get started.</p>
 
   const editing = draft?.roleId === selected.id ? draft.permissions : selected.permissions
@@ -57,12 +57,9 @@ export function RolesWorkspace({ onEditDetails }: { onEditDetails: (role: Role) 
     try {
       const saved = await savePermissions.mutateAsync({ id: selected.id, permissions: editing })
       setDraft(null)
-      toast({
-        title: 'Permissions saved',
-        description: `${saved.name}. Sample data: changes reset when the page reloads.`,
-      })
+      toast.success('Permissions saved', `${saved.name} access permissions updated successfully.`)
     } catch (error) {
-      toast({ tone: 'error', title: 'Couldn’t save permissions', description: getErrorMessage(error) })
+      toast.error('Couldn’t save permissions', getErrorMessage(error))
     }
   }
 

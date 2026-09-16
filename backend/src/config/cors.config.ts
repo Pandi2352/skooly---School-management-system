@@ -31,13 +31,16 @@ export function getCorsConfig(configService: ConfigService): CorsOptions {
         return callback(null, true)
       }
 
+      // Allow any localhost or 127.0.0.1 development port (e.g. Vite on 5173, 5174, 5175)
+      if (/^https?:\/\/(localhost|127\.0\.0\.1)(:[0-9]+)?$/.test(origin)) {
+        return callback(null, true)
+      }
+
       // Check against explicit list
       const isAllowed = corsOrigins.some((allowed) => {
-        // Direct string match
         if (allowed === origin) {
           return true
         }
-        // Subdomain wildcard matching (e.g. *.example.com)
         if (allowed.startsWith('*.')) {
           const rootDomain = allowed.slice(2)
           return origin.endsWith(rootDomain)
@@ -49,7 +52,7 @@ export function getCorsConfig(configService: ConfigService): CorsOptions {
         callback(null, true)
       } else {
         logger.warn(`Blocked CORS request from origin: ${origin}`)
-        callback(new Error(`CORS policy error: Origin ${origin} not allowed`), false)
+        callback(null, false)
       }
     },
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],

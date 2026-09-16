@@ -3,6 +3,7 @@ import { ROLE_KINDS } from '../constants'
 
 export const roleSchema = z.object({
   id: z.string(),
+  code: z.string().nullable().optional(),
   name: z.string(),
   description: z.string(),
   kind: z.enum(ROLE_KINDS),
@@ -10,6 +11,7 @@ export const roleSchema = z.object({
   fullAccess: z.boolean(),
   /** Granted permission keys, such as "fees-and-finance.fee-collection:edit". */
   permissions: z.array(z.string()),
+  createdAt: z.string().optional(),
 })
 
 export const roleListSchema = z.array(roleSchema)

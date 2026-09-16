@@ -66,10 +66,10 @@ export function RoleHeader({ role, headingId, onEditDetails, onDeleted }: RoleHe
         onConfirm={async () => {
           try {
             await deleteRole.mutateAsync(role.id)
-            toast({ title: 'Role deleted', description: `${role.name}. Sample data: it returns when the page reloads.` })
+            toast.success('Role deleted', `${role.name} has been removed.`)
             onDeleted()
           } catch (error) {
-            toast({ tone: 'error', title: 'Couldn’t delete the role', description: getErrorMessage(error) })
+            toast.error('Couldn’t delete the role', getErrorMessage(error))
           }
         }}
       />

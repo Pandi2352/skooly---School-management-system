@@ -53,13 +53,13 @@ export function RoleForm({ role, roles, onDone }: RoleFormProps) {
             description: values.description,
             copyFromRoleId: values.copyFromRoleId === 'none' ? null : values.copyFromRoleId,
           })
-      toast({
-        title: role ? 'Role updated' : 'Role added',
-        description: `${saved.name}. Sample data: it resets when the page reloads.`,
-      })
+      toast.success(
+        role ? 'Role updated' : 'Role added',
+        `${saved.name} details have been saved.`,
+      )
       onDone(saved)
     } catch (error) {
-      toast({ tone: 'error', title: 'Couldn’t save the role', description: getErrorMessage(error) })
+      toast.error(role ? 'Couldn’t update role' : 'Couldn’t add role', getErrorMessage(error))
     }
   })
 
