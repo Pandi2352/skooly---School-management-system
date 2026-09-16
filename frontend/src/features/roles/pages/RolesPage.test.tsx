@@ -13,6 +13,7 @@ describe('RolesPage', () => {
   })
 
   it('tracks unsaved permission changes for a role', async () => {
+    const user = userEvent.setup({ delay: null })
     renderWithProviders(<RolesPage />, { route: '/settings/roles?role=teacher' })
     expect(await screen.findByRole('heading', { name: 'Teacher', level: 2 })).toBeInTheDocument()
     const save = screen.getByRole('button', { name: 'Save permissions' })
@@ -20,20 +21,21 @@ describe('RolesPage', () => {
 
     const view = screen.getByRole('checkbox', { name: 'View: Online Exams' })
     expect(view).toBeChecked()
-    await userEvent.click(view)
+    await user.click(view)
     expect(screen.getByRole('checkbox', { name: 'Edit: Online Exams' })).not.toBeChecked()
     expect(screen.getByText(/Unsaved changes/)).toBeInTheDocument()
     expect(save).toBeEnabled()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Discard' }))
+    await user.click(screen.getByRole('button', { name: 'Discard' }))
     expect(screen.getByRole('checkbox', { name: 'View: Online Exams' })).toBeChecked()
   }, 60000)
 
   it('asks for a role name before adding a role', async () => {
+    const user = userEvent.setup()
     renderWithProviders(<RolesPage />, { route: '/settings/roles' })
-    await userEvent.click(await screen.findByRole('button', { name: /Add Role/ }))
+    await user.click(await screen.findByRole('button', { name: /Add Role/ }))
     const dialog = await screen.findByRole('dialog', { name: 'Add role' })
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Add role' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Add role' }))
     expect(await within(dialog).findByText('Enter a role name, like Transport Manager')).toBeInTheDocument()
-  }, 20000)
+  })
 })

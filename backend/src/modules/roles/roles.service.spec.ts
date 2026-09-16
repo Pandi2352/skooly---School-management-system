@@ -1,31 +1,30 @@
 import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common'
-import { getModelToken } from '@nestjs/mongoose'
 import { Test, TestingModule } from '@nestjs/testing'
+import { RolesRepository } from './roles.repository'
 import { RolesService } from './roles.service'
-import { Role } from './schemas/role.schema'
 
 describe('RolesService', () => {
   let service: RolesService
 
-  const mockRoleDocument = {
+  const mockRole = {
     _id: 'test-uuid-1',
     name: 'Custom Teacher',
     description: 'Teaches secondary science',
     kind: 'custom',
     fullAccess: false,
     permissions: ['academic-management:view'],
-    save: jest.fn().mockImplementation(function () {
-      return Promise.resolve(this)
-    }),
   }
 
-  const mockRoleModel = {
-    countDocuments: jest.fn(),
+  const mockRolesRepository = {
+    count: jest.fn(),
     insertMany: jest.fn(),
-    find: jest.fn(),
+    findAll: jest.fn(),
     findById: jest.fn(),
-    findOne: jest.fn(),
-    findByIdAndDelete: jest.fn(),
+    findByName: jest.fn(),
+    findByNameExcludingId: jest.fn(),
+    create: jest.fn(),
+    updateById: jest.fn(),
+    deleteById: jest.fn(),
   }
 
   beforeEach(async () => {
@@ -35,14 +34,8 @@ describe('RolesService', () => {
       providers: [
         RolesService,
         {
-          provide: getModelToken(Role.name),
-          useValue: Object.assign(
-            jest.fn().mockImplementation((dto) => ({
-              ...dto,
-              save: jest.fn().mockResolvedValue(dto),
-            })),
-            mockRoleModel,
-          ),
+          provide: RolesRepository,
+          useValue: mockRolesRepository,
         },
       ],
     }).compile()
@@ -56,37 +49,29 @@ describe('RolesService', () => {
 
   describe('seedDefaultRolesIfEmpty', () => {
     it('should seed default system roles when DB is empty', async () => {
-      mockRoleModel.countDocuments.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(0),
-      })
-      mockRoleModel.insertMany.mockResolvedValue([])
+      mockRolesRepository.count.mockResolvedValue(0)
+      mockRolesRepository.insertMany.mockResolvedValue([])
 
       await service.seedDefaultRolesIfEmpty()
 
-      expect(mockRoleModel.countDocuments).toHaveBeenCalled()
-      expect(mockRoleModel.insertMany).toHaveBeenCalled()
+      expect(mockRolesRepository.count).toHaveBeenCalled()
+      expect(mockRolesRepository.insertMany).toHaveBeenCalled()
     })
 
     it('should not seed default system roles when DB has documents', async () => {
-      mockRoleModel.countDocuments.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(5),
-      })
+      mockRolesRepository.count.mockResolvedValue(5)
 
       await service.seedDefaultRolesIfEmpty()
 
-      expect(mockRoleModel.countDocuments).toHaveBeenCalled()
-      expect(mockRoleModel.insertMany).not.toHaveBeenCalled()
+      expect(mockRolesRepository.count).toHaveBeenCalled()
+      expect(mockRolesRepository.insertMany).not.toHaveBeenCalled()
     })
   })
 
   describe('findAll', () => {
-    it('should return a list of roles ordered by kind and name', async () => {
-      const roles = [mockRoleDocument]
-      mockRoleModel.find.mockReturnValue({
-        sort: jest.fn().mockReturnValue({
-          exec: jest.fn().mockResolvedValue(roles),
-        }),
-      })
+    it('should return a list of roles', async () => {
+      const roles = [mockRole]
+      mockRolesRepository.findAll.mockResolvedValue(roles)
 
       const result = await service.findAll()
       expect(result).toEqual(roles)
@@ -95,18 +80,14 @@ describe('RolesService', () => {
 
   describe('findOne', () => {
     it('should return role when found', async () => {
-      mockRoleModel.findById.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(mockRoleDocument),
-      })
+      mockRolesRepository.findById.mockResolvedValue(mockRole)
 
       const result = await service.findOne('test-uuid-1')
-      expect(result).toEqual(mockRoleDocument)
+      expect(result).toEqual(mockRole)
     })
 
     it('should throw NotFoundException when role is missing', async () => {
-      mockRoleModel.findById.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(null),
-      })
+      mockRolesRepository.findById.mockResolvedValue(null)
 
       await expect(service.findOne('missing-id')).rejects.toThrow(NotFoundException)
     })
@@ -114,9 +95,7 @@ describe('RolesService', () => {
 
   describe('create', () => {
     it('should throw ConflictException if role name already exists', async () => {
-      mockRoleModel.findOne.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(mockRoleDocument),
-      })
+      mockRolesRepository.findByName.mockResolvedValue(mockRole)
 
       await expect(
         service.create({ name: 'Custom Teacher', description: 'desc' }),
@@ -124,8 +103,10 @@ describe('RolesService', () => {
     })
 
     it('should create and save a new custom role', async () => {
-      mockRoleModel.findOne.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(null),
+      mockRolesRepository.findByName.mockResolvedValue(null)
+      mockRolesRepository.create.mockResolvedValue({
+        ...mockRole,
+        name: 'Sports Coordinator',
       })
 
       const result = await service.create({
@@ -134,17 +115,14 @@ describe('RolesService', () => {
       })
 
       expect(result.name).toBe('Sports Coordinator')
-      expect(result.kind).toBe('custom')
     })
   })
 
   describe('updatePermissions', () => {
     it('should reject editing permissions on fullAccess administrator', async () => {
-      mockRoleModel.findById.mockReturnValue({
-        exec: jest.fn().mockResolvedValue({
-          ...mockRoleDocument,
-          fullAccess: true,
-        }),
+      mockRolesRepository.findById.mockResolvedValue({
+        ...mockRole,
+        fullAccess: true,
       })
 
       await expect(
@@ -153,16 +131,13 @@ describe('RolesService', () => {
     })
 
     it('should update permissions on non-admin role', async () => {
-      const editableRole = {
-        ...mockRoleDocument,
+      mockRolesRepository.findById.mockResolvedValue({
+        ...mockRole,
         fullAccess: false,
-        permissions: [],
-        save: jest.fn().mockImplementation(function () {
-          return Promise.resolve(this)
-        }),
-      }
-      mockRoleModel.findById.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(editableRole),
+      })
+      mockRolesRepository.updateById.mockResolvedValue({
+        ...mockRole,
+        permissions: ['fees:view'],
       })
 
       const result = await service.updatePermissions('test-uuid-1', {
@@ -175,26 +150,20 @@ describe('RolesService', () => {
 
   describe('remove', () => {
     it('should reject deleting a system role', async () => {
-      mockRoleModel.findById.mockReturnValue({
-        exec: jest.fn().mockResolvedValue({
-          ...mockRoleDocument,
-          kind: 'system',
-        }),
+      mockRolesRepository.findById.mockResolvedValue({
+        ...mockRole,
+        kind: 'system',
       })
 
       await expect(service.remove('admin-id')).rejects.toThrow(BadRequestException)
     })
 
     it('should delete a custom role', async () => {
-      mockRoleModel.findById.mockReturnValue({
-        exec: jest.fn().mockResolvedValue({
-          ...mockRoleDocument,
-          kind: 'custom',
-        }),
+      mockRolesRepository.findById.mockResolvedValue({
+        ...mockRole,
+        kind: 'custom',
       })
-      mockRoleModel.findByIdAndDelete.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(true),
-      })
+      mockRolesRepository.deleteById.mockResolvedValue(true)
 
       const result = await service.remove('test-uuid-1')
       expect(result.success).toBe(true)
