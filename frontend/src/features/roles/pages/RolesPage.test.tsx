@@ -31,11 +31,23 @@ describe('RolesPage', () => {
   }, 60000)
 
   it('asks for a role name before adding a role', async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup({ delay: null })
     renderWithProviders(<RolesPage />, { route: '/settings/roles' })
     await user.click(await screen.findByRole('button', { name: /Add Role/ }))
     const dialog = await screen.findByRole('dialog', { name: 'Add role' })
     await user.click(within(dialog).getByRole('button', { name: 'Add role' }))
     expect(await within(dialog).findByText('Enter a role name, like Transport Manager')).toBeInTheDocument()
   })
+
+  it('opens duplicate role dialog with prefilled name and permissions template', async () => {
+    const user = userEvent.setup({ delay: null })
+    renderWithProviders(<RolesPage />, { route: '/settings/roles?role=teacher' })
+    expect(await screen.findByRole('heading', { name: 'Teacher', level: 2 })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Duplicate role' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Duplicate Teacher' })
+    expect(within(dialog).getByLabelText(/Role Name/)).toHaveValue('Teacher (Copy)')
+    expect(within(dialog).getByRole('button', { name: 'Duplicate role' })).toBeInTheDocument()
+  })
 })
+

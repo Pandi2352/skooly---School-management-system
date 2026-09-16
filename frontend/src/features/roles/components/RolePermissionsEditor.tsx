@@ -19,6 +19,7 @@ type RolePermissionsEditorProps = {
   onSave: () => void
   onDiscard: () => void
   onEditDetails: () => void
+  onDuplicate: () => void
   onDeleted: () => void
 }
 
@@ -33,6 +34,7 @@ export function RolePermissionsEditor({
   onSave,
   onDiscard,
   onEditDetails,
+  onDuplicate,
   onDeleted,
 }: RolePermissionsEditorProps) {
   const headingId = useId()
@@ -57,7 +59,14 @@ export function RolePermissionsEditor({
 
   return (
     <section aria-labelledby={headingId} className="@container min-w-0 rounded-md border border-line bg-surface">
-      <RoleHeader role={role} headingId={headingId} onEditDetails={onEditDetails} onDeleted={onDeleted} />
+      <RoleHeader
+        role={role}
+        headingId={headingId}
+        onEditDetails={onEditDetails}
+        onDuplicate={onDuplicate}
+        onDeleted={onDeleted}
+      />
+
 
       <div className="grid gap-3 p-4 @xl:p-5">
         {locked && (

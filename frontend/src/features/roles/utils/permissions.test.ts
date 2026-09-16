@@ -9,10 +9,12 @@ import {
   permissionKey,
   samePermissions,
   selectionState,
+  resolvePermissionDependencies,
   setFeatures,
   setPermission,
   summarizeRole,
 } from './permissions'
+
 
 const feature = (label: string, extra: object = {}) => ({
   label,
@@ -54,7 +56,16 @@ describe('permission changes', () => {
     expect(setPermission(withEdit, 'fees.expenses', 'edit', false)).toEqual(['fees.expenses:view'])
   })
 
+  it('resolves missing view dependencies for create/edit/delete actions', () => {
+    const isolatedActions = ['fees.expenses:edit', 'fees.expenses:delete', 'students.list:create']
+    const resolved = resolvePermissionDependencies(isolatedActions)
+    expect(resolved).toContain('fees.expenses:view')
+    expect(resolved).toContain('students.list:view')
+    expect(resolved).toContain('fees.expenses:edit')
+  })
+
   it('grants whole groups and reports tri-state selection', () => {
+
     const ids = ['fees.fee-collection', 'fees.expenses']
     expect(selectionState([], ids)).toBe('none')
     expect(selectionState([permissionKey('fees.expenses', 'view')], ids)).toBe('some')

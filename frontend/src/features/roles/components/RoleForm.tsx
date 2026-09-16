@@ -14,16 +14,19 @@ import { isRoleNameTaken } from '../utils/permissions'
 type RoleFormProps = {
   /** The role whose details are edited, or null to add a role. */
   role: Role | null
+  /** Optional role being duplicated as a new template. */
+  duplicateFromRole?: Role | null
   roles: Role[]
   /** Receives the saved role, or null when cancelled. */
   onDone: (saved: Role | null) => void
 }
 
-export function RoleForm({ role, roles, onDone }: RoleFormProps) {
+export function RoleForm({ role, duplicateFromRole, roles, onDone }: RoleFormProps) {
   const { toast } = useToast()
   const createRole = useCreateRole()
   const updateDetails = useUpdateRoleDetails()
   const isSystem = role?.kind === 'system'
+  const isDuplicate = !role && Boolean(duplicateFromRole)
   const {
     register,
     control,
@@ -32,7 +35,11 @@ export function RoleForm({ role, roles, onDone }: RoleFormProps) {
     formState: { errors, isSubmitting },
   } = useForm<RoleFormValues>({
     resolver: zodResolver(roleFormSchema),
-    defaultValues: { name: role?.name ?? '', description: role?.description ?? '', copyFromRoleId: 'none' },
+    defaultValues: {
+      name: duplicateFromRole ? `${duplicateFromRole.name} (Copy)` : (role?.name ?? ''),
+      description: duplicateFromRole ? duplicateFromRole.description : (role?.description ?? ''),
+      copyFromRoleId: duplicateFromRole ? duplicateFromRole.id : 'none',
+    },
   })
 
   const copyOptions = [
@@ -54,14 +61,17 @@ export function RoleForm({ role, roles, onDone }: RoleFormProps) {
             copyFromRoleId: values.copyFromRoleId === 'none' ? null : values.copyFromRoleId,
           })
       toast.success(
-        role ? 'Role updated' : 'Role added',
-        `${saved.name} details have been saved.`,
+        role ? 'Role updated' : isDuplicate ? 'Role duplicated' : 'Role added',
+        isDuplicate
+          ? `${saved.name} created with permissions copied from ${duplicateFromRole?.name}.`
+          : `${saved.name} details have been saved.`,
       )
       onDone(saved)
     } catch (error) {
       toast.error(role ? 'Couldn’t update role' : 'Couldn’t add role', getErrorMessage(error))
     }
   })
+
 
   return (
     <form noValidate aria-label={role ? 'Edit role details' : 'Add role'} onSubmit={(event) => void submit(event)}>
@@ -106,8 +116,9 @@ export function RoleForm({ role, roles, onDone }: RoleFormProps) {
           Cancel
         </Button>
         <Button type="submit" loading={isSubmitting}>
-          {role ? 'Save details' : 'Add role'}
+          {role ? 'Save details' : isDuplicate ? 'Duplicate role' : 'Add role'}
         </Button>
+
       </div>
     </form>
   )

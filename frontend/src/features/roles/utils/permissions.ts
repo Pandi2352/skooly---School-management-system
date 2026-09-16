@@ -55,6 +55,22 @@ export function setPermission(
   return [...next]
 }
 
+/** Ensures that any feature with create, edit, or delete actions also has its view permission granted. */
+export function resolvePermissionDependencies(permissions: string[]): string[] {
+  const result = new Set(permissions)
+  for (const perm of permissions) {
+    const lastColon = perm.lastIndexOf(':')
+    if (lastColon === -1) continue
+    const featureId = perm.slice(0, lastColon)
+    const action = perm.slice(lastColon + 1)
+    if (action === 'create' || action === 'edit' || action === 'delete') {
+      result.add(permissionKey(featureId, 'view'))
+    }
+  }
+  return [...result]
+}
+
+
 /** Grants or removes every action on the given pages. */
 export function setFeatures(permissions: string[], featureIds: string[], granted: boolean) {
   const next = new Set(permissions)

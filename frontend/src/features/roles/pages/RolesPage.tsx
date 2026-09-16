@@ -10,7 +10,7 @@ import { useRoles } from '../hooks/useRoles'
 import { useSelectedRole } from '../hooks/useSelectedRole'
 import type { Role } from '../types/role.types'
 
-type RoleDialog = { mode: 'add' } | { mode: 'edit'; role: Role } | null
+type RoleDialog = { mode: 'add' } | { mode: 'edit'; role: Role } | { mode: 'duplicate'; role: Role } | null
 
 export function RolesPage() {
   const roles = useRoles()
@@ -32,18 +32,28 @@ export function RolesPage() {
       }
       fullWidth
     >
-      <RolesWorkspace onEditDetails={(role) => setDialog({ mode: 'edit', role })} />
+      <RolesWorkspace
+        onEditDetails={(role) => setDialog({ mode: 'edit', role })}
+        onDuplicate={(role) => setDialog({ mode: 'duplicate', role })}
+      />
 
       <Dialog
         open={dialog !== null}
         onOpenChange={(open) => {
           if (!open) setDialog(null)
         }}
-        title={dialog?.mode === 'edit' ? `Edit ${dialog.role.name}` : 'Add role'}
+        title={
+          dialog?.mode === 'edit'
+            ? `Edit ${dialog.role.name}`
+            : dialog?.mode === 'duplicate'
+              ? `Duplicate ${dialog.role.name}`
+              : 'Add role'
+        }
       >
         {dialog !== null && (
           <RoleForm
             role={dialog.mode === 'edit' ? dialog.role : null}
+            duplicateFromRole={dialog.mode === 'duplicate' ? dialog.role : null}
             roles={roles.data ?? []}
             onDone={(saved) => {
               setDialog(null)
@@ -55,3 +65,4 @@ export function RolesPage() {
     </PageContainer>
   )
 }
+

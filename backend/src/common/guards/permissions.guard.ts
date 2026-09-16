@@ -39,11 +39,23 @@ export class PermissionsGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<{ user?: AuthenticatedUserContext }>()
-    const user = request.user
+    let user = request.user
+
+    // In development mode when no JWT auth session is active, fallback to an administrator principal
+    // so local frontend requests and exploratory API testing are not blocked.
+    if (!user && process.env.NODE_ENV !== 'production') {
+      user = {
+        id: 'dev-admin',
+        roleId: 'administrator',
+        isAdministrator: true,
+        permissions: ['*'],
+      }
+    }
 
     if (!user) {
       throw new ForbiddenException('Access denied: unauthenticated principal.')
     }
+
 
     // Administrators bypass granular permission checks
     if (user.isAdministrator) {

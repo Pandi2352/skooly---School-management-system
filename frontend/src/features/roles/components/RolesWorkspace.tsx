@@ -17,8 +17,15 @@ type Draft = { roleId: string; permissions: string[] }
  * Role list and permission editor. Changes stay a draft until saved; switching roles with unsaved
  * changes asks first.
  */
-export function RolesWorkspace({ onEditDetails }: { onEditDetails: (role: Role) => void }) {
+export function RolesWorkspace({
+  onEditDetails,
+  onDuplicate,
+}: {
+  onEditDetails: (role: Role) => void
+  onDuplicate: (role: Role) => void
+}) {
   const roles = useRoles()
+
   const savePermissions = useSaveRolePermissions()
   const { roleId, setRoleId } = useSelectedRole()
   const { toast } = useToast()
@@ -81,11 +88,13 @@ export function RolesWorkspace({ onEditDetails }: { onEditDetails: (role: Role) 
         onSave={() => void save()}
         onDiscard={() => setDraft(null)}
         onEditDetails={() => onEditDetails(selected)}
+        onDuplicate={() => onDuplicate(selected)}
         onDeleted={() => {
           setDraft(null)
           setRoleId(null)
         }}
       />
+
 
       <ConfirmDialog
         open={pendingRoleId !== null}

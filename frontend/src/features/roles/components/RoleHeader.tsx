@@ -1,4 +1,4 @@
-import { LockSimpleIcon, PencilSimpleIcon, TrashIcon } from '@phosphor-icons/react'
+import { CopyIcon, LockSimpleIcon, PencilSimpleIcon, TrashIcon } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -13,10 +13,11 @@ type RoleHeaderProps = {
   role: Role
   headingId: string
   onEditDetails: () => void
+  onDuplicate: () => void
   onDeleted: () => void
 }
 
-export function RoleHeader({ role, headingId, onEditDetails, onDeleted }: RoleHeaderProps) {
+export function RoleHeader({ role, headingId, onEditDetails, onDuplicate, onDeleted }: RoleHeaderProps) {
   const { toast } = useToast()
   const deleteRole = useDeleteRole()
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -45,6 +46,10 @@ export function RoleHeader({ role, headingId, onEditDetails, onDeleted }: RoleHe
       </div>
 
       <div className="flex flex-wrap gap-2">
+        <Button variant="secondary" size="sm" onClick={onDuplicate}>
+          <CopyIcon className="size-4" aria-hidden="true" />
+          Duplicate role
+        </Button>
         <Button variant="secondary" size="sm" onClick={onEditDetails}>
           <PencilSimpleIcon className="size-4" aria-hidden="true" />
           Edit details
@@ -56,6 +61,7 @@ export function RoleHeader({ role, headingId, onEditDetails, onDeleted }: RoleHe
           </Button>
         )}
       </div>
+
 
       <ConfirmDialog
         open={confirmOpen}
