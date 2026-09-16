@@ -1,59 +1,118 @@
-import {
-  ArgumentsHost,
-  Catch,
-  ExceptionFilter,
-  HttpException,
-  HttpStatus,
-  Logger,
-} from '@nestjs/common'
-import { Request, Response } from 'express'
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common'
+import type { Request, Response } from 'express'
+import { Error as MongooseError } from 'mongoose'
+import { ErrorCode, errorCodeForStatus } from '../constants/error-codes.constant'
+import { AppException } from '../exceptions/app.exception'
+import type { ApiErrorResponse, ApiFieldError } from '../interfaces/api-response.interface'
+import { isDuplicateKeyError } from '../utils/mongo-error.util'
 
-export interface ErrorResponsePayload {
-  statusCode: number
-  timestamp: string
-  path: string
-  method: string
-  message: string | string[]
-  error: string
-}
+type NormalizedError = Pick<ApiErrorResponse, 'statusCode' | 'message' | 'errorCode' | 'errors'>
 
+const INTERNAL_MESSAGE = 'Something went wrong on our side. Please try again.'
+
+/**
+ * Turns every thrown error into the standard error envelope. Expected errors keep their message;
+ * unexpected ones are logged with their stack and answered with a generic message, so internals
+ * never leak to clients.
+ */
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name)
 
   catch(exception: unknown, host: ArgumentsHost): void {
-    const ctx = host.switchToHttp()
-    const response = ctx.getResponse<Response>()
-    const request = ctx.getRequest<Request>()
+    const http = host.switchToHttp()
+    const request = http.getRequest<Request>()
+    const response = http.getResponse<Response>()
+    const normalized = normalizeException(exception)
 
-    let status = HttpStatus.INTERNAL_SERVER_ERROR
-    let message: string | string[] = 'Internal server error'
-    let error = 'Internal Server Error'
-
-    if (exception instanceof HttpException) {
-      status = exception.getStatus()
-      const res = exception.getResponse()
-
-      if (typeof res === 'string') {
-        message = res
-      } else if (typeof res === 'object' && res !== null) {
-        const resObj = res as Record<string, unknown>
-        message = (resObj.message as string | string[]) || exception.message
-        error = (resObj.error as string) || error
-      }
-    } else if (exception instanceof Error) {
-      this.logger.error(`Unhandled error at ${request.method} ${request.url}: ${exception.message}`, exception.stack)
+    if (normalized.statusCode >= 500) {
+      this.logger.error(
+        `${request.method} ${request.originalUrl} → ${normalized.statusCode}`,
+        exception instanceof Error ? exception.stack : String(exception),
+      )
     }
 
-    const payload: ErrorResponsePayload = {
-      statusCode: status,
-      timestamp: new Date().toISOString(),
-      path: request.url,
+    const body: ApiErrorResponse = {
+      success: false,
+      ...normalized,
+      data: null,
+      path: request.originalUrl,
       method: request.method,
-      message,
-      error,
+      timestamp: new Date().toISOString(),
     }
-
-    response.status(status).json(payload)
+    response.status(normalized.statusCode).json(body)
   }
+}
+
+export function normalizeException(exception: unknown): NormalizedError {
+  if (exception instanceof AppException) {
+    return {
+      statusCode: exception.getStatus(),
+      message: exception.message,
+      errorCode: exception.errorCode,
+      errors: exception.errors,
+    }
+  }
+
+  if (isDuplicateKeyError(exception)) {
+    const fields = Object.keys(exception.keyValue ?? {})
+    return {
+      statusCode: HttpStatus.CONFLICT,
+      message: 'A record with the same value already exists.',
+      errorCode: ErrorCode.DUPLICATE_RESOURCE,
+      errors: fields.map((field) => ({ field, message: 'This value is already in use.' })),
+    }
+  }
+
+  if (exception instanceof MongooseError.ValidationError) {
+    return {
+      statusCode: HttpStatus.BAD_REQUEST,
+      message: 'Some fields are invalid. Check the errors and try again.',
+      errorCode: ErrorCode.VALIDATION_FAILED,
+      errors: Object.values(exception.errors).map((error) => ({ field: error.path, message: error.message })),
+    }
+  }
+
+  if (exception instanceof MongooseError.CastError) {
+    return {
+      statusCode: HttpStatus.BAD_REQUEST,
+      message: `"${exception.path}" has an invalid value.`,
+      errorCode: ErrorCode.INVALID_ID,
+      errors: [{ field: exception.path, message: 'Invalid value.' }],
+    }
+  }
+
+  if (exception instanceof HttpException) {
+    const statusCode = exception.getStatus()
+    const { message, errors } = readHttpExceptionBody(exception)
+    return {
+      statusCode,
+      // Hide details of 5xx HttpExceptions too; 4xx messages are meant for the client.
+      message: statusCode >= 500 ? INTERNAL_MESSAGE : message,
+      errorCode: errorCodeForStatus(statusCode),
+      errors: statusCode >= 500 ? [] : errors,
+    }
+  }
+
+  return {
+    statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+    message: INTERNAL_MESSAGE,
+    errorCode: ErrorCode.INTERNAL_ERROR,
+    errors: [],
+  }
+}
+
+/** Reads Nest's built-in exception bodies: a string, `{ message: string }` or `{ message: string[] }`. */
+function readHttpExceptionBody(exception: HttpException): { message: string; errors: ApiFieldError[] } {
+  const body = exception.getResponse()
+  if (typeof body === 'string') return { message: body, errors: [] }
+
+  const raw: unknown = typeof body === 'object' && body !== null ? Reflect.get(body, 'message') : undefined
+  if (Array.isArray(raw)) {
+    return {
+      message: 'Some fields are invalid. Check the errors and try again.',
+      errors: raw.map((item) => ({ field: '', message: String(item) })),
+    }
+  }
+  return { message: typeof raw === 'string' ? raw : exception.message, errors: [] }
 }

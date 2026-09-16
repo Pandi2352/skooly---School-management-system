@@ -1,22 +1,8 @@
-import { ApiPropertyOptional } from '@nestjs/swagger'
-import { IsOptional, IsString, MinLength } from 'class-validator'
+import { PartialType, PickType } from '@nestjs/swagger'
+import { CreateRoleDto } from './create-role.dto'
 
-export class UpdateRoleDto {
-  @ApiPropertyOptional({
-    description: 'Updated name for the role',
-    example: 'Senior Librarian',
-    minLength: 2,
-  })
-  @IsString()
-  @IsOptional()
-  @MinLength(2, { message: 'Role name must have at least 2 characters' })
-  name?: string
-
-  @ApiPropertyOptional({
-    description: 'Updated operational description',
-    example: 'Manages physical books, digital catalog, and issue/return desks.',
-  })
-  @IsString()
-  @IsOptional()
-  description?: string
-}
+/**
+ * Name and/or description, with the same rules as creating a role; at least one is required
+ * (checked in the service). System roles accept a description change only.
+ */
+export class UpdateRoleDto extends PartialType(PickType(CreateRoleDto, ['name', 'description'] as const)) {}

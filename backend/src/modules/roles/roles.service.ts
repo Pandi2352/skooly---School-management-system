@@ -1,138 +1,175 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-  OnModuleInit,
-} from '@nestjs/common'
-import { generateUuid } from '../../common/utils/uuid.util'
-import { DEFAULT_SYSTEM_ROLES } from './constants/default-roles.constant'
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
+import { isDuplicateKeyError } from '../../common/utils/mongo-error.util'
+import { generateUuid, isValidUuid } from '../../common/utils/uuid.util'
+import { SYSTEM_ROLE_SEEDS } from './constants/default-roles.constant'
 import { CreateRoleDto } from './dto/create-role.dto'
+import { ListRolesQueryDto } from './dto/list-roles-query.dto'
+import { DeletedRoleResponseDto, RoleListMetaDto, RoleResponseDto } from './dto/role-response.dto'
 import { UpdatePermissionsDto } from './dto/update-permissions.dto'
 import { UpdateRoleDto } from './dto/update-role.dto'
-import { RolesRepository } from './roles.repository'
-import { RoleDocument } from './schemas/role.schema'
+import {
+  copySourceNotFound,
+  fullAccessLocked,
+  fullAccessNotCopyable,
+  noRoleChanges,
+  roleNameTaken,
+  roleNotFound,
+  systemRoleDelete,
+  systemRoleRename,
+} from './roles.errors'
+import { summarizeRoles, toDeletedRoleResponse, toRoleResponse } from './roles.mapper'
+import { RoleChanges, RoleRecord, RolesRepository } from './roles.repository'
+import { cleanRoleName, normalizePermissions, roleNameKey } from './utils/role.util'
 
+export type RoleListResult = { roles: RoleResponseDto[]; meta: RoleListMetaDto }
+
+/** Role rules: unique names, locked system roles, locked full access, and system role setup. */
 @Injectable()
 export class RolesService implements OnModuleInit {
+  private readonly logger = new Logger(RolesService.name)
+
   constructor(private readonly rolesRepository: RolesRepository) {}
 
+  /** Upgrades roles from older versions, aligns indexes and adds any missing system roles. */
   async onModuleInit(): Promise<void> {
-    await this.seedDefaultRolesIfEmpty()
-  }
-
-  /**
-   * Seed default system roles on first boot if no roles exist in MongoDB.
-   */
-  async seedDefaultRolesIfEmpty(): Promise<void> {
-    const count = await this.rolesRepository.count()
-    if (count === 0) {
-      await this.rolesRepository.insertMany(DEFAULT_SYSTEM_ROLES)
+    try {
+      const migrated = await this.migrateLegacyRoles()
+      if (migrated > 0) this.logger.log(`Upgraded ${migrated} role(s) to UUID ids`)
+      await this.rolesRepository.syncIndexes()
+      await this.ensureSystemRoles()
+    } catch (error) {
+      // Don't stop the whole API from starting; the error is logged for follow-up.
+      this.logger.error('Could not prepare roles', error instanceof Error ? error.stack : String(error))
     }
   }
 
-  async findAll(): Promise<RoleDocument[]> {
-    return this.rolesRepository.findAll()
+  async ensureSystemRoles(): Promise<number> {
+    const inserted = await this.rolesRepository.insertMissingSystemRoles(SYSTEM_ROLE_SEEDS)
+    if (inserted > 0) this.logger.log(`Added ${inserted} missing system role(s)`)
+    return inserted
   }
 
-  async findOne(id: string): Promise<RoleDocument> {
+  /** Gives roles saved with non-UUID ids (e.g. "teacher") a UUID, a nameKey and their system code. */
+  async migrateLegacyRoles(): Promise<number> {
+    const legacyRoles = await this.rolesRepository.findLegacyRoles()
+    const systemCodes = new Set(SYSTEM_ROLE_SEEDS.map((seed) => seed.code))
+
+    for (const legacy of legacyRoles) {
+      const name = cleanRoleName(legacy.name ?? '')
+      const code = legacy.code ?? (systemCodes.has(legacy._id) ? legacy._id : null)
+      await this.rolesRepository.replaceRole(legacy, {
+        _id: isValidUuid(legacy._id) ? legacy._id : generateUuid(),
+        code,
+        name,
+        nameKey: roleNameKey(name),
+        description: legacy.description ?? '',
+        kind: code === null ? (legacy.kind ?? 'custom') : 'system',
+        fullAccess: legacy.fullAccess ?? false,
+        permissions: normalizePermissions(legacy.permissions ?? []),
+      })
+    }
+    return legacyRoles.length
+  }
+
+  async findAll(query: ListRolesQueryDto): Promise<RoleListResult> {
+    const records = await this.rolesRepository.findAll({ kind: query.kind, search: query.search || undefined })
+    const roles = records.map(toRoleResponse)
+    return { roles, meta: summarizeRoles(roles) }
+  }
+
+  async findOne(id: string): Promise<RoleResponseDto> {
+    return toRoleResponse(await this.getRoleOrThrow(id))
+  }
+
+  async create(dto: CreateRoleDto): Promise<RoleResponseDto> {
+    const name = cleanRoleName(dto.name)
+    const nameKey = roleNameKey(name)
+    if (await this.rolesRepository.isNameKeyTaken(nameKey)) throw roleNameTaken(name)
+
+    const permissions = dto.copyFromRoleId ? await this.permissionsToCopy(dto.copyFromRoleId) : []
+
+    try {
+      const created = await this.rolesRepository.create({
+        code: null,
+        name,
+        nameKey,
+        description: dto.description ?? '',
+        kind: 'custom',
+        fullAccess: false,
+        permissions,
+      })
+      return toRoleResponse(created)
+    } catch (error) {
+      // Another request took the name between the check and the insert.
+      if (isDuplicateKeyError(error)) throw roleNameTaken(name)
+      throw error
+    }
+  }
+
+  async update(id: string, dto: UpdateRoleDto): Promise<RoleResponseDto> {
+    if (dto.name === undefined && dto.description === undefined) throw noRoleChanges()
+    const role = await this.getRoleOrThrow(id)
+    const changes: RoleChanges = {}
+
+    if (dto.name !== undefined) {
+      const name = cleanRoleName(dto.name)
+      if (name !== role.name) {
+        if (role.kind === 'system') throw systemRoleRename(role.name)
+        const nameKey = roleNameKey(name)
+        // Only a real name change needs the uniqueness check; "teacher" → "Teacher" is the same key.
+        if (nameKey !== role.nameKey && (await this.rolesRepository.isNameKeyTaken(nameKey, id))) {
+          throw roleNameTaken(name)
+        }
+        changes.name = name
+        changes.nameKey = nameKey
+      }
+    }
+    if (dto.description !== undefined && dto.description !== role.description) {
+      changes.description = dto.description
+    }
+
+    if (Object.keys(changes).length === 0) return toRoleResponse(role)
+
+    try {
+      const updated = await this.rolesRepository.updateById(id, changes)
+      if (!updated) throw roleNotFound(id)
+      return toRoleResponse(updated)
+    } catch (error) {
+      if (isDuplicateKeyError(error)) throw roleNameTaken(changes.name ?? role.name)
+      throw error
+    }
+  }
+
+  async updatePermissions(id: string, dto: UpdatePermissionsDto): Promise<RoleResponseDto> {
+    const role = await this.getRoleOrThrow(id)
+    if (role.fullAccess) throw fullAccessLocked(role.name)
+
+    const updated = await this.rolesRepository.updateById(id, {
+      permissions: normalizePermissions(dto.permissions),
+    })
+    if (!updated) throw roleNotFound(id)
+    return toRoleResponse(updated)
+  }
+
+  async remove(id: string): Promise<DeletedRoleResponseDto> {
+    const role = await this.getRoleOrThrow(id)
+    if (role.kind === 'system') throw systemRoleDelete(role.name)
+
+    const deleted = await this.rolesRepository.deleteById(id)
+    if (!deleted) throw roleNotFound(id)
+    return toDeletedRoleResponse(deleted)
+  }
+
+  private async getRoleOrThrow(id: string): Promise<RoleRecord> {
     const role = await this.rolesRepository.findById(id)
-    if (!role) {
-      throw new NotFoundException(`Role with ID "${id}" was not found.`)
-    }
+    if (!role) throw roleNotFound(id)
     return role
   }
 
-  async create(createRoleDto: CreateRoleDto): Promise<RoleDocument> {
-    const existing = await this.rolesRepository.findByName(createRoleDto.name)
-    if (existing) {
-      throw new ConflictException(`A role named "${createRoleDto.name}" already exists.`)
-    }
-
-    let initialPermissions: string[] = []
-    if (createRoleDto.copyFromRoleId) {
-      const source = await this.rolesRepository.findById(createRoleDto.copyFromRoleId)
-      if (source) {
-        initialPermissions = [...source.permissions]
-      }
-    }
-
-    return this.rolesRepository.create({
-      _id: generateUuid(),
-      name: createRoleDto.name.trim(),
-      description: createRoleDto.description?.trim() ?? '',
-      kind: 'custom',
-      fullAccess: false,
-      permissions: initialPermissions,
-    })
-  }
-
-  async update(id: string, updateRoleDto: UpdateRoleDto): Promise<RoleDocument> {
-    const role = await this.findOne(id)
-
-    if (updateRoleDto.name && updateRoleDto.name.trim() !== role.name) {
-      const existing = await this.rolesRepository.findByNameExcludingId(
-        updateRoleDto.name.trim(),
-        id,
-      )
-
-      if (existing) {
-        throw new ConflictException(`A role named "${updateRoleDto.name}" already exists.`)
-      }
-
-      if (role.kind === 'system') {
-        throw new BadRequestException('System role names cannot be renamed.')
-      }
-
-      role.name = updateRoleDto.name.trim()
-    }
-
-    if (updateRoleDto.description !== undefined) {
-      role.description = updateRoleDto.description.trim()
-    }
-
-    const updated = await this.rolesRepository.updateById(id, {
-      name: role.name,
-      description: role.description,
-    })
-
-    if (!updated) {
-      throw new NotFoundException(`Role with ID "${id}" was not found.`)
-    }
-
-    return updated
-  }
-
-  async updatePermissions(
-    id: string,
-    updatePermissionsDto: UpdatePermissionsDto,
-  ): Promise<RoleDocument> {
-    const role = await this.findOne(id)
-
-    if (role.fullAccess) {
-      throw new BadRequestException('Administrator permissions are locked and cannot be edited.')
-    }
-
-    const uniquePermissions = Array.from(new Set(updatePermissionsDto.permissions))
-    const updated = await this.rolesRepository.updateById(id, {
-      permissions: uniquePermissions,
-    })
-
-    if (!updated) {
-      throw new NotFoundException(`Role with ID "${id}" was not found.`)
-    }
-
-    return updated
-  }
-
-  async remove(id: string): Promise<{ success: boolean; message: string }> {
-    const role = await this.findOne(id)
-
-    if (role.kind === 'system') {
-      throw new BadRequestException('System roles cannot be deleted.')
-    }
-
-    await this.rolesRepository.deleteById(id)
-    return { success: true, message: `Role "${role.name}" has been deleted.` }
+  private async permissionsToCopy(sourceId: string): Promise<string[]> {
+    const source = await this.rolesRepository.findById(sourceId)
+    if (!source) throw copySourceNotFound(sourceId)
+    if (source.fullAccess) throw fullAccessNotCopyable(source.name)
+    return normalizePermissions(source.permissions)
   }
 }

@@ -6,16 +6,10 @@ import { RolesService } from './roles.service'
 import { Role, RoleSchema } from './schemas/role.schema'
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      {
-        name: Role.name,
-        schema: RoleSchema,
-      },
-    ]),
-  ],
+  imports: [MongooseModule.forFeature([{ name: Role.name, schema: RoleSchema }])],
   controllers: [RolesController],
   providers: [RolesRepository, RolesService],
-  exports: [RolesRepository, RolesService],
+  // Other modules (e.g. staff, auth) use the service, never the repository directly.
+  exports: [RolesService],
 })
 export class RolesModule {}

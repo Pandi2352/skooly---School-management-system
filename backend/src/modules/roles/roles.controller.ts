@@ -1,174 +1,89 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Patch,
-  Post,
-  Put,
-} from '@nestjs/common'
-import {
-  ApiBadRequestResponse,
-  ApiConflictResponse,
-  ApiCreatedResponse,
-  ApiNotFoundResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-} from '@nestjs/swagger'
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put, Query } from '@nestjs/common'
+import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger'
+import { ApiErrors, ApiSuccess } from '../../common/decorators/api-envelope.decorator'
+import { ResponseMessage } from '../../common/decorators/response-message.decorator'
+import { UuidParamPipe } from '../../common/pipes/uuid-param.pipe'
+import { ResponseWithMeta } from '../../common/utils/response-with-meta.util'
 import { CreateRoleDto } from './dto/create-role.dto'
+import { ListRolesQueryDto } from './dto/list-roles-query.dto'
+import { DeletedRoleResponseDto, RoleListMetaDto, RoleResponseDto } from './dto/role-response.dto'
 import { UpdatePermissionsDto } from './dto/update-permissions.dto'
 import { UpdateRoleDto } from './dto/update-role.dto'
 import { RolesService } from './roles.service'
-import { Role } from './schemas/role.schema'
 
+const ROLE_ID_PARAM = {
+  name: 'id',
+  format: 'uuid',
+  description: 'Role id (UUID v4)',
+  example: '6f1d2c3b-4a5e-4f60-9b7a-8c9d0e1f2a3b',
+}
+
+/** HTTP only: validation, status codes and messages. Every rule is in RolesService. */
 @ApiTags('Roles & Permissions')
 @Controller('roles')
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Get()
-  @ApiOperation({
-    summary: 'Retrieve all roles',
-    description: 'Returns all system-defined and institution-specific roles ordered by kind and title.',
-  })
-  @ApiOkResponse({
-    description: 'List of all school staff roles',
-    type: [Role],
-  })
-  async findAll(): Promise<Role[]> {
-    return this.rolesService.findAll()
+  @ResponseMessage('Roles fetched successfully.')
+  @ApiOperation({ summary: 'List roles', description: 'Administrator first, then system roles, then custom roles, each A–Z.' })
+  @ApiSuccess(RoleResponseDto, { description: 'Roles with counts in meta', isArray: true, meta: RoleListMetaDto })
+  @ApiErrors(HttpStatus.BAD_REQUEST, HttpStatus.INTERNAL_SERVER_ERROR)
+  async findAll(@Query() query: ListRolesQueryDto): Promise<ResponseWithMeta<RoleResponseDto[]>> {
+    const { roles, meta } = await this.rolesService.findAll(query)
+    return new ResponseWithMeta(roles, { ...meta })
   }
 
   @Get(':id')
-  @ApiOperation({
-    summary: 'Get role by ID',
-    description: 'Fetch details and assigned permissions for a specific role.',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'Unique role identifier (UUID v4 or standard system key)',
-    example: 'administrator',
-  })
-  @ApiOkResponse({
-    description: 'Role details with granted permissions',
-    type: Role,
-  })
-  @ApiNotFoundResponse({
-    description: 'Role not found',
-  })
-  async findOne(@Param('id') id: string): Promise<Role> {
+  @ResponseMessage('Role fetched successfully.')
+  @ApiOperation({ summary: 'Get a role' })
+  @ApiParam(ROLE_ID_PARAM)
+  @ApiSuccess(RoleResponseDto, { description: 'The role and its permissions' })
+  @ApiErrors(HttpStatus.BAD_REQUEST, HttpStatus.NOT_FOUND)
+  findOne(@Param('id', UuidParamPipe) id: string): Promise<RoleResponseDto> {
     return this.rolesService.findOne(id)
   }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({
-    summary: 'Create custom role',
-    description: 'Provision a new school role, optionally copying permission settings from a template role.',
-  })
-  @ApiCreatedResponse({
-    description: 'The newly created role',
-    type: Role,
-  })
-  @ApiConflictResponse({
-    description: 'A role with this name already exists',
-  })
-  @ApiBadRequestResponse({
-    description: 'Validation failed on supplied fields',
-  })
-  async create(@Body() createRoleDto: CreateRoleDto): Promise<Role> {
-    return this.rolesService.create(createRoleDto)
+  @ResponseMessage('Role created successfully.')
+  @ApiOperation({ summary: 'Create a custom role', description: 'Optionally copies permissions from another role.' })
+  @ApiSuccess(RoleResponseDto, { status: HttpStatus.CREATED, description: 'The new role' })
+  @ApiErrors(HttpStatus.BAD_REQUEST, HttpStatus.NOT_FOUND, HttpStatus.CONFLICT, HttpStatus.UNPROCESSABLE_ENTITY)
+  create(@Body() dto: CreateRoleDto): Promise<RoleResponseDto> {
+    return this.rolesService.create(dto)
   }
 
   @Patch(':id')
-  @ApiOperation({
-    summary: 'Update role details',
-    description: 'Update the name or description of an existing role (system role names are immutable).',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'Unique role identifier',
-    example: 'transport-manager',
-  })
-  @ApiOkResponse({
-    description: 'Updated role document',
-    type: Role,
-  })
-  @ApiNotFoundResponse({
-    description: 'Role not found',
-  })
-  @ApiConflictResponse({
-    description: 'Another role with the target name already exists',
-  })
-  @ApiBadRequestResponse({
-    description: 'System roles cannot be renamed or validation failed',
-  })
-  async update(
-    @Param('id') id: string,
-    @Body() updateRoleDto: UpdateRoleDto,
-  ): Promise<Role> {
-    return this.rolesService.update(id, updateRoleDto)
+  @ResponseMessage('Role updated successfully.')
+  @ApiOperation({ summary: 'Update role details', description: 'Name and/or description. System roles can’t be renamed.' })
+  @ApiParam(ROLE_ID_PARAM)
+  @ApiSuccess(RoleResponseDto, { description: 'The updated role' })
+  @ApiErrors(HttpStatus.BAD_REQUEST, HttpStatus.NOT_FOUND, HttpStatus.CONFLICT, HttpStatus.UNPROCESSABLE_ENTITY)
+  update(@Param('id', UuidParamPipe) id: string, @Body() dto: UpdateRoleDto): Promise<RoleResponseDto> {
+    return this.rolesService.update(id, dto)
   }
 
   @Put(':id/permissions')
+  @ResponseMessage('Role permissions saved successfully.')
   @ApiOperation({
-    summary: 'Update assigned permissions',
-    description: 'Save the complete list of granted permissions for a role (Administrator permissions are locked).',
+    summary: 'Replace role permissions',
+    description: 'Saves the complete list; duplicates are removed. Full-access roles are locked.',
   })
-  @ApiParam({
-    name: 'id',
-    description: 'Unique role identifier',
-    example: 'teacher',
-  })
-  @ApiOkResponse({
-    description: 'Role with updated permission set',
-    type: Role,
-  })
-  @ApiNotFoundResponse({
-    description: 'Role not found',
-  })
-  @ApiBadRequestResponse({
-    description: 'Full-access administrator permissions cannot be modified',
-  })
-  async updatePermissions(
-    @Param('id') id: string,
-    @Body() updatePermissionsDto: UpdatePermissionsDto,
-  ): Promise<Role> {
-    return this.rolesService.updatePermissions(id, updatePermissionsDto)
+  @ApiParam(ROLE_ID_PARAM)
+  @ApiSuccess(RoleResponseDto, { description: 'The role with its new permissions' })
+  @ApiErrors(HttpStatus.BAD_REQUEST, HttpStatus.NOT_FOUND, HttpStatus.UNPROCESSABLE_ENTITY)
+  updatePermissions(@Param('id', UuidParamPipe) id: string, @Body() dto: UpdatePermissionsDto): Promise<RoleResponseDto> {
+    return this.rolesService.updatePermissions(id, dto)
   }
 
   @Delete(':id')
-  @ApiOperation({
-    summary: 'Delete custom role',
-    description: 'Permanently remove a custom role (built-in system roles cannot be deleted).',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'Unique role identifier',
-    example: 'transport-manager',
-  })
-  @ApiOkResponse({
-    description: 'Deletion confirmation',
-    schema: {
-      type: 'object',
-      properties: {
-        success: { type: 'boolean', example: true },
-        message: { type: 'string', example: 'Role "Transport Manager" has been deleted.' },
-      },
-    },
-  })
-  @ApiNotFoundResponse({
-    description: 'Role not found',
-  })
-  @ApiBadRequestResponse({
-    description: 'System roles cannot be deleted',
-  })
-  async remove(@Param('id') id: string): Promise<{ success: boolean; message: string }> {
+  @ResponseMessage('Role deleted successfully.')
+  @ApiOperation({ summary: 'Delete a custom role', description: 'System roles can’t be deleted.' })
+  @ApiParam(ROLE_ID_PARAM)
+  @ApiSuccess(DeletedRoleResponseDto, { description: 'The deleted role’s id and name' })
+  @ApiErrors(HttpStatus.BAD_REQUEST, HttpStatus.NOT_FOUND, HttpStatus.UNPROCESSABLE_ENTITY)
+  remove(@Param('id', UuidParamPipe) id: string): Promise<DeletedRoleResponseDto> {
     return this.rolesService.remove(id)
   }
 }

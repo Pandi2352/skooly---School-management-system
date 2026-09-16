@@ -1,8 +1,5 @@
-export * from './roles.module'
-export * from './roles.service'
-export * from './roles.controller'
-export * from './schemas/role.schema'
-export * from './dto/create-role.dto'
-export * from './dto/update-role.dto'
-export * from './dto/update-permissions.dto'
-export * from './constants/default-roles.constant'
+// Public API of the roles module for other modules.
+export { RolesModule } from './roles.module'
+export { RolesService } from './roles.service'
+export { RoleResponseDto } from './dto/role-response.dto'
+export { PERMISSION_ACTIONS, PERMISSION_KEY_PATTERN, RoleErrorCode, type PermissionAction, type RoleKind } from './constants/role.constants'
