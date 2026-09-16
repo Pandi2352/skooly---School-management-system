@@ -1,0 +1,30 @@
+// Every URL in the app. Links use these, never hand-typed strings.
+export const paths = {
+  root: '/',
+  login: '/login',
+  dashboard: '/dashboard',
+  navigator: '/navigator',
+  contactSupport: '/contact-support',
+  students: '/students',
+  studentNew: '/students/new',
+  student: (studentId: string) => `/students/${studentId}`,
+  studentEdit: (studentId: string) => `/students/${studentId}/edit`,
+  settings: '/settings',
+  settingsGeneral: '/settings/general',
+  settingsSchool: '/settings/school',
+  settingsCustomFields: '/settings/custom-fields',
+  settingsRoles: '/settings/roles',
+  // Matches the navigation slug of "Backup Management", so the sidebar link lands here.
+  backups: '/backup-management',
+  templateGallery: '/template-gallery',
+  /** Opens a saved or starter design; with no id, a blank ID card. */
+  canvasDesigner: (templateId?: string) =>
+    templateId === undefined
+      ? '/template-gallery/designer'
+      : `/template-gallery/designer?template=${encodeURIComponent(templateId)}`,
+  canvasDesignerBlank: (sizeId: string) =>
+    `/template-gallery/designer?size=${encodeURIComponent(sizeId)}`,
+  cardDesigns: '/id-cards/card-designs',
+  module: (moduleSlug: string) => `/${moduleSlug}`,
+  feature: (moduleSlug: string, featureSlug: string) => `/${moduleSlug}/${featureSlug}`,
+} as const

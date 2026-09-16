@@ -1,0 +1,82 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* Palette from DESIGN.md. Tailwind's default colours are removed so only these exist. */
+@theme {
+  --color-*: initial;
+  --color-canvas: #f5f6f8;
+  --color-surface: #ffffff;
+  --color-ink: #1a2233;
+  --color-ink-muted: #525c6b;
+  --color-line: #d8dce3;
+  --color-control: #8a94a3;
+  --color-field: #ced4da;
+  --color-primary: #1f3a5f;
+  --color-danger: #b42318;
+  --color-danger-soft: #fde8e7;
+  --color-success: #166534;
+  --color-success-soft: #dcfce7;
+  --color-table-head: #eef1f5;
+  --color-side: #13233b;
+  --color-side-ink: #e8edf4;
+  --color-side-muted: #a7b4c6;
+  --color-side-hover: #1d3252;
+  --color-side-active: #243d61;
+  --color-side-input: #0e1b2e;
+  --color-side-input-line: #6b7d98;
+  --color-side-line: rgb(255 255 255 / 0.08);
+  --color-accent: #f0a500;
+  --color-status: #fdf1d6;
+  --color-status-ink: #7a4d00;
+  --color-backdrop: rgb(10 16 26 / 0.5);
+
+  --font-sans: 'Source Sans 3 Variable', system-ui, sans-serif;
+
+  --spacing-sidebar: 14rem;
+  --spacing-sidebar-collapsed: 4.5rem;
+  --spacing-navbar: 3.5rem;
+}
+
+@layer theme {
+  :root {
+    @variant dark {
+      --color-canvas: #0d131d;
+      --color-surface: #151d2a;
+      --color-ink: #e6ebf2;
+      --color-ink-muted: #a1acbd;
+      --color-line: #2a3445;
+      --color-control: #6b778a;
+      --color-field: #3a4557;
+      --color-primary: #9bbbe6;
+      --color-danger: #f97066;
+      --color-danger-soft: #3a1a18;
+      --color-success: #6ee7a0;
+      --color-success-soft: #0f2a1c;
+      --color-table-head: #19243a;
+      --color-side: #0a101a;
+      --color-side-ink: #e6ebf2;
+      --color-side-muted: #97a4b7;
+      --color-side-hover: #162235;
+      --color-side-active: #1c2b42;
+      --color-side-input: #070b12;
+      --color-side-input-line: #64748d;
+      --color-side-line: rgb(255 255 255 / 0.06);
+      --color-accent: #f5b52e;
+      --color-status: #33270f;
+      --color-status-ink: #f5c863;
+      --color-backdrop: rgb(0 0 0 / 0.6);
+    }
+  }
+
+  /* Blue colour theme (Settings menu). Only the brand colour and the table header tint change; the sidebar keeps its navy. */
+  :root[data-color='blue'] {
+    --color-primary: #0060df;
+    --color-table-head: #eaf2fe;
+  }
+
+  :root[data-color='blue'][data-theme='dark'] {
+    --color-primary: #7ab8ff;
+    --color-table-head: #16263d;
+  }
+}

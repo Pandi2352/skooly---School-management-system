@@ -1,0 +1,42 @@
+<!doctype html>
+<!--
+  Root size: 93.75% (15px by default) on mouse screens so the dense ERP screens fit more, 100% on
+  touch screens so tap targets stay 44px. It's a percentage, so the browser's font-size setting still applies.
+  Custom scrollbars for every scrolling area: thin, rounded, `control`-coloured thumb on a clear track.
+  scrollbar-color is inherited; scrollbar-width isn't, so it is set on every element (**:).
+  The ::-webkit-scrollbar classes only matter in older Safari; other browsers use the standard properties.
+  Cursor (on <body>): Tailwind's reset gives buttons the default arrow, so every clickable element
+  (buttons, tabs, menu items, dropdown options, labels) gets a pointer here, and disabled ones get
+  not-allowed. Body descendants include dropdowns and dialogs rendered in portals.
+-->
+<html
+  lang="en"
+  class="dark:scheme-dark[scrollbar-color:var(--color-control)_transparent] [scrollbar-width:thin] text-[93.75%] scheme-light **:[scrollbar-width:thin] pointer-coarse:text-base **:[&::-webkit-scrollbar]:size-2 **:[&::-webkit-scrollbar-thumb]:rounded-full **:[&::-webkit-scrollbar-thumb]:bg-control **:[&::-webkit-scrollbar-track]:bg-transparent"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/jpeg" href="/skooly-logo.jpg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Skooly · School ERP</title>
+    <script>
+      // Set the theme before first paint to avoid a light flash; key matches src/lib/storageKeys.ts.
+      try {
+        var saved = localStorage.getItem('erp-theme')
+        var savedColor = localStorage.getItem('erp-color-theme')
+      } catch (e) {}
+      document.documentElement.dataset.color = savedColor === 'blue' ? 'blue' : 'navy'
+      document.documentElement.dataset.theme =
+        saved === 'dark' || saved === 'light'
+          ? saved
+          : matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'dark'
+            : 'light'
+    </script>
+  </head>
+  <body
+    class="[&_[data-disabled]]:cursor-not-allowed**:focus-visible:outline-2 bg-canvas font-sans text-ink **:focus-visible:outline-offset-2 **:focus-visible:outline-primary [&_:disabled]:cursor-not-allowed [&_[role=button]:not([aria-disabled=true])]:cursor-pointer [&_[role=menuitem]:not([data-disabled])]:cursor-pointer [&_[role=menuitemcheckbox]:not([data-disabled])]:cursor-pointer [&_[role=option]:not([data-disabled])]:cursor-pointer [&_[role=tab]:not([data-disabled])]:cursor-pointer [&_button:not(:disabled)]:cursor-pointer [&_label[for]]:cursor-pointer [&_summary]:cursor-pointer"
+  >
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

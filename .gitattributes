@@ -1,0 +1,20 @@
+# Keep LF line endings in the repository and on every machine, matching Prettier's default.
+# Without this, Git on Windows (core.autocrlf=true) converts files to CRLF and warns on every add.
+* text=auto eol=lf
+
+# Windows-only scripts need CRLF to run.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary files: never touch their bytes.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.zip binary
