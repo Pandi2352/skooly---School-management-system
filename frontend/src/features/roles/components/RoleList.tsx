@@ -4,7 +4,7 @@ import { cn } from '@/lib/cn'
 import type { Role } from '../types/role.types'
 import { permissionCatalog } from '../utils/permissionCatalog'
 import { summarizeRole } from '../utils/permissions'
-import { getRoleIcon } from '../utils/roleIcons'
+import { RoleIcon } from './RoleIcon'
 
 type RoleListProps = {
   roles: Role[]
@@ -35,7 +35,6 @@ export function RoleList({ roles, selectedId, onSelect }: RoleListProps) {
           const summary = summarizeRole(role, permissionCatalog)
           const current = role.id === selectedId
           const share = summary.total === 0 ? 0 : Math.round((summary.granted / summary.total) * 100)
-          const RoleIcon = getRoleIcon(role)
 
           return (
             <li key={role.id}>
@@ -60,9 +59,9 @@ export function RoleList({ roles, selectedId, onSelect }: RoleListProps) {
                   )}
                 >
                   <RoleIcon
+                    roleId={role.id}
                     className="size-4.5"
                     weight={current ? 'bold' : 'regular'}
-                    aria-hidden="true"
                   />
                 </span>
 

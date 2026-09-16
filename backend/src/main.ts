@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core'
 import { ConfigService } from '@nestjs/config'
 import { Logger, ValidationPipe } from '@nestjs/common'
 import { AppModule } from './app.module'
+import { AllExceptionsFilter } from './common/filters/http-exception.filter'
 import { getCorsConfig } from './config/cors.config'
 import { setupSwagger } from './config/swagger.config'
 
@@ -27,6 +28,9 @@ async function bootstrap() {
       },
     }),
   )
+
+  // Global exception filter for consistent error formats
+  app.useGlobalFilters(new AllExceptionsFilter())
 
   // Dedicated CORS configuration from environment
   app.enableCors(getCorsConfig(configService))

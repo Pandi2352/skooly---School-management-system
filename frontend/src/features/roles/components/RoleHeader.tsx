@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/useToast'
 import { getErrorMessage } from '@/lib/api/getErrorMessage'
 import { useDeleteRole } from '../hooks/useRoles'
 import type { Role } from '../types/role.types'
-import { getRoleIcon } from '../utils/roleIcons'
+import { RoleIcon } from './RoleIcon'
 
 type RoleHeaderProps = {
   role: Role
@@ -20,14 +20,13 @@ export function RoleHeader({ role, headingId, onEditDetails, onDeleted }: RoleHe
   const { toast } = useToast()
   const deleteRole = useDeleteRole()
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const RoleIcon = getRoleIcon(role)
 
   return (
     <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line px-4 py-4 @xl:px-5">
       <div className="grid min-w-0 gap-1">
         <div className="flex flex-wrap items-center gap-2.5">
           <span className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary dark:bg-accent/15 dark:text-accent">
-            <RoleIcon className="size-4" weight="bold" aria-hidden="true" />
+            <RoleIcon roleId={role.id} className="size-4" weight="bold" />
           </span>
           <h2 id={headingId} className="text-lg font-bold text-ink">
             {role.name}
