@@ -10,10 +10,16 @@ const themeOptions = [
   { value: 'dark', label: 'Dark' },
 ]
 
-const colorThemeOptions = COLOR_THEMES.map(({ value, label }) => ({ value, label }))
+const SCHOOL_DEFAULT = 'school'
 
 export function GeneralSettingsPage() {
-  const { preference, setPreference, colorTheme, setColorTheme } = useTheme()
+  const { preference, setPreference, colorTheme, setColorTheme, schoolColorTheme, usesSchoolColorTheme, followSchoolColorTheme } =
+    useTheme()
+  const schoolLabel = COLOR_THEMES.find((option) => option.value === schoolColorTheme)?.label ?? 'Navy'
+  const colorThemeOptions = [
+    { value: SCHOOL_DEFAULT, label: `School default (${schoolLabel})` },
+    ...COLOR_THEMES.map(({ value, label }) => ({ value, label })),
+  ]
 
   return (
     <PageContainer title="General settings" description="These settings are saved in this browser.">
@@ -30,11 +36,12 @@ export function GeneralSettingsPage() {
           />
           <Select
             label="Colour theme"
-            hint="Changes buttons, links and headings. The sidebar stays navy."
+            hint="Changes buttons, links and headings. The sidebar stays navy. The school default is set on the Branding page."
             options={colorThemeOptions}
-            value={colorTheme}
+            value={usesSchoolColorTheme ? SCHOOL_DEFAULT : colorTheme}
             onValueChange={(value) => {
-              if (isColorTheme(value)) setColorTheme(value)
+              if (value === SCHOOL_DEFAULT) followSchoolColorTheme()
+              else if (isColorTheme(value)) setColorTheme(value)
             }}
           />
         </div>

@@ -16,8 +16,6 @@ export const COUNTRY_OPTIONS = [
   { value: 'AE', label: 'United Arab Emirates (+971)' },
 ]
 
-export const IMAGE_UPLOAD_MAX_BYTES = 1024 * 1024
-
 export const CURRENCIES = ['INR', 'BDT', 'NPR', 'LKR', 'AED'] as const
 
 export const CURRENCY_OPTIONS: { value: (typeof CURRENCIES)[number]; label: string }[] = [

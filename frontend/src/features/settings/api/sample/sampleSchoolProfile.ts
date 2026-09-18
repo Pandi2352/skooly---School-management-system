@@ -11,9 +11,6 @@ let profile: SchoolProfile = {
   principalName: '',
   country: 'IN',
   address: '',
-  logo: null,
-  favicon: null,
-  principalSignature: null,
 }
 
 export const readSampleSchoolProfile = (): SchoolProfile => profile

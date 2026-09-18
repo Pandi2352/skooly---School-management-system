@@ -6,6 +6,7 @@ import { Tooltip } from '@/components/ui/Tooltip'
 import { moduleIcons } from '@/config/moduleIcons'
 import { navSections } from '@/config/navigation'
 import { cn } from '@/lib/cn'
+import type { Branding } from '@/features/branding/types/branding.types'
 import { SidebarFooter } from './SidebarFooter'
 import { SidebarGroup } from './SidebarGroup'
 import { SidebarItem } from './SidebarItem'
@@ -20,6 +21,7 @@ type SidebarProps = {
   onClose: () => void
   onExpand: () => void
   onNavigate: () => void
+  branding?: Branding
 }
 
 // Closing also transitions visibility so the drawer stays visible while it slides out;
@@ -37,11 +39,17 @@ export function Sidebar({
   onClose,
   onExpand,
   onNavigate,
+  branding,
 }: SidebarProps) {
   const { pathname } = useLocation()
   const activeModule = pathname.split('/')[1] ?? ''
   const [toggled, setToggled] = useState<Record<string, boolean>>({})
   const navRef = useRef<HTMLElement>(null)
+
+  const logoUrl = branding?.assets.logo?.url ?? '/skooly-logo.jpg'
+  const schoolName = branding?.displayName ?? 'Skooly'
+  const subLabel = branding?.shortName ?? 'School ERP'
+  const brandLabel = `${schoolName} · ${subLabel}`
 
   useEffect(() => {
     // With 13 modules the current page can start below the fold. Scroll the nav vertically only:
@@ -74,7 +82,7 @@ export function Sidebar({
           collapsed ? 'justify-center px-2' : 'justify-between px-4',
         )}
       >
-        <Tooltip content="Skooly · School ERP" side="right" disabled={!collapsed}>
+        <Tooltip content={brandLabel} side="right" disabled={!collapsed}>
           <Link
             to={paths.dashboard}
             onClick={onNavigate}
@@ -82,11 +90,11 @@ export function Sidebar({
               'group flex min-w-0 items-center gap-3 rounded-md focus-visible:outline-accent',
               collapsed ? 'size-10 justify-center' : 'hover:opacity-95',
             )}
-            aria-label="Skooly · School ERP"
+            aria-label={brandLabel}
           >
             <img
-              src="/skooly-logo.jpg"
-              alt="Skooly"
+              src={logoUrl}
+              alt={schoolName}
               className={cn(
                 'ring-white/15 shrink-0 rounded-lg object-cover shadow-xs ring-1 transition-transform duration-150 group-hover:scale-105',
                 collapsed ? 'size-9' : 'size-8.5',
@@ -94,16 +102,22 @@ export function Sidebar({
             />
             {!collapsed && (
               <div className="flex min-w-0 flex-col">
-                <span className="text-base leading-none font-bold tracking-tight whitespace-nowrap text-side-ink">
-                  Skooly
+                <span
+                  className="text-base leading-none font-bold tracking-tight whitespace-nowrap text-side-ink truncate max-w-[140px]"
+                  title={schoolName}
+                >
+                  {schoolName}
                 </span>
-                <span className="mt-1 text-[10px] leading-none font-semibold tracking-wider whitespace-nowrap text-side-muted uppercase">
-                  School ERP
+                <span
+                  className="mt-1 text-[10px] leading-none font-semibold tracking-wider whitespace-nowrap text-side-muted uppercase truncate max-w-[140px]"
+                >
+                  {subLabel}
                 </span>
               </div>
             )}
           </Link>
         </Tooltip>
+
         {mode === 'drawer' && (
           <button
             ref={closeButtonRef}

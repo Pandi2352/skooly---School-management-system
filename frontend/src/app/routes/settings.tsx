@@ -14,6 +14,12 @@ export const settingsRoutes: RouteObject[] = [
         }),
       },
       {
+        path: 'branding',
+        lazy: async () => ({
+          Component: (await import('@/features/branding/pages/BrandingPage')).BrandingPage,
+        }),
+      },
+      {
         path: 'roles',
         lazy: async () => ({
           Component: (await import('@/features/roles/pages/RolesPage')).RolesPage,

@@ -21,8 +21,5 @@ export const schoolProfileSchema = z.object({
   principalName: limitedText(80),
   country: z.string().min(1, 'Choose a country'),
   address: limitedText(300),
-  /** Image URL from the server, or a data URL for a newly chosen file. */
-  logo: z.string().nullable(),
-  favicon: z.string().nullable(),
-  principalSignature: z.string().nullable(),
+  // Logo, favicon and signature belong to Branding (features/branding), not the profile.
 })

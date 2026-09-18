@@ -12,6 +12,7 @@ export const paths = {
   settings: '/settings',
   settingsGeneral: '/settings/general',
   settingsSchool: '/settings/school',
+  settingsBranding: '/settings/branding',
   settingsCustomFields: '/settings/custom-fields',
   settingsRoles: '/settings/roles',
   // Matches the navigation slug of "Backup Management", so the sidebar link lands here.

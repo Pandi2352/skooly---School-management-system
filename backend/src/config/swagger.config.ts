@@ -38,6 +38,8 @@ export function setupSwagger(app: INestApplication): void {
       'JWT-auth',
     )
     .addTag('Health', 'Application and database health monitoring endpoints')
+    .addTag('Roles & Permissions', 'Staff roles and what each one can see and change')
+    .addTag('Branding', 'School name, tagline, colour theme, logo, favicon, signature, seal and login image')
     .addTag('Core Setup & Administration', 'Academic sessions, sections, roles and institution setup')
     .addTag('Student Information', 'Student demographics, admissions, guardians and profiles')
     .addTag('Fees & Finance', 'Fee structures, collections, day-book, and ledger')

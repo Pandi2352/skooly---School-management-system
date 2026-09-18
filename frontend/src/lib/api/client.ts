@@ -9,6 +9,7 @@ type RequestOptions = Omit<RequestInit, 'method' | 'body' | 'headers'> & {
 }
 
 const DEFAULT_TIMEOUT_MS = 15_000
+const UPLOAD_TIMEOUT_MS = 60_000
 
 /**
  * Every response is parsed with the caller's Zod schema: the API sits outside this app's type
@@ -26,6 +27,8 @@ async function request<S extends z.ZodType>(
     'VITE_API_URL is not set. Copy .env.example to .env and set the API address.',
   )
 
+  // FormData (file uploads) is sent as-is so the browser sets the multipart boundary itself.
+  const isFormData = body instanceof FormData
   const response = await fetch(`${env.apiUrl}${path}`, {
     ...init,
     method,
@@ -33,10 +36,10 @@ async function request<S extends z.ZodType>(
     credentials: 'include',
     headers: {
       Accept: 'application/json',
-      ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+      ...(body === undefined || isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...headers,
     },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
     signal: signal ?? AbortSignal.timeout(timeoutMs),
   })
 
@@ -61,4 +64,11 @@ export const api = {
     request('PATCH', path, schema, body, options),
   delete: <S extends z.ZodType>(path: string, schema: S, options?: RequestOptions) =>
     request('DELETE', path, schema, undefined, options),
+  /** Sends files as multipart/form-data. Uploads get a longer default timeout than other requests. */
+  upload: <S extends z.ZodType>(
+    path: string,
+    schema: S,
+    formData: FormData,
+    { method = 'POST', timeoutMs = UPLOAD_TIMEOUT_MS, ...options }: RequestOptions & { method?: 'POST' | 'PUT' } = {},
+  ) => request(method, path, schema, formData, { ...options, timeoutMs }),
 }

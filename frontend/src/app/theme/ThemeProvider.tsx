@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { readStorage, removeStorage, writeStorage } from '@/lib/storage'
 import { STORAGE_KEYS } from '@/lib/storageKeys'
@@ -9,16 +9,24 @@ const readPreference = (): ThemePreference => {
   return saved === 'light' || saved === 'dark' ? saved : 'system'
 }
 
-const readColorTheme = (): ColorTheme => {
+const readPersonalColorTheme = (): ColorTheme | null => {
   const saved = readStorage(STORAGE_KEYS.colorTheme)
+  return isColorTheme(saved) ? saved : null
+}
+
+// The school default is cached so the first paint (index.html) uses it before branding loads.
+const readSchoolColorTheme = (): ColorTheme => {
+  const saved = readStorage(STORAGE_KEYS.schoolColorTheme)
   return isColorTheme(saved) ? saved : 'navy'
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [preference, setPreferenceState] = useState(readPreference)
-  const [colorTheme, setColorThemeState] = useState(readColorTheme)
+  const [personalColorTheme, setPersonalColorTheme] = useState(readPersonalColorTheme)
+  const [schoolColorTheme, setSchoolColorThemeState] = useState(readSchoolColorTheme)
   const prefersDark = useMediaQuery('(prefers-color-scheme: dark)')
   const theme = preference === 'system' ? (prefersDark ? 'dark' : 'light') : preference
+  const colorTheme = personalColorTheme ?? schoolColorTheme
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -27,6 +35,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.dataset.color = colorTheme
   }, [colorTheme])
+
+  // Stable, because BrandingSync calls it from an effect whenever branding loads.
+  const setSchoolColorTheme = useCallback((next: ColorTheme) => {
+    setSchoolColorThemeState(next)
+    writeStorage(STORAGE_KEYS.schoolColorTheme, next)
+  }, [])
 
   const value = useMemo(
     () => ({
@@ -39,12 +53,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       },
       colorTheme,
       setColorTheme: (next: ColorTheme) => {
-        setColorThemeState(next)
-        if (next === 'navy') removeStorage(STORAGE_KEYS.colorTheme)
-        else writeStorage(STORAGE_KEYS.colorTheme, next)
+        setPersonalColorTheme(next)
+        writeStorage(STORAGE_KEYS.colorTheme, next)
+      },
+      schoolColorTheme,
+      setSchoolColorTheme,
+      usesSchoolColorTheme: personalColorTheme === null,
+      followSchoolColorTheme: () => {
+        setPersonalColorTheme(null)
+        removeStorage(STORAGE_KEYS.colorTheme)
       },
     }),
-    [preference, theme, colorTheme],
+    [preference, theme, colorTheme, schoolColorTheme, setSchoolColorTheme, personalColorTheme],
   )
 
   return <ThemeContext value={value}>{children}</ThemeContext>

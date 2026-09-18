@@ -1,13 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { InfoIcon, PaintBrushIcon } from '@phosphor-icons/react'
 import { Controller, useForm } from 'react-hook-form'
-import { ImageUploadField } from '@/components/ui/ImageUploadField'
+import { Link } from 'react-router-dom'
+import { paths } from '@/app/paths'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
 import { useToast } from '@/hooks/useToast'
 import { getErrorMessage } from '@/lib/api/getErrorMessage'
-import { COUNTRY_OPTIONS, IMAGE_UPLOAD_MAX_BYTES } from '../constants'
+import { COUNTRY_OPTIONS } from '../constants'
 import { useUpdateSchoolProfile } from '../hooks/useSchoolProfile'
 import { schoolProfileSchema } from '../schemas/schoolProfile.schema'
 import type { SchoolProfile } from '../types/settings.types'
@@ -120,55 +121,17 @@ export function SchoolProfileForm({ profile }: { profile: SchoolProfile }) {
           </div>
         </section>
 
-        <section aria-labelledby="branding-appearance" className="grid gap-4">
+        <section aria-labelledby="branding-appearance" className="grid gap-3">
           <SettingsSectionHeading id="branding-appearance" icon={PaintBrushIcon}>
             Branding & appearance
           </SettingsSectionHeading>
-          <div className="grid gap-6 sm:grid-cols-3">
-            <Controller
-              control={control}
-              name="logo"
-              render={({ field }) => (
-                <ImageUploadField
-                  label="School logo"
-                  hint="PNG, JPG or SVG, up to 1 MB"
-                  accept="image/png,image/jpeg,image/svg+xml"
-                  maxBytes={IMAGE_UPLOAD_MAX_BYTES}
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-              )}
-            />
-            <Controller
-              control={control}
-              name="favicon"
-              render={({ field }) => (
-                <ImageUploadField
-                  label="Favicon"
-                  hint="PNG or ICO, up to 1 MB"
-                  accept="image/png,image/x-icon,image/vnd.microsoft.icon"
-                  maxBytes={IMAGE_UPLOAD_MAX_BYTES}
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-              )}
-            />
-            <Controller
-              control={control}
-              name="principalSignature"
-              render={({ field }) => (
-                <ImageUploadField
-                  label="Principal signature"
-                  hint="PNG or JPG, up to 1 MB"
-                  accept="image/png,image/jpeg"
-                  maxBytes={IMAGE_UPLOAD_MAX_BYTES}
-                  previewShape="wide"
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-              )}
-            />
-          </div>
+          <p className="text-sm text-ink-muted">
+            The logo, favicon, principal signature, school seal, login image and colour theme are managed on the
+            Branding page, with a preview of where each one appears.{' '}
+            <Link to={paths.settingsBranding} className="font-semibold text-primary underline underline-offset-2">
+              Open Branding
+            </Link>
+          </p>
         </section>
       </div>
 

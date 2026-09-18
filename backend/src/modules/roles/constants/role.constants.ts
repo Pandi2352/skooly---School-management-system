@@ -23,6 +23,18 @@ export const ROLE_LIMITS = {
 /** Letters, numbers and spaces, plus & ' ( ) . / - ; must start with a letter or number. */
 export const ROLE_NAME_PATTERN = /^[\p{L}\p{N}][\p{L}\p{N} &'()./-]*$/u
 
+/**
+ * Permission keys that protect the roles API. They match the Roles & Permissions page key in the
+ * frontend permission list (Administration → Role & Permission Management), so granting that page
+ * in the UI grants these endpoints.
+ */
+export const ROLE_PERMISSIONS = {
+  view: 'core-setup-and-administration.role-and-permission-management:view',
+  create: 'core-setup-and-administration.role-and-permission-management:create',
+  edit: 'core-setup-and-administration.role-and-permission-management:edit',
+  delete: 'core-setup-and-administration.role-and-permission-management:delete',
+} as const
+
 /** Codes for role-specific failures; general ones live in common/constants/error-codes.constant.ts. */
 export enum RoleErrorCode {
   ROLE_NOT_FOUND = 'ROLE_NOT_FOUND',

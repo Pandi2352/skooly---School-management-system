@@ -7,9 +7,9 @@ const tips = [
     detail: 'Short names (e.g. "SPS") fit where space is tight, such as SMS messages to parents.',
   },
   {
-    term: 'Images',
+    term: 'Logo and images',
     detail:
-      'Use transparent PNGs so they look right on light and dark screens. Keep the favicon a simple square, and the principal signature a clear scan for report cards.',
+      'Upload the logo, favicon, principal signature and school seal on the Branding page (Settings & Billing → Branding). It shows the size each one needs.',
   },
 ]
 

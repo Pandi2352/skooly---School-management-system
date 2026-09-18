@@ -11,6 +11,7 @@ import { Link } from 'react-router-dom'
 import { paths } from '@/app/paths'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { useTheme } from '@/hooks/useTheme'
+import { useBranding } from '@/features/branding/hooks/useBranding'
 import { LoginForm } from '../components/LoginForm'
 import { RoleQuickSwitch } from '../components/RoleQuickSwitch'
 import type { ErpRole } from '../types/auth.types'
@@ -19,6 +20,17 @@ export function LoginPage() {
   const [selectedRole, setSelectedRole] = useState<ErpRole>('admin')
   const [email, setEmail] = useState('admin@skooly.edu')
   const { preference, setPreference } = useTheme()
+  const branding = useBranding()
+
+  const logoUrl = branding.data?.assets.logo?.url ?? '/skooly-logo.jpg'
+  const bgUrl = branding.data?.assets.loginBackground?.url ?? '/school-campus-bg.jpg'
+  const schoolName = branding.data?.displayName ?? 'Skooly'
+  const shortName = branding.data?.shortName ?? 'School ERP'
+  const tagline =
+    branding.data?.tagline ??
+    'Single-institution school management system for calm administration, student lifecycles, and everyday academic excellence.'
+  const footerText =
+    branding.data?.documentFooter ?? '© 2026 Skooly ERP · St. Xavier’s Senior Academy. All rights reserved.'
 
   const handleRoleSelect = (role: ErpRole, selectedEmail: string) => {
     setSelectedRole(role)
@@ -31,10 +43,10 @@ export function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen w-full flex-col justify-between overflow-x-hidden">
-      {/* Anime school campus architectural outline background */}
+      {/* School campus architectural background */}
       <div
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transition-all duration-700"
-        style={{ backgroundImage: "url('/school-campus-bg.jpg')" }}
+        style={{ backgroundImage: `url('${bgUrl}')` }}
         aria-hidden="true"
       />
 
@@ -51,18 +63,19 @@ export function LoginPage() {
           className="group flex items-center gap-3 rounded-md focus-visible:outline-2 focus-visible:outline-primary dark:focus-visible:outline-accent"
         >
           <img
-            src="/skooly-logo.jpg"
-            alt="Skooly"
+            src={logoUrl}
+            alt={schoolName}
             className="size-9 rounded-md object-cover ring-1 ring-line/50 transition-transform group-hover:scale-105 dark:ring-white/20"
           />
           <div className="flex flex-col">
             <span className="text-lg leading-none font-bold tracking-tight text-ink dark:text-white">
-              Skooly
+              {schoolName}
             </span>
             <span className="mt-0.5 text-[10px] font-semibold tracking-wider text-primary uppercase dark:text-accent">
-              School ERP
+              {shortName}
             </span>
           </div>
+
         </Link>
 
         <div className="flex items-center gap-3">
@@ -100,13 +113,13 @@ export function LoginPage() {
 
             <div className="space-y-3">
               <h1 className="font-sans text-3xl leading-tight font-bold tracking-tight text-ink sm:text-4xl xl:text-5xl dark:text-white">
-                Welcome to <span className="text-primary dark:text-accent">Skooly</span>
+                Welcome to <span className="text-primary dark:text-accent">{schoolName}</span>
               </h1>
               <p className="max-w-xl text-base leading-relaxed font-normal text-ink-muted sm:text-lg dark:text-side-ink/90">
-                Single-institution school management system for calm administration, student
-                lifecycles, and everyday academic excellence.
+                {tagline}
               </p>
             </div>
+
 
             {/* Inspiring Educational Quotes */}
             <div className="max-w-xl space-y-3">
@@ -187,7 +200,7 @@ export function LoginPage() {
 
       {/* Footer */}
       <footer className="relative z-10 flex flex-col items-center justify-between gap-2 border-t border-line/80 bg-surface/75 px-6 py-4 text-xs text-ink-muted backdrop-blur-xs sm:flex-row sm:px-10 lg:px-16 dark:border-white/10 dark:bg-side/85 dark:text-side-muted">
-        <p>© 2026 Skooly ERP · St. Xavier&apos;s Senior Academy. All rights reserved.</p>
+        <p>{footerText}</p>
         <div className="flex items-center gap-4 text-[11px]">
           <span>Institutional Support: ext. 104</span>
           <span>•</span>

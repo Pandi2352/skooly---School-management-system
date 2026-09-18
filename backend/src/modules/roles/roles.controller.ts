@@ -19,6 +19,7 @@ import { ResponseMessage } from '../../common/decorators/response-message.decora
 import { PermissionsGuard } from '../../common/guards/permissions.guard'
 import { UuidParamPipe } from '../../common/pipes/uuid-param.pipe'
 import { ResponseWithMeta } from '../../common/utils/response-with-meta.util'
+import { ROLE_PERMISSIONS } from './constants/role.constants'
 import { CreateRoleDto } from './dto/create-role.dto'
 import { ListRolesQueryDto } from './dto/list-roles-query.dto'
 import { DeletedRoleResponseDto, RoleListMetaDto, RoleResponseDto } from './dto/role-response.dto'
@@ -41,7 +42,7 @@ export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Get()
-  @RequirePermissions('roles:view')
+  @RequirePermissions(ROLE_PERMISSIONS.view)
   @ResponseMessage('Roles fetched successfully.')
   @ApiOperation({ summary: 'List roles', description: 'Administrator first, then system roles, then custom roles, each A–Z.' })
   @ApiSuccess(RoleResponseDto, { description: 'Roles with counts in meta', isArray: true, meta: RoleListMetaDto })
@@ -52,7 +53,7 @@ export class RolesController {
   }
 
   @Get(':id')
-  @RequirePermissions('roles:view')
+  @RequirePermissions(ROLE_PERMISSIONS.view)
   @ResponseMessage('Role fetched successfully.')
   @ApiOperation({ summary: 'Get a role' })
   @ApiParam(ROLE_ID_PARAM)
@@ -63,7 +64,7 @@ export class RolesController {
   }
 
   @Post()
-  @RequirePermissions('roles:create')
+  @RequirePermissions(ROLE_PERMISSIONS.create)
   @HttpCode(HttpStatus.CREATED)
   @ResponseMessage('Role created successfully.')
   @ApiOperation({ summary: 'Create a custom role', description: 'Optionally copies permissions from another role.' })
@@ -74,7 +75,7 @@ export class RolesController {
   }
 
   @Patch(':id')
-  @RequirePermissions('roles:edit')
+  @RequirePermissions(ROLE_PERMISSIONS.edit)
   @ResponseMessage('Role updated successfully.')
   @ApiOperation({ summary: 'Update role details', description: 'Name and/or description. System roles can’t be renamed.' })
   @ApiParam(ROLE_ID_PARAM)
@@ -85,7 +86,7 @@ export class RolesController {
   }
 
   @Put(':id/permissions')
-  @RequirePermissions('roles:edit')
+  @RequirePermissions(ROLE_PERMISSIONS.edit)
   @ResponseMessage('Role permissions saved successfully.')
   @ApiOperation({
     summary: 'Replace role permissions',
@@ -99,7 +100,7 @@ export class RolesController {
   }
 
   @Delete(':id')
-  @RequirePermissions('roles:delete')
+  @RequirePermissions(ROLE_PERMISSIONS.delete)
   @ResponseMessage('Role deleted successfully.')
   @ApiOperation({ summary: 'Delete a custom role', description: 'System roles can’t be deleted.' })
   @ApiParam(ROLE_ID_PARAM)

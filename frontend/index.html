@@ -11,7 +11,7 @@
 -->
 <html
   lang="en"
-  class="dark:scheme-dark[scrollbar-color:var(--color-control)_transparent] [scrollbar-width:thin] text-[93.75%] scheme-light **:[scrollbar-width:thin] pointer-coarse:text-base **:[&::-webkit-scrollbar]:size-2 **:[&::-webkit-scrollbar-thumb]:rounded-full **:[&::-webkit-scrollbar-thumb]:bg-control **:[&::-webkit-scrollbar-track]:bg-transparent"
+  class="dark:scheme-dark [scrollbar-color:var(--color-control)_transparent] [scrollbar-width:thin] text-[93.75%] scheme-light **:[scrollbar-width:thin] pointer-coarse:text-base **:[&::-webkit-scrollbar]:size-2 **:[&::-webkit-scrollbar-thumb]:rounded-full **:[&::-webkit-scrollbar-thumb]:bg-control **:[&::-webkit-scrollbar-track]:bg-transparent"
 >
   <head>
     <meta charset="UTF-8" />
@@ -23,8 +23,15 @@
       try {
         var saved = localStorage.getItem('erp-theme')
         var savedColor = localStorage.getItem('erp-color-theme')
+        var schoolColor = localStorage.getItem('erp-school-color-theme')
       } catch (e) {}
-      document.documentElement.dataset.color = savedColor === 'blue' ? 'blue' : 'navy'
+      // A personal colour choice wins; otherwise the school default from Branding.
+      document.documentElement.dataset.color =
+        savedColor === 'blue' || savedColor === 'navy'
+          ? savedColor
+          : schoolColor === 'blue'
+            ? 'blue'
+            : 'navy'
       document.documentElement.dataset.theme =
         saved === 'dark' || saved === 'light'
           ? saved
@@ -34,7 +41,7 @@
     </script>
   </head>
   <body
-    class="[&_[data-disabled]]:cursor-not-allowed**:focus-visible:outline-2 bg-canvas font-sans text-ink **:focus-visible:outline-offset-2 **:focus-visible:outline-primary [&_:disabled]:cursor-not-allowed [&_[role=button]:not([aria-disabled=true])]:cursor-pointer [&_[role=menuitem]:not([data-disabled])]:cursor-pointer [&_[role=menuitemcheckbox]:not([data-disabled])]:cursor-pointer [&_[role=option]:not([data-disabled])]:cursor-pointer [&_[role=tab]:not([data-disabled])]:cursor-pointer [&_button:not(:disabled)]:cursor-pointer [&_label[for]]:cursor-pointer [&_summary]:cursor-pointer"
+    class="[&_[data-disabled]]:cursor-not-allowed **:focus-visible:outline-2 bg-canvas font-sans text-ink **:focus-visible:outline-offset-2 **:focus-visible:outline-primary [&_:disabled]:cursor-not-allowed [&_[role=button]:not([aria-disabled=true])]:cursor-pointer [&_[role=menuitem]:not([data-disabled])]:cursor-pointer [&_[role=menuitemcheckbox]:not([data-disabled])]:cursor-pointer [&_[role=option]:not([data-disabled])]:cursor-pointer [&_[role=tab]:not([data-disabled])]:cursor-pointer [&_button:not(:disabled)]:cursor-pointer [&_label[for]]:cursor-pointer [&_summary]:cursor-pointer"
   >
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

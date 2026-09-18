@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Outlet, useNavigation } from 'react-router-dom'
 import { Alert } from '@/components/ui/Alert'
+import { useBranding } from '@/features/branding/hooks/useBranding'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
@@ -12,6 +13,7 @@ import { Sidebar } from './sidebar/Sidebar'
 const isBoolean = (value: unknown): value is boolean => typeof value === 'boolean'
 
 export function AppLayout() {
+  const branding = useBranding()
   // Matches Tailwind's `lg` breakpoint.
   const isDesktop = useMediaQuery('(min-width: 64rem)')
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -60,12 +62,14 @@ export function AppLayout() {
         open={isDesktop || open}
         collapsed={collapsed}
         closeButtonRef={closeButtonRef}
+        branding={branding.data}
         onClose={() => closeDrawer('menu')}
         onExpand={() => setCollapsedPref(false)}
         onNavigate={() => {
           if (open) closeDrawer('main')
         }}
       />
+
       {open && (
         // Pointer shortcut only; keyboard users close with Escape or the Close button.
         <div className="fixed inset-0 z-15 bg-backdrop" onClick={() => closeDrawer('menu')} />

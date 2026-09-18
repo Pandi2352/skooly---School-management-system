@@ -367,6 +367,7 @@ export const modules: Module[] = [
     // so the "Not built yet" pages don't describe features nobody has specified.
     [
       builtFeature('School Settings', 'School Settings', paths.settingsSchool),
+      builtFeature('Branding', 'Branding', paths.settingsBranding),
       builtFeature('Custom Fields', 'Custom Fields', paths.settingsCustomFields),
       // Same page as Administration → Roles & Permissions; listed in both menus.
       builtFeature('Roles & Permissions', 'Roles & Permissions', paths.settingsRoles),
