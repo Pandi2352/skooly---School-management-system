@@ -249,8 +249,10 @@ export function AdmissionReviewDrawer({
                       doc.status === 'verified'
                         ? 'success'
                         : doc.status === 'rejected'
-                        ? 'danger'
-                        : 'neutral'
+                          ? 'danger'
+                          : doc.status === 'submitted'
+                            ? 'planned'
+                            : 'neutral'
                     }
                   >
                     {doc.status}

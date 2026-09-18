@@ -1,5 +1,8 @@
 import type { BadgeTone } from '@/components/ui/Badge'
-import type { AdmissionApplicationStatus } from '../schemas/admissionPipeline.schema'
+import type {
+  AdmissionApplicationStatus,
+  AdmissionDocumentStatus,
+} from '../schemas/admissionPipeline.schema'
 
 export function formatAdmissionStatus(status: AdmissionApplicationStatus): string {
   switch (status) {
@@ -36,7 +39,7 @@ export function getAdmissionStatusTone(status: AdmissionApplicationStatus): Badg
 }
 
 export function getVerifiedDocumentsCount(
-  docs: { name: string; status: 'pending' | 'verified' | 'rejected'; url?: string }[],
+  docs: { name: string; status: AdmissionDocumentStatus; url?: string; fileUrl?: string }[],
 ): {
   verified: number
   total: number

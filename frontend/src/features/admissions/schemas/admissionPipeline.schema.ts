@@ -1,10 +1,18 @@
 import { z } from 'zod'
 
+export const admissionDocumentStatusSchema = z.enum([
+  'submitted',
+  'pending',
+  'verified',
+  'rejected',
+])
+
 export const admissionDocumentSchema = z.object({
   name: z.string(),
-  status: z.enum(['pending', 'verified', 'rejected']),
-  url: z.string().optional().default(''),
-  verifiedAt: z.string().optional(),
+  status: admissionDocumentStatusSchema,
+  url: z.string().optional(),
+  fileUrl: z.string().optional(),
+  verifiedAt: z.string().nullable().optional(),
 })
 
 export const applicantStudentSchema = z.object({
@@ -40,14 +48,15 @@ export const admissionApplicationSchema = z.object({
   applicationNo: z.string(),
   student: applicantStudentSchema,
   parent: applicantParentSchema,
-  documents: z.array(admissionDocumentSchema),
+  documents: z.array(admissionDocumentSchema).default([]),
   status: admissionApplicationStatusSchema,
   appliedAt: z.string(),
-  reviewerNotes: z.string().optional().default(''),
-  enrolledStudentId: z.string().optional(),
-  enrolledAt: z.string().optional(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  reviewedAt: z.string().nullable().optional(),
+  reviewerNotes: z.string().nullable().optional().default(''),
+  enrolledStudentId: z.string().nullable().optional(),
+  enrolledAt: z.string().nullable().optional(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 })
 
 export const admissionApplicationListSchema = z.object({
@@ -84,6 +93,7 @@ export const enrollApplicantResultSchema = z.object({
   message: z.string(),
 })
 
+export type AdmissionDocumentStatus = z.infer<typeof admissionDocumentStatusSchema>
 export type AdmissionDocument = z.infer<typeof admissionDocumentSchema>
 export type ApplicantStudent = z.infer<typeof applicantStudentSchema>
 export type ApplicantParent = z.infer<typeof applicantParentSchema>
