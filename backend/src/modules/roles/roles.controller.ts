@@ -10,13 +10,11 @@ import {
   Post,
   Put,
   Query,
-  UseGuards,
 } from '@nestjs/common'
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger'
 import { ApiErrors, ApiSuccess } from '../../common/decorators/api-envelope.decorator'
 import { RequirePermissions } from '../../common/decorators/permissions.decorator'
 import { ResponseMessage } from '../../common/decorators/response-message.decorator'
-import { PermissionsGuard } from '../../common/guards/permissions.guard'
 import { UuidParamPipe } from '../../common/pipes/uuid-param.pipe'
 import { ResponseWithMeta } from '../../common/utils/response-with-meta.util'
 import { ROLE_PERMISSIONS } from './constants/role.constants'
@@ -36,7 +34,6 @@ const ROLE_ID_PARAM = {
 
 /** HTTP only: validation, status codes and messages. Every rule is in RolesService. */
 @ApiTags('Roles & Permissions')
-@UseGuards(PermissionsGuard)
 @Controller('roles')
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}

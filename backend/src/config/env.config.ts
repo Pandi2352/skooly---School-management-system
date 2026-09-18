@@ -16,6 +16,11 @@ export interface AppEnvConfig {
   publicBaseUrl: string
   /** Where the web app runs. Invitation and password links in emails point here (no trailing slash). */
   appUrl: string
+  /**
+   * Whether a proxy in front of this API may be trusted for the client's address ("true", a hop
+   * count, or a subnet). Empty means the address is read from the connection itself.
+   */
+  trustProxy: string
 }
 
 export interface AuthEnvConfig {
@@ -85,6 +90,7 @@ export default (): { app: AppEnvConfig; auth: AuthEnvConfig; mail: MailEnvConfig
       uploadDir: process.env.UPLOAD_DIR || 'uploads',
       publicBaseUrl: stripTrailingSlash(process.env.PUBLIC_BASE_URL || `http://localhost:${port}`),
       appUrl: stripTrailingSlash(process.env.APP_URL || corsOrigins[0] || 'http://localhost:5173'),
+      trustProxy: (process.env.TRUST_PROXY || '').trim(),
     },
     auth: {
       cookieName: process.env.SESSION_COOKIE_NAME || 'skooly_session',

@@ -1,5 +1,6 @@
 import type { z } from 'zod'
 import type {
+  auditEventSchema,
   createdUserSchema,
   invitationSentSchema,
   temporaryPasswordSchema,
@@ -19,6 +20,7 @@ export type CreatedUser = z.infer<typeof createdUserSchema>
 export type InvitationSent = z.infer<typeof invitationSentSchema>
 export type TemporaryPasswordResult = z.infer<typeof temporaryPasswordSchema>
 export type UserSession = z.infer<typeof userSessionSchema>
+export type AccountEvent = z.infer<typeof auditEventSchema>
 
 export type UserCreateFormValues = z.infer<typeof userCreateFormSchema>
 export type UserEditFormValues = z.infer<typeof userEditFormSchema>

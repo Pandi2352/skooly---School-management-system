@@ -33,14 +33,15 @@ export class SessionGuard implements CanActivate {
     const request = http.getRequest<Request & { user?: AuthenticatedUserContext }>()
     const response = http.getResponse<Response>()
     const auth = this.configService.getOrThrow<AuthEnvConfig>('auth')
+    const app = this.configService.getOrThrow<AppEnvConfig>('app')
 
-    const token = readSessionCookie(request.cookies as Record<string, unknown> | undefined, auth)
+    const token = readSessionCookie(request.cookies as Record<string, unknown> | undefined, app, auth)
     if (!token) return true
 
     const now = new Date()
     const session = await this.sessionsRepository.findLiveByTokenHash(hashSecretToken(token), now)
     if (!session) {
-      this.forget(response, auth)
+      this.forget(response, app, auth)
       return true
     }
 
@@ -49,7 +50,7 @@ export class SessionGuard implements CanActivate {
     // takes effect immediately instead of at their next sign-in.
     if (!user || user.status !== 'active') {
       await this.sessionsRepository.revokeById(session._id, 'Account is no longer active')
-      this.forget(response, auth)
+      this.forget(response, app, auth)
       return true
     }
 
@@ -63,6 +64,8 @@ export class SessionGuard implements CanActivate {
       email: user.email,
       fullName: user.fullName,
       mustChangePassword: user.mustChangePassword,
+      ip: request.ip ?? '',
+      userAgent: request.get('user-agent') ?? '',
     }
 
     if (now.getTime() - new Date(session.lastSeenAt).getTime() > TOUCH_AFTER_MS) {
@@ -73,7 +76,7 @@ export class SessionGuard implements CanActivate {
     return true
   }
 
-  private forget(response: Response, auth: AuthEnvConfig): void {
-    clearSessionCookie(response, this.configService.getOrThrow<AppEnvConfig>('app'), auth)
+  private forget(response: Response, app: AppEnvConfig, auth: AuthEnvConfig): void {
+    clearSessionCookie(response, app, auth)
   }
 }

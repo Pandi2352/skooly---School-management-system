@@ -17,6 +17,9 @@ export interface AuthenticatedUserContext {
   fullName?: string
   /** True until the person replaces a temporary password; the app then only lets them do that. */
   mustChangePassword?: boolean
+  /** Where this request came from, kept for the audit trail. */
+  ip?: string
+  userAgent?: string
 }
 
 /**

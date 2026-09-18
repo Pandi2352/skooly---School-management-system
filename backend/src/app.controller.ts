@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
+import { Public } from './common/decorators/public.decorator'
 import { AppService } from './app.service'
 
 @ApiTags('Health')
@@ -8,6 +9,7 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get('health')
+  @Public()
   @ApiOperation({ summary: 'System health check and UUID generator validation' })
   @ApiResponse({
     status: 200,

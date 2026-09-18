@@ -16,8 +16,14 @@ export function getCorsConfig(configService: ConfigService): CorsOptions {
     'http://127.0.0.1:5173',
   ]
   const allowCredentials = configService.get<boolean>('app.corsCredentials') ?? true
+  const isProduction = configService.get<string>('app.nodeEnv') === 'production'
 
   logger.log(`Configuring CORS with origins: [${corsOrigins.join(', ')}], credentials: ${allowCredentials}`)
+  if (allowCredentials && corsOrigins.includes('*')) {
+    logger.warn(
+      `CORS_ORIGINS contains "*" while cookies are allowed: any website could act as a signed-in person. List the school's own addresses instead.`,
+    )
+  }
 
   return {
     origin: (origin, callback) => {
@@ -26,13 +32,14 @@ export function getCorsConfig(configService: ConfigService): CorsOptions {
         return callback(null, true)
       }
 
-      // Check for wildcard '*'
-      if (corsOrigins.includes('*')) {
+      // '*' is a development convenience only: with cookie sign-in it would let any site act as a
+      // signed-in person, so production always uses the explicit list.
+      if (!isProduction && corsOrigins.includes('*')) {
         return callback(null, true)
       }
 
-      // Allow any localhost or 127.0.0.1 development port (e.g. Vite on 5173, 5174, 5175)
-      if (/^https?:\/\/(localhost|127\.0\.0\.1)(:[0-9]+)?$/.test(origin)) {
+      // Any localhost port, because Vite moves between 5173, 5174 and so on while developing.
+      if (!isProduction && /^https?:\/\/(localhost|127\.0\.0\.1)(:[0-9]+)?$/.test(origin)) {
         return callback(null, true)
       }
 
@@ -58,6 +65,7 @@ export function getCorsConfig(configService: ConfigService): CorsOptions {
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
       'Origin',
+      // The web app sends this on every request; the CSRF check looks for it.
       'X-Requested-With',
       'Content-Type',
       'Accept',

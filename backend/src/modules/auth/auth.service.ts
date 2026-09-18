@@ -4,6 +4,7 @@ import type { AuthenticatedUserContext } from '../../common/guards/permissions.g
 import { findWeakPasswordReason, hashPassword, verifyPassword } from '../../common/utils/password.util'
 import { generateSecretToken, hashSecretToken } from '../../common/utils/token.util'
 import type { AuthEnvConfig } from '../../config/env.config'
+import { AuditService } from '../audit/audit.service'
 import { MailService } from '../mail/mail.service'
 import type { RoleResponseDto } from '../roles/dto/role-response.dto'
 import { RolesService } from '../roles/roles.service'
@@ -65,6 +66,8 @@ export type SignInResult = { account: SignedInUserDto; session: IssuedSession }
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name)
+  /** Built once, on the first sign-in attempt for an email that has no account. */
+  private decoy: Promise<string> | null = null
 
   constructor(
     private readonly usersRepository: UsersRepository,
@@ -72,6 +75,7 @@ export class AuthService {
     private readonly tokensRepository: UserTokensRepository,
     private readonly rolesService: RolesService,
     private readonly mailService: MailService,
+    private readonly auditService: AuditService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -112,6 +116,13 @@ export class AuthService {
       activatedAt: now,
     })
     this.logger.log(`First administrator created: ${user.email}`)
+    await this.auditService.record('auth.setup_completed', {
+      actor: { id: user._id, name: user.fullName },
+      targetUserId: user._id,
+      targetName: user.fullName,
+      summary: `${role.name} account created during first-run setup`,
+      ...context,
+    })
     return this.startSession(user, role, context, false)
   }
 
@@ -119,19 +130,29 @@ export class AuthService {
     const user = await this.usersRepository.findByEmailKey(emailKey(dto.email))
     if (!user) {
       // Hash anyway: answering instantly for unknown emails would show which ones exist.
-      await verifyPassword('$argon2id$v=19$m=19456,t=2,p=1$notarealsaltvalue$notarealhashvalue', dto.password)
+      await verifyPassword(await this.decoyHash(), dto.password)
+      await this.auditService.record('auth.login_failed', {
+        summary: `No account for ${dto.email}`,
+        ...context,
+      })
       throw invalidCredentials()
     }
 
     const now = new Date()
     if (user.lockedUntil && new Date(user.lockedUntil) > now) {
+      await this.auditService.record('auth.login_failed', {
+        targetUserId: user._id,
+        targetName: user.fullName,
+        summary: 'Tried to sign in while locked',
+        ...context,
+      })
       throw accountLocked(Math.max(1, Math.ceil((new Date(user.lockedUntil).getTime() - now.getTime()) / 60_000)))
     }
 
     // An invited account has no password yet, so nothing can match it.
     const passwordMatches = user.passwordHash !== '' && (await verifyPassword(user.passwordHash, dto.password))
     if (!passwordMatches) {
-      await this.recordFailure(user)
+      await this.recordFailure(user, context)
       throw invalidCredentials()
     }
 
@@ -141,6 +162,12 @@ export class AuthService {
     if (user.status === 'archived') throw accountArchived()
 
     await this.usersRepository.recordSuccessfulLogin(user._id, now)
+    await this.auditService.record('auth.login', {
+      actor: { id: user._id, name: user.fullName },
+      targetUserId: user._id,
+      targetName: user.fullName,
+      ...context,
+    })
     const role = await this.rolesService.findByIdOrNull(user.roleId)
     return this.startSession({ ...user, lastLoginAt: now, failedLoginCount: 0, lockedUntil: null }, role, context, dto.rememberMe ?? false)
   }
@@ -156,6 +183,11 @@ export class AuthService {
 
   async logout(actor: AuthenticatedUserContext): Promise<void> {
     if (actor.sessionId) await this.sessionsRepository.revokeById(actor.sessionId, 'Signed out')
+    await this.auditService.record('auth.logout', {
+      actor,
+      targetUserId: actor.id,
+      targetName: actor.fullName ?? '',
+    })
   }
 
   async changePassword(actor: AuthenticatedUserContext, dto: ChangePasswordDto): Promise<PasswordChangedResponseDto> {
@@ -180,6 +212,15 @@ export class AuthService {
     // Anyone else already signed in as this person loses access; this device stays signed in.
     const otherSessionsEnded = await this.sessionsRepository.revokeAllForUser(user._id, 'Password changed', actor.sessionId)
     const emailSent = await this.mailService.sendPasswordChanged({ to: user.email, fullName: user.fullName, changedAt })
+    await this.auditService.record('auth.password_changed', {
+      actor,
+      targetUserId: user._id,
+      targetName: user.fullName,
+      summary:
+        otherSessionsEnded > 0
+          ? `${otherSessionsEnded} other ${otherSessionsEnded === 1 ? 'session' : 'sessions'} ended`
+          : '',
+    })
     return { otherSessionsEnded, emailSent }
   }
 
@@ -206,6 +247,11 @@ export class AuthService {
       fullName: user.fullName,
       actionUrl: this.buildLink('password_reset', token),
       expiresInMinutes,
+    })
+    await this.auditService.record('auth.password_reset_requested', {
+      targetUserId: user._id,
+      targetName: user.fullName,
+      summary: 'Asked for it themselves',
     })
   }
 
@@ -250,6 +296,14 @@ export class AuthService {
       await this.mailService.sendPasswordChanged({ to: account.email, fullName: account.fullName, changedAt: now })
     }
 
+    await this.auditService.record('auth.password_set_from_link', {
+      actor: { id: account._id, name: account.fullName },
+      targetUserId: account._id,
+      targetName: account.fullName,
+      summary: record.purpose === 'invitation' ? 'Accepted an invitation' : 'Used a password reset link',
+      ...context,
+    })
+
     const role = await this.rolesService.findByIdOrNull(account.roleId)
     return this.startSession(account, role, context, false)
   }
@@ -270,14 +324,32 @@ export class AuthService {
     return this.sessionsRepository.revokeAllForUser(actor.id, 'Signed out from another device', actor.sessionId)
   }
 
-  private async recordFailure(user: UserRecord): Promise<void> {
+  private async recordFailure(user: UserRecord, context: SignInContext): Promise<void> {
     const attemptsSoFar = user.failedLoginCount + 1
     const shouldLock = attemptsSoFar >= this.auth.loginMaxAttempts
     const lockedUntil = shouldLock ? new Date(Date.now() + this.auth.loginLockMinutes * 60_000) : null
     await this.usersRepository.recordFailedLogin(user._id, lockedUntil)
+    await this.auditService.record(shouldLock ? 'auth.locked' : 'auth.login_failed', {
+      targetUserId: user._id,
+      targetName: user.fullName,
+      summary: shouldLock
+        ? `Locked for ${this.auth.loginLockMinutes} minutes after ${attemptsSoFar} wrong passwords`
+        : `Wrong password (${attemptsSoFar} in a row)`,
+      ...context,
+    })
     if (shouldLock) {
       this.logger.warn(`Account locked after ${attemptsSoFar} wrong passwords: ${user.email}`)
     }
+  }
+
+  /**
+   * A real hash to check a password against when the email is unknown. Without it the answer comes
+   * back far quicker for addresses that have no account, and a list of staff emails can be built
+   * one guess at a time.
+   */
+  private decoyHash(): Promise<string> {
+    this.decoy ??= hashPassword(generateSecretToken().token)
+    return this.decoy
   }
 
   private async readToken(token: string): Promise<{ record: UserTokenRecord; user: UserRecord }> {

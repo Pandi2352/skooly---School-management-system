@@ -6,6 +6,7 @@ import {
   changeUserStatus,
   createUser,
   getUser,
+  getUserAudit,
   getUserSessions,
   getUsers,
   resendInvitation,
@@ -35,6 +36,10 @@ export function useUserSessions(id: string) {
     queryFn: () => getUserSessions(id),
     enabled: id !== '',
   })
+}
+
+export function useUserAudit(id: string) {
+  return useQuery({ queryKey: userKeys.audit(id), queryFn: () => getUserAudit(id), enabled: id !== '' })
 }
 
 /** Any change to an account can move it between the status counts, so the whole list is refreshed. */

@@ -35,6 +35,9 @@ async function send(
     credentials: 'include',
     headers: {
       Accept: 'application/json',
+      // A custom header a browser won't attach to a cross-site request without permission. The API
+      // refuses writes without it, which is what stops another site acting as the signed-in person.
+      'X-Requested-With': 'XMLHttpRequest',
       ...(body === undefined || isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...headers,
     },

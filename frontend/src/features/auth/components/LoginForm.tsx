@@ -11,6 +11,7 @@ import { ApiError } from '@/lib/api/ApiError'
 import { getErrorMessage } from '@/lib/api/getErrorMessage'
 import { useLogin } from '../hooks/useSession'
 import { loginFormSchema } from '../schemas/auth.schema'
+import { safeRedirect } from '../utils/safeRedirect'
 import type { LoginFormValues } from '../types/auth.types'
 import { PasswordInput } from './PasswordInput'
 
@@ -33,13 +34,14 @@ export function LoginForm() {
     defaultValues: { email: '', password: '', rememberMe: false },
   })
 
-  // Where the person was heading before they were asked to sign in.
-  const next = params.get('next')
+  // Where the person was heading before they were asked to sign in. It comes from the URL, so it is
+  // checked before anyone is sent there.
+  const next = safeRedirect(params.get('next'), paths.dashboard)
 
   const submit = handleSubmit(async (values) => {
     try {
       const account = await signIn.mutateAsync(values)
-      const destination = account.mustChangePassword ? paths.accountPassword : (next ?? paths.dashboard)
+      const destination = account.mustChangePassword ? paths.accountPassword : next
       void navigate(destination, { replace: true })
     } catch (error) {
       if (error instanceof ApiError && ACCOUNT_BLOCKED_CODES.includes(error.errorCode ?? '')) return

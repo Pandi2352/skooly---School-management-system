@@ -11,7 +11,9 @@ import {
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import { Dropdown, DropdownItem, DropdownSeparator } from '@/components/ui/Dropdown'
+import { usePermissions } from '@/features/auth/hooks/usePermissions'
 import { IconButton } from '@/components/ui/IconButton'
+import { USER_PERMISSIONS } from '../constants'
 import type { User } from '../types/user.types'
 import {
   canArchive,
@@ -50,30 +52,40 @@ type MenuEntry = { action: UserAction; label: string; icon: Icon; check: ActionC
  * disabled with the reason, so "why can't I suspend this person?" is answered where it is asked.
  */
 export function UserRowActions({ user, context, onAction }: UserRowActionsProps) {
+  const { can } = usePermissions()
+  const mayEdit = can(USER_PERMISSIONS.edit)
+  const mayArchive = can(USER_PERMISSIONS.delete)
+
+  // Someone with view-only access sees the account but is offered nothing to change.
+  const editing = (check: ActionCheck): ActionCheck =>
+    mayEdit ? check : { allowed: false, reason: 'Your role can view accounts but not change them.' }
+
   const entries: MenuEntry[] = [
-    { action: 'edit', label: 'Edit details', icon: PencilSimpleIcon, check: canEditDetails(user) },
-    { action: 'change-role', label: 'Change role', icon: UserSwitchIcon, check: canChangeRole(user, context) },
+    { action: 'edit', label: 'Edit details', icon: PencilSimpleIcon, check: editing(canEditDetails(user)) },
+    { action: 'change-role', label: 'Change role', icon: UserSwitchIcon, check: editing(canChangeRole(user, context)) },
     {
       action: 'resend-invitation',
       label: 'Send invitation again',
       icon: EnvelopeSimpleIcon,
-      check: canResendInvitation(user),
+      check: editing(canResendInvitation(user)),
     },
-    { action: 'send-reset', label: 'Email a password reset', icon: EnvelopeSimpleIcon, check: canSendPasswordReset(user) },
-    { action: 'temporary-password', label: 'Set a temporary password', icon: KeyIcon, check: canSetTemporaryPassword(user) },
-    { action: 'sign-out-devices', label: 'Sign out all devices', icon: SignOutIcon, check: canEditDetails(user) },
+    { action: 'send-reset', label: 'Email a password reset', icon: EnvelopeSimpleIcon, check: editing(canSendPasswordReset(user)) },
+    { action: 'temporary-password', label: 'Set a temporary password', icon: KeyIcon, check: editing(canSetTemporaryPassword(user)) },
+    { action: 'sign-out-devices', label: 'Sign out all devices', icon: SignOutIcon, check: editing(canEditDetails(user)) },
   ]
 
   const statusEntry: MenuEntry =
     user.status === 'active'
-      ? { action: 'suspend', label: 'Suspend account', icon: ProhibitIcon, check: canSuspend(user, context), tone: 'danger' }
-      : { action: 'activate', label: 'Switch account back on', icon: PlayIcon, check: canReactivate(user) }
+      ? { action: 'suspend', label: 'Suspend account', icon: ProhibitIcon, check: editing(canSuspend(user, context)), tone: 'danger' }
+      : { action: 'activate', label: 'Switch account back on', icon: PlayIcon, check: editing(canReactivate(user)) }
 
   const archiveEntry: MenuEntry = {
     action: 'archive',
     label: 'Archive account',
     icon: ArchiveIcon,
-    check: canArchive(user, context),
+    check: mayArchive
+      ? canArchive(user, context)
+      : { allowed: false, reason: 'Your role can’t archive accounts.' },
     tone: 'danger',
   }
 

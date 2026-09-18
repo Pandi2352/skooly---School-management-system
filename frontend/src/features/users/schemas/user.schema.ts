@@ -76,6 +76,20 @@ export const userSessionListSchema = z.array(userSessionSchema)
 
 export const sessionsEndedSchema = z.object({ sessionsEnded: z.number() })
 
+/** One line of the account's history: who did what to it, and when. */
+export const auditEventSchema = z.object({
+  id: z.string(),
+  action: z.string(),
+  label: z.string(),
+  actorName: z.string(),
+  targetName: z.string(),
+  summary: z.string(),
+  ip: z.string(),
+  at: z.string(),
+})
+
+export const auditEventListSchema = z.array(auditEventSchema)
+
 // Forms ----------------------------------------------------------------------
 
 const email = z

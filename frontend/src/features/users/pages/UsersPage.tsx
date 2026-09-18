@@ -4,8 +4,10 @@ import { PageContainer } from '@/components/page/PageContainer'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Pagination } from '@/components/ui/Pagination'
+import { usePermissions } from '@/features/auth/hooks/usePermissions'
 import { useSession } from '@/features/auth/hooks/useSession'
 import { useRoles } from '@/features/roles/hooks/useRoles'
+import { USER_PERMISSIONS } from '../constants'
 import { getErrorMessage } from '@/lib/api/getErrorMessage'
 import { UserCountsBar } from '../components/UserCountsBar'
 import { UsersTable } from '../components/UsersTable'
@@ -20,6 +22,8 @@ export function UsersPage() {
   const users = useUsers(query)
   const roles = useRoles()
   const session = useSession()
+  const { can } = usePermissions()
+  const mayAdd = can(USER_PERMISSIONS.create)
   const { runAction, openAddForm, dialogs } = useAccountActions(roles.data ?? [])
 
   const meta = users.data?.meta
@@ -33,10 +37,13 @@ export function UsersPage() {
       title="User Accounts"
       description="Who can sign in to your school’s system, and what each person is allowed to do."
       actions={
-        <Button onClick={openAddForm}>
-          <PlusIcon className="size-4.5" weight="bold" aria-hidden="true" />
-          Add account
-        </Button>
+        // Someone with view-only access isn't offered a button the API would refuse.
+        mayAdd && (
+          <Button onClick={openAddForm}>
+            <PlusIcon className="size-4.5" weight="bold" aria-hidden="true" />
+            Add account
+          </Button>
+        )
       }
       fullWidth
     >
@@ -79,7 +86,7 @@ export function UsersPage() {
                     icon={UsersIcon}
                     title="No accounts yet"
                     description="Add the colleagues who need to sign in. Each one gets a role that decides what they can do."
-                    action={<Button onClick={openAddForm}>Add the first account</Button>}
+                    action={mayAdd ? <Button onClick={openAddForm}>Add the first account</Button> : undefined}
                   />
                 )
               }

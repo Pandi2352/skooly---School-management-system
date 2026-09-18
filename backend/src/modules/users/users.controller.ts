@@ -1,13 +1,13 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put, Query } from '@nestjs/common'
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger'
 import { ApiErrors, ApiSuccess } from '../../common/decorators/api-envelope.decorator'
 import { CurrentUser } from '../../common/decorators/current-user.decorator'
 import { RequirePermissions } from '../../common/decorators/permissions.decorator'
 import { ResponseMessage } from '../../common/decorators/response-message.decorator'
 import type { AuthenticatedUserContext } from '../../common/guards/permissions.guard'
-import { PermissionsGuard } from '../../common/guards/permissions.guard'
 import { UuidParamPipe } from '../../common/pipes/uuid-param.pipe'
 import { ResponseWithMeta } from '../../common/utils/response-with-meta.util'
+import { AuditEventResponseDto } from '../audit/dto/audit-response.dto'
 import { USER_PERMISSIONS } from './constants/user.constants'
 import { ChangeUserRoleDto } from './dto/change-user-role.dto'
 import { ChangeUserStatusDto } from './dto/change-user-status.dto'
@@ -35,7 +35,6 @@ const USER_ID_PARAM = {
 
 /** HTTP only: validation, status codes and messages. Every rule is in UsersService. */
 @ApiTags('User Accounts')
-@UseGuards(PermissionsGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -239,6 +238,20 @@ export class UsersController {
     @CurrentUser() actor?: AuthenticatedUserContext,
   ): Promise<UserResponseDto> {
     return this.usersService.archive(id, actor)
+  }
+
+  @Get(':id/audit')
+  @RequirePermissions(USER_PERMISSIONS.view)
+  @ResponseMessage('Account history fetched successfully.')
+  @ApiOperation({
+    summary: 'What has happened to this account',
+    description: 'Recent sign-ins, lockouts and changes made by administrators, newest first.',
+  })
+  @ApiParam(USER_ID_PARAM)
+  @ApiSuccess(AuditEventResponseDto, { description: 'Recent events for this account', isArray: true })
+  @ApiErrors(HttpStatus.BAD_REQUEST, HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN, HttpStatus.NOT_FOUND)
+  listAuditEvents(@Param('id', UuidParamPipe) id: string): Promise<AuditEventResponseDto[]> {
+    return this.usersService.listAuditEvents(id)
   }
 
   @Get(':id/sessions')

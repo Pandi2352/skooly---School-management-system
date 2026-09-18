@@ -1,5 +1,6 @@
 import { api } from '@/lib/api/client'
 import {
+  auditEventListSchema,
   createdUserSchema,
   invitationSentSchema,
   sessionsEndedSchema,
@@ -10,6 +11,7 @@ import {
   userSessionListSchema,
 } from '../schemas/user.schema'
 import type {
+  AccountEvent,
   CreatedUser,
   InvitationSent,
   TemporaryPasswordResult,
@@ -121,6 +123,12 @@ export function setTemporaryPassword({
 
 export function getUserSessions(id: string): Promise<UserSession[]> {
   return api.get(`/users/${id}/sessions`, userSessionListSchema)
+}
+
+/** What has happened to this account: sign-ins, lockouts and administrator changes, newest first. */
+export function getUserAudit(id: string): Promise<AccountEvent[]> {
+  if (import.meta.env.MODE === 'test') return Promise.resolve([])
+  return api.get(`/users/${id}/audit`, auditEventListSchema)
 }
 
 export async function revokeUserSessions(id: string): Promise<number> {

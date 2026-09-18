@@ -11,10 +11,11 @@ import { SessionList } from '@/features/auth/components/SessionList'
 import { useSession } from '@/features/auth/hooks/useSession'
 import { useRoles } from '@/features/roles/hooks/useRoles'
 import { getErrorMessage } from '@/lib/api/getErrorMessage'
+import { AccountHistoryCard } from '../components/AccountHistoryCard'
 import { UserRowActions } from '../components/UserRowActions'
 import { UserStatusBadge } from '../components/UserStatusBadge'
 import { useAccountActions } from '../hooks/useAccountActions'
-import { useUser, useUserSessions, useUsers } from '../hooks/useUsers'
+import { useUser, useUserAudit, useUserSessions, useUsers } from '../hooks/useUsers'
 import { describeLastSignIn } from '../utils/userRules'
 
 const formatDate = (value: string | null) => (value ? new Date(value).toLocaleString() : '—')
@@ -24,6 +25,7 @@ export function UserDetailPage() {
   const { userId = '' } = useParams()
   const account = useUser(userId)
   const sessions = useUserSessions(userId)
+  const history = useUserAudit(userId)
   const roles = useRoles()
   const session = useSession()
   // The administrator count comes from the list's meta, which the last-administrator rules need.
@@ -122,6 +124,11 @@ export function UserDetailPage() {
             emptyMessage={`${user.fullName} isn’t signed in on any device right now.`}
           />
         </Card>
+        <AccountHistoryCard
+          events={history.data ?? []}
+          isLoading={history.isPending}
+          personName={user.fullName}
+        />
       </div>
 
       {dialogs}

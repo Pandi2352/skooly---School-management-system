@@ -5,6 +5,8 @@ import { isDuplicateKeyError } from '../../common/utils/mongo-error.util'
 import { findWeakPasswordReason, generateTemporaryPassword, hashPassword } from '../../common/utils/password.util'
 import { generateSecretToken } from '../../common/utils/token.util'
 import type { AppEnvConfig, AuthEnvConfig } from '../../config/env.config'
+import type { AuditEventResponseDto } from '../audit/dto/audit-response.dto'
+import { AuditService } from '../audit/audit.service'
 import type { TokenPurpose } from '../auth/constants/auth.constants'
 import { SessionsRepository } from '../auth/sessions/sessions.repository'
 import { UserTokensRepository } from '../auth/tokens/user-tokens.repository'
@@ -71,6 +73,7 @@ export class UsersService implements OnModuleInit {
     private readonly tokensRepository: UserTokensRepository,
     private readonly rolesService: RolesService,
     private readonly mailService: MailService,
+    private readonly auditService: AuditService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -147,6 +150,13 @@ export class UsersService implements OnModuleInit {
       throw error
     }
 
+    await this.auditService.record('user.created', {
+      actor,
+      targetUserId: created._id,
+      targetName: created.fullName,
+      summary: `${role.name}, ${temporaryPassword ? 'given a temporary password' : 'invited by email'}`,
+    })
+
     if (temporaryPassword) {
       return { user: this.presentWith(created, role), invitationEmailSent: false }
     }
@@ -185,6 +195,14 @@ export class UsersService implements OnModuleInit {
     try {
       const updated = await this.usersRepository.updateById(id, changes)
       if (!updated) throw userNotFound(id)
+      await this.auditService.record('user.updated', {
+        actor,
+        targetUserId: updated._id,
+        targetName: updated.fullName,
+        summary: Object.keys(changes)
+          .filter((field) => field !== 'updatedBy' && field !== 'emailKey')
+          .join(', '),
+      })
       return this.present(updated)
     } catch (error) {
       if (isDuplicateKeyError(error)) throw emailTaken(changes.email ?? user.email)
@@ -204,8 +222,15 @@ export class UsersService implements OnModuleInit {
     // Moving off a full-access role can leave the school with nobody able to manage it.
     if (!role.fullAccess) await this.ensureNotLastAdministrator(user, 'moved to another role')
 
+    const previousRole = await this.rolesService.findByIdOrNull(user.roleId)
     const updated = await this.usersRepository.updateById(id, { roleId: role.id, updatedBy: actor?.id ?? null })
     if (!updated) throw userNotFound(id)
+    await this.auditService.record('user.role_changed', {
+      actor,
+      targetUserId: updated._id,
+      targetName: updated.fullName,
+      summary: `${previousRole?.name ?? 'No role'} to ${role.name}`,
+    })
     return this.presentWith(updated, role)
   }
 
@@ -232,6 +257,12 @@ export class UsersService implements OnModuleInit {
       // Access has to stop now, not the next time the person signs in.
       await this.sessionsRepository.revokeAllForUser(id, SESSION_END_REASONS.suspended)
     }
+    await this.auditService.record(dto.status === 'suspended' ? 'user.suspended' : 'user.reactivated', {
+      actor,
+      targetUserId: updated._id,
+      targetName: updated.fullName,
+      summary: dto.reason ?? '',
+    })
     return this.present(updated)
   }
 
@@ -250,6 +281,11 @@ export class UsersService implements OnModuleInit {
     await this.sessionsRepository.revokeAllForUser(id, SESSION_END_REASONS.archived)
     await this.tokensRepository.invalidateOpenTokens(id, 'invitation')
     await this.tokensRepository.invalidateOpenTokens(id, 'password_reset')
+    await this.auditService.record('user.archived', {
+      actor,
+      targetUserId: updated._id,
+      targetName: updated.fullName,
+    })
     return this.present(updated)
   }
 
@@ -261,6 +297,12 @@ export class UsersService implements OnModuleInit {
 
     const role = await this.rolesService.findByIdOrNull(user.roleId)
     const invitation = await this.issueInvitation(user, role, actor)
+    await this.auditService.record('user.invitation_sent', {
+      actor,
+      targetUserId: user._id,
+      targetName: user.fullName,
+      summary: invitation.emailSent ? 'Emailed' : 'Email failed; link shared by hand',
+    })
     return {
       user: this.presentWith(invitation.user, role),
       emailSent: invitation.emailSent,
@@ -293,6 +335,12 @@ export class UsersService implements OnModuleInit {
       actionUrl: link,
       expiresInMinutes,
       startedByAdministrator: true,
+    })
+    await this.auditService.record('user.password_reset_sent', {
+      actor,
+      targetUserId: user._id,
+      targetName: user.fullName,
+      summary: emailSent ? 'Emailed' : 'Email failed; link shared by hand',
     })
     return {
       user: await this.present(user),
@@ -335,7 +383,19 @@ export class UsersService implements OnModuleInit {
     await this.tokensRepository.invalidateOpenTokens(id, 'invitation')
     await this.tokensRepository.invalidateOpenTokens(id, 'password_reset')
 
+    await this.auditService.record('user.temporary_password_set', {
+      actor,
+      targetUserId: updated._id,
+      targetName: updated.fullName,
+      summary: sessionsEnded > 0 ? `${sessionsEnded} session${sessionsEnded === 1 ? '' : 's'} ended` : '',
+    })
     return { user: await this.present(updated), temporaryPassword: password, sessionsEnded }
+  }
+
+  /** What has happened to this account: who changed it, and when. */
+  async listAuditEvents(id: string): Promise<AuditEventResponseDto[]> {
+    await this.getUserOrThrow(id)
+    return this.auditService.listForUser(id)
   }
 
   async listSessions(id: string): Promise<UserSessionResponseDto[]> {
@@ -352,6 +412,13 @@ export class UsersService implements OnModuleInit {
       // An administrator signing out their own other devices keeps the one they are using.
       actor?.id === id ? actor.sessionId : undefined,
     )
+    const target = await this.usersRepository.findById(id)
+    await this.auditService.record('user.sessions_revoked', {
+      actor,
+      targetUserId: id,
+      targetName: target?.fullName ?? '',
+      summary: `${sessionsEnded} session${sessionsEnded === 1 ? '' : 's'} ended`,
+    })
     return { sessionsEnded }
   }
 

@@ -2,9 +2,20 @@ import type { CookieOptions, Response } from 'express'
 import type { AppEnvConfig, AuthEnvConfig } from '../../config/env.config'
 
 /**
- * One place for how the session cookie is set and cleared, so a change can't apply to signing in
- * but not to signing out (which would leave a cookie the browser keeps sending).
+ * One place for how the session cookie is named, set and cleared, so a change can't apply to
+ * signing in but not to signing out (which would leave a cookie the browser keeps sending).
  */
+
+/**
+ * In production the cookie is named with the `__Host-` prefix, which browsers only accept when it
+ * is Secure, path `/` and tied to this exact host. A subdomain — or anything that manages to answer
+ * on one — then cannot overwrite the school's session cookie. A configured cookie domain rules the
+ * prefix out, because sharing across subdomains is the opposite of what it guarantees.
+ */
+export function sessionCookieName(app: AppEnvConfig, auth: AuthEnvConfig): string {
+  const usesHostPrefix = app.nodeEnv === 'production' && auth.cookieDomain === ''
+  return usesHostPrefix ? `__Host-${auth.cookieName}` : auth.cookieName
+}
 
 function baseOptions(app: AppEnvConfig, auth: AuthEnvConfig): CookieOptions {
   const isProduction = app.nodeEnv === 'production'
@@ -37,15 +48,19 @@ export function setSessionCookie(
   app: AppEnvConfig,
   auth: AuthEnvConfig,
 ): void {
-  response.cookie(auth.cookieName, token, { ...baseOptions(app, auth), expires: expiresAt })
+  response.cookie(sessionCookieName(app, auth), token, { ...baseOptions(app, auth), expires: expiresAt })
 }
 
 export function clearSessionCookie(response: Response, app: AppEnvConfig, auth: AuthEnvConfig): void {
   // The options have to match the ones it was set with, or the browser keeps the old cookie.
-  response.clearCookie(auth.cookieName, baseOptions(app, auth))
+  response.clearCookie(sessionCookieName(app, auth), baseOptions(app, auth))
 }
 
-export function readSessionCookie(cookies: Record<string, unknown> | undefined, auth: AuthEnvConfig): string | null {
-  const value = cookies?.[auth.cookieName]
+export function readSessionCookie(
+  cookies: Record<string, unknown> | undefined,
+  app: AppEnvConfig,
+  auth: AuthEnvConfig,
+): string | null {
+  const value = cookies?.[sessionCookieName(app, auth)]
   return typeof value === 'string' && value.length > 0 ? value : null
 }

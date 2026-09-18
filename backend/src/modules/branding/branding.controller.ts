@@ -1,11 +1,10 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Patch, Put, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpStatus, Param, Patch, Put, UploadedFile, UseInterceptors } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger'
 import { ApiErrors, ApiSuccess } from '../../common/decorators/api-envelope.decorator'
 import { RequirePermissions } from '../../common/decorators/permissions.decorator'
 import { Public } from '../../common/decorators/public.decorator'
 import { ResponseMessage } from '../../common/decorators/response-message.decorator'
-import { PermissionsGuard } from '../../common/guards/permissions.guard'
 import { BRANDING_ASSET_TYPES, BRANDING_PERMISSIONS, MAX_BRANDING_UPLOAD_BYTES } from './constants/branding.constants'
 import { AssetTypeParamDto } from './dto/asset-type-param.dto'
 import { BrandingAssetRuleResponseDto, BrandingResponseDto } from './dto/branding-response.dto'
@@ -20,7 +19,6 @@ const ASSET_TYPE_PARAM = {
 
 /** HTTP only: validation, status codes and messages. Every rule is in BrandingService. */
 @ApiTags('Branding')
-@UseGuards(PermissionsGuard)
 @Controller('branding')
 export class BrandingController {
   constructor(private readonly brandingService: BrandingService) {}

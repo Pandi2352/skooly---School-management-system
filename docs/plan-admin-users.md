@@ -65,7 +65,7 @@ I recommend the first option in each row; say the word if you want a different o
 | D6 | Sign-in identifier | **Email only**, unique, case-insensitive. | Email or staff ID. |
 | D7 | Menu placement | **Administration → User Accounts** (plus a shortcut in the gear menu). Sits next to Roles & Permissions. | A separate top-level "Administration" section in the sidebar. |
 | D8 | Deleting accounts | **Soft delete** (status `archived`): keeps history honest for audit and "who created this student". | Hard delete. |
-| D9 | Two-factor sign-in | Later (Phase F), optional per user. | Now (slows Phase A). |
+| D9 | Two-factor sign-in | Still Phase F. Everything else in this table is built. | Now. |
 | D10 | Turning on enforcement | **Flip `AUTH_ENABLED=true` at the end of Phase C**, once login, guards and the seeded administrator all work. | Enforce from day one (blocks all work in between). |
 
 ---
@@ -120,23 +120,23 @@ Feeds the existing "Audit Trail" menu entry later.
 
 ---
 
-## 5. Security design
+## 5. Security design (built)
 
-| Concern | Approach |
+| Concern | What the code does |
 |---|---|
-| Password storage | argon2id, per-password salt, tuned memory/time cost. |
-| Password rules | 10+ characters, not in a small list of obvious ones (`password`, school name, email local part), no maximum under 128, no forced symbols. Strength meter in the UI, not a blocker. |
-| Session cookie | httpOnly, `SameSite=Lax`, `Secure` in production, path `/`, 12-hour idle expiry, 30-day absolute expiry with "remember this workstation". Rotated on sign-in and on password change. |
-| CSRF | `SameSite=Lax` plus an `X-Requested-With` check on unsafe methods. Frontend sends it from one place (the API client). |
-| Brute force | Per-account: 5 failures → 15-minute lock, counter reset on success. Per-IP: `@nestjs/throttler` on `/auth/*`. Failures logged as audit events. |
-| Timing | Same response time and identical message for "wrong email" and "wrong password": *"Email or password is wrong."* Never reveal which. |
-| Enumeration | Any password-reset or lookup endpoint answers the same way whether or not the account exists. |
-| Privilege escalation | Only `...user-accounts:edit` may change a role; assigning a **full-access** role requires the actor to hold full access themselves. |
-| Sessions after sensitive changes | Password change or reset revokes that user's other sessions. Suspension revokes all of theirs at once. |
-| Secrets | `SESSION_SECRET` from env; no default in production (the app refuses to start without it). |
-| Logging | Never log passwords, cookie values or hashes. Audit records the action, not the secret. |
-
----
+| Closed by default | Five app-wide guards, in order: rate limit → CSRF → read the session → require a sign-in → check permissions. A new controller with no decorators is refused, not opened. `@Public()` is the only way out, and every public route is one a signed-out visitor genuinely needs. |
+| Password storage | argon2id (`@node-rs/argon2`), 19 MiB memory cost, its own salt per password. |
+| Password rules | 10+ characters, not an obvious one, and not the person's own name or email. Checked in the browser for a quick answer and again on the server, which is the one that counts. |
+| Session cookie | httpOnly, `SameSite=Lax` (`None` only when the app and API are on different domains), `Secure` and named with the `__Host-` prefix in production. The cookie value is random; only its SHA-256 is stored, so the database can't be used to sign in. |
+| CSRF | The origin of any write must be one this API serves, **and** the request must carry `X-Requested-With`, which a browser won't attach cross-site without a preflight this API refuses. `SameSite` is the third layer. |
+| Brute force | 5 wrong passwords lock the account for 15 minutes; sign-in routes allow 10 requests a minute per address, everything else 300. |
+| Enumeration | An unknown email and a wrong password give the same answer, after a real argon2 hash is checked against a decoy so the timing matches too. "Forgot password" answers identically for an address with no account. |
+| Session expiry | 12 hours idle (30 days with "keep me signed in"), 30 days absolute, and MongoDB removes ended sessions on its own. Status and permissions are re-read on every request, so suspending someone or changing their role takes effect at once. |
+| After a password change | Every other session of that account ends and the person is emailed. Suspending, archiving or setting a temporary password ends all of them. |
+| Privilege escalation | Only an account that already has full access may grant a full-access role. |
+| Audit trail | `modules/audit` records sign-ins, failures, lockouts, and every account change with who did it, from which address. Records are written once, kept 400 days, and shown on the account's page. |
+| Transport & headers | helmet, `Cache-Control: no-store` on API answers, no referrer, and `TRUST_PROXY` decides whether a forwarded address may be believed. |
+| Unsafe settings | `config/security.config.ts` refuses to start production when sign-in is off, CORS allows `*`, or the API or web app is not on https. In development it prints the same list as warnings. |
 
 ## 6. Backend plan (`backend/src`)
 

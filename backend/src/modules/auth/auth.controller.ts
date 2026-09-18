@@ -29,7 +29,7 @@ import {
   TokenCheckDto,
 } from './dto/auth-response.dto'
 import { AUTH_RATE_LIMIT } from './constants/auth.constants'
-import { AuthenticatedGuard } from './guards/authenticated.guard'
+import { SessionRequiredGuard } from './guards/session-required.guard'
 
 /**
  * Signing in and everything about one's own account. The session cookie is set here and nowhere
@@ -108,7 +108,7 @@ export class AuthController {
   }
 
   @Get('me')
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(SessionRequiredGuard)
   @ResponseMessage('Account fetched successfully.')
   @ApiOperation({
     summary: 'Who am I?',
@@ -121,7 +121,7 @@ export class AuthController {
   }
 
   @Post('change-password')
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(SessionRequiredGuard)
   @HttpCode(HttpStatus.OK)
   @ResponseMessage('Password changed successfully.')
   @ApiOperation({ summary: 'Change my password', description: 'Your other devices are signed out; this one stays signed in.' })
@@ -185,7 +185,7 @@ export class AuthController {
   }
 
   @Get('sessions')
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(SessionRequiredGuard)
   @ResponseMessage('Sessions fetched successfully.')
   @ApiOperation({ summary: 'Where am I signed in?' })
   @ApiSuccess(UserSessionResponseDto, { description: 'This person’s live sessions, this one marked', isArray: true })
@@ -195,7 +195,7 @@ export class AuthController {
   }
 
   @Delete('sessions/:id')
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(SessionRequiredGuard)
   @ResponseMessage('Session ended successfully.')
   @ApiOperation({ summary: 'Sign out one of my devices' })
   @ApiParam({ name: 'id', format: 'uuid', description: 'Session id (UUID v4)' })
@@ -210,7 +210,7 @@ export class AuthController {
   }
 
   @Delete('sessions')
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(SessionRequiredGuard)
   @ResponseMessage('Other sessions ended successfully.')
   @ApiOperation({ summary: 'Sign out my other devices', description: 'This device stays signed in.' })
   @ApiSuccess(MessageResponseDto, { description: 'How many devices were signed out' })
