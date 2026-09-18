@@ -1,7 +1,20 @@
-import { QueryClient } from '@tanstack/react-query'
+import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query'
 import { ApiError } from '@/lib/api/ApiError'
 
-export const queryClient = new QueryClient({
+/**
+ * A session can end while the app is open: the person signed out elsewhere, an administrator
+ * suspended them, or the session simply expired. Any 401 therefore drops the cached session, and
+ * RequireAuth sends them to sign in again on the next render instead of leaving a half-dead page.
+ */
+const forgetSessionOnUnauthorized = (error: unknown) => {
+  if (error instanceof ApiError && error.status === 401) {
+    queryClient.setQueryData(['auth', 'session'], null)
+  }
+}
+
+export const queryClient: QueryClient = new QueryClient({
+  queryCache: new QueryCache({ onError: forgetSessionOnUnauthorized }),
+  mutationCache: new MutationCache({ onError: forgetSessionOnUnauthorized }),
   defaultOptions: {
     queries: {
       staleTime: 30_000,

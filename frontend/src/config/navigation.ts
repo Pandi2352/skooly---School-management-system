@@ -69,6 +69,7 @@ export const modules: Module[] = [
       ['Online Admission Forms', 'Document Uploads', 'Admission Approval Workflows'],
       'Admissions',
     ),
+    builtFeature('User Accounts', 'User Accounts', paths.users),
     builtFeature('Role & Permission Management', 'Roles & Permissions', paths.settingsRoles),
     feature('Data Import & Export', ['Bulk CSV/Excel Import'], 'Import & Export'),
     feature(

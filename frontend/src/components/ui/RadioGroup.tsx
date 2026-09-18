@@ -4,7 +4,13 @@ import { cn } from '@/lib/cn'
 import { FieldMessages } from './FieldMessages'
 import { fieldDescribedBy, fieldLabelClasses } from './fieldStyles'
 
-export type RadioOption = { value: string; label: string; disabled?: boolean }
+export type RadioOption = {
+  value: string
+  label: string
+  /** A line under the label, for choices that need explaining before they are picked. */
+  description?: string
+  disabled?: boolean
+}
 
 type RadioGroupProps = {
   label: string
@@ -50,20 +56,25 @@ export function RadioGroup({
         {options.map((option) => {
           const optionId = `${id}-${option.value}`
           return (
-            <div key={option.value} className="flex min-h-11 items-center gap-3">
+            <div
+              key={option.value}
+              className={cn('flex min-h-11 gap-3', option.description ? 'items-start py-2' : 'items-center')}
+            >
               <RadixRadioGroup.Item
                 id={optionId}
                 value={option.value}
                 disabled={option.disabled}
                 className={cn(
                   'grid size-5 flex-none cursor-pointer place-items-center rounded-full border bg-surface disabled:cursor-not-allowed disabled:opacity-60 data-[state=checked]:border-primary',
+                  option.description && 'mt-0.5',
                   error ? 'border-danger' : 'border-control',
                 )}
               >
                 <RadixRadioGroup.Indicator className="size-2.5 rounded-full bg-primary" />
               </RadixRadioGroup.Item>
-              <label htmlFor={optionId} className="cursor-pointer text-sm">
-                {option.label}
+              <label htmlFor={optionId} className="grid cursor-pointer gap-0.5 text-sm">
+                <span>{option.label}</span>
+                {option.description && <span className="text-ink-muted">{option.description}</span>}
               </label>
             </div>
           )

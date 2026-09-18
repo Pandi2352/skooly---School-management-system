@@ -11,12 +11,18 @@ export interface AuthenticatedUserContext {
   roleId: string
   isAdministrator?: boolean
   permissions: string[]
+  /** The session this request came from, so "sign out my other devices" can keep this one. */
+  sessionId?: string
+  email?: string
+  fullName?: string
+  /** True until the person replaces a temporary password; the app then only lets them do that. */
+  mustChangePassword?: boolean
 }
 
 /**
- * Checks @RequirePermissions keys against request.user. Until the login module exists nothing sets
- * request.user, so checks are skipped while AUTH_ENABLED is false (with a one-time warning);
- * otherwise every protected endpoint would reject everyone.
+ * Checks @RequirePermissions keys against request.user, which SessionGuard puts there.
+ * Checks are skipped while AUTH_ENABLED is false (with a one-time warning) so a development machine
+ * can work without signing in; that switch must be true in production.
  */
 @Injectable()
 export class PermissionsGuard implements CanActivate {

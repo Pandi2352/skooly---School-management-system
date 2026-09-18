@@ -4,8 +4,8 @@ import { Link, useLocation } from 'react-router-dom'
 import { paths } from '@/app/paths'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { moduleIcons } from '@/config/moduleIcons'
-import { navSections } from '@/config/navigation'
 import { cn } from '@/lib/cn'
+import { useVisibleNavSections } from '@/features/auth/hooks/useVisibleNavSections'
 import type { Branding } from '@/features/branding/types/branding.types'
 import { SidebarFooter } from './SidebarFooter'
 import { SidebarGroup } from './SidebarGroup'
@@ -42,6 +42,8 @@ export function Sidebar({
   branding,
 }: SidebarProps) {
   const { pathname } = useLocation()
+  // Only the pages this person's role can open; an administrator sees everything.
+  const navSections = useVisibleNavSections()
   const activeModule = pathname.split('/')[1] ?? ''
   const [toggled, setToggled] = useState<Record<string, boolean>>({})
   const navRef = useRef<HTMLElement>(null)

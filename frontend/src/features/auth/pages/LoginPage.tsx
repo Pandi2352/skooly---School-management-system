@@ -1,26 +1,23 @@
 import {
-  ArrowRightIcon,
   MoonIcon,
   QuotesIcon,
   ShieldCheckIcon,
   SparkleIcon,
   SunIcon,
 } from '@phosphor-icons/react'
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Navigate, Link } from 'react-router-dom'
 import { paths } from '@/app/paths'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { useTheme } from '@/hooks/useTheme'
 import { useBranding } from '@/features/branding/hooks/useBranding'
 import { LoginForm } from '../components/LoginForm'
-import { RoleQuickSwitch } from '../components/RoleQuickSwitch'
-import type { ErpRole } from '../types/auth.types'
+import { useSession, useSetupState } from '../hooks/useSession'
 
 export function LoginPage() {
-  const [selectedRole, setSelectedRole] = useState<ErpRole>('admin')
-  const [email, setEmail] = useState('admin@skooly.edu')
   const { preference, setPreference } = useTheme()
   const branding = useBranding()
+  const session = useSession()
+  const setupState = useSetupState()
 
   const logoUrl = branding.data?.assets.logo?.url ?? '/skooly-logo.jpg'
   const bgUrl = branding.data?.assets.loginBackground?.url ?? '/school-campus-bg.jpg'
@@ -32,14 +29,13 @@ export function LoginPage() {
   const footerText =
     branding.data?.documentFooter ?? '© 2026 Skooly ERP · St. Xavier’s Senior Academy. All rights reserved.'
 
-  const handleRoleSelect = (role: ErpRole, selectedEmail: string) => {
-    setSelectedRole(role)
-    setEmail(selectedEmail)
-  }
-
   const toggleTheme = () => {
     setPreference(preference === 'dark' ? 'light' : 'dark')
   }
+
+  // A school with no accounts yet has nobody to sign in as, so the first-run page takes over.
+  if (setupState.data?.needsSetup) return <Navigate to={paths.setup} replace />
+  if (session.data) return <Navigate to={paths.dashboard} replace />
 
   return (
     <div className="relative flex min-h-screen w-full flex-col justify-between overflow-x-hidden">
@@ -59,7 +55,7 @@ export function LoginPage() {
       {/* Top utility bar */}
       <header className="relative z-10 flex h-16 items-center justify-between px-6 sm:px-10 lg:px-16">
         <Link
-          to={paths.dashboard}
+          to={paths.login}
           className="group flex items-center gap-3 rounded-md focus-visible:outline-2 focus-visible:outline-primary dark:focus-visible:outline-accent"
         >
           <img
@@ -164,35 +160,15 @@ export function LoginPage() {
                   </span>
                 </div>
                 <p className="text-xs text-ink-muted">
-                  Authenticate with your institutional account or select a demo role below.
+                  Sign in with the email address your school set up for you.
                 </p>
               </div>
 
-              {/* Persona quick switch */}
-              <div className="mb-5">
-                <RoleQuickSwitch selectedRole={selectedRole} onSelectRole={handleRoleSelect} />
-              </div>
+              <LoginForm />
 
-              {/* Login form */}
-              <LoginForm initialEmail={email} role={selectedRole} />
-
-              {/* Demo skip & security note */}
-              <div className="mt-6 space-y-3 border-t border-line pt-4 text-center">
-                <div className="flex items-center justify-center gap-1.5 text-[11px] text-ink-muted">
-                  <ShieldCheckIcon className="size-4 flex-none text-success" weight="fill" />
-                  <span>256-bit Encrypted Session · Single Institution Isolated Ledger</span>
-                </div>
-
-                <div className="pt-1">
-                  <Link
-                    to={paths.dashboard}
-                    className="inline-flex items-center gap-1 rounded-md text-xs font-semibold text-primary transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-primary"
-                  >
-                    <span>Direct Preview: Enter Dashboard</span>
-                    <ArrowRightIcon className="size-3.5" aria-hidden="true" />
-                  </Link>
-                </div>
-              </div>
+              <p className="mt-6 border-t border-line pt-4 text-center text-[11px] text-ink-muted">
+                No account yet? An administrator at your school can create one and email you a link.
+              </p>
             </div>
           </section>
         </div>

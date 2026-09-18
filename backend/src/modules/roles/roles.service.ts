@@ -81,6 +81,34 @@ export class RolesService implements OnModuleInit {
     return toRoleResponse(await this.getRoleOrThrow(id))
   }
 
+  /**
+   * The role, or null when it doesn't exist. For other modules (accounts, sign-in) that report a
+   * missing role in their own words instead of as a roles error.
+   */
+  async findByIdOrNull(id: string): Promise<RoleResponseDto | null> {
+    const role = await this.rolesRepository.findById(id)
+    return role ? toRoleResponse(role) : null
+  }
+
+  /** Every role, in list order. Used to show role names beside accounts. */
+  async listAll(): Promise<RoleResponseDto[]> {
+    const records = await this.rolesRepository.findAll()
+    return records.map(toRoleResponse)
+  }
+
+  /** Ids of the roles that grant everything, used for the "last administrator" rule. */
+  async getFullAccessRoleIds(): Promise<string[]> {
+    const records = await this.rolesRepository.findAll()
+    return records.filter((role) => role.fullAccess).map((role) => role._id)
+  }
+
+  /** The Administrator system role, used when the first account is created. */
+  async findAdministratorRole(): Promise<RoleResponseDto | null> {
+    const records = await this.rolesRepository.findAll()
+    const administrator = records.find((role) => role.code === 'administrator') ?? records.find((role) => role.fullAccess)
+    return administrator ? toRoleResponse(administrator) : null
+  }
+
   async create(dto: CreateRoleDto): Promise<RoleResponseDto> {
     const name = cleanRoleName(dto.name)
     const nameKey = roleNameKey(name)

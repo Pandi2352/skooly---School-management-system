@@ -2,6 +2,13 @@
 export const paths = {
   root: '/',
   login: '/login',
+  /** First run only: creates the school's first administrator when no account exists yet. */
+  setup: '/setup',
+  forgotPassword: '/forgot-password',
+  /** Opened from an invitation email. */
+  setPassword: '/set-password',
+  /** Opened from a password reset email. */
+  resetPassword: '/reset-password',
   dashboard: '/dashboard',
   navigator: '/navigator',
   contactSupport: '/contact-support',
@@ -9,6 +16,12 @@ export const paths = {
   studentNew: '/students/new',
   student: (studentId: string) => `/students/${studentId}`,
   studentEdit: (studentId: string) => `/students/${studentId}/edit`,
+  // Staff logins: who can sign in, with which role.
+  users: '/users',
+  user: (userId: string) => `/users/${userId}`,
+  /** The signed-in person's own account. */
+  account: '/account',
+  accountPassword: '/account/password',
   settings: '/settings',
   settingsGeneral: '/settings/general',
   settingsSchool: '/settings/school',

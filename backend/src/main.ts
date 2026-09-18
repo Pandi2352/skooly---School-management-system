@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory, Reflector } from '@nestjs/core'
+import cookieParser from 'cookie-parser'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { resolve } from 'node:path'
 import { AppModule } from './app.module'
@@ -22,6 +23,8 @@ async function bootstrap() {
   // Every response follows one shape (common/interfaces/api-response.interface.ts):
   // success → { success: true, statusCode, message, data, meta?, path, timestamp }
   // error   → { success: false, statusCode, message, errorCode, errors, data: null, path, method, timestamp }
+  // The session cookie is read on every request, so it has to be parsed before any guard runs.
+  app.use(cookieParser())
   app.useGlobalPipes(createValidationPipe())
   app.useGlobalInterceptors(new TransformInterceptor(app.get(Reflector)))
   app.useGlobalFilters(new AllExceptionsFilter())
@@ -56,6 +59,9 @@ async function bootstrap() {
   logger.log(`Swagger docs at http://localhost:${port}/${swaggerPath}`)
   if (!configService.get<boolean>('app.authEnabled')) {
     logger.warn('AUTH_ENABLED is false: permission checks are off. Never run production like this.')
+  }
+  if (!configService.get<boolean>('mail.enabled')) {
+    logger.warn('SMTP_HOST is empty: invitation and reset emails will be written to the log instead of sent.')
   }
 }
 

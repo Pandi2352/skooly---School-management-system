@@ -6,7 +6,8 @@ import { BrandingSync } from '@/features/branding'
 import { queryClient } from '@/lib/query/queryClient'
 import { ThemeProvider } from './theme/ThemeProvider'
 
-// TODO(auth): add AuthProvider here once login exists (FRONTEND.md D2).
+// The signed-in person is a TanStack Query (features/auth/hooks/useSession), so no extra provider:
+// one cache holds the session, and RequireAuth reads it.
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
