@@ -1,6 +1,7 @@
 import { UsersThreeIcon } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { PageContainer } from '@/components/page/PageContainer'
+import { RecordsCard } from '@/components/page/RecordsCard'
 import { Badge } from '@/components/ui/Badge'
 import { Pagination } from '@/components/ui/Pagination'
 import { Tooltip } from '@/components/ui/Tooltip'
@@ -140,46 +141,48 @@ export function StudentListPage() {
           onClear={clearFilters}
         />
 
-        {/* Controls sit on a surface card: their borders don't reach 3:1 against the page background. */}
-        <section
-          aria-labelledby="student-records-heading"
-          className="min-w-0 rounded-md border border-line bg-surface"
+        <RecordsCard
+          title="Student records"
+          icon={UsersThreeIcon}
+          badges={page && <StudentStats counts={page.counts} />}
+          headerEnd={<StudentViewToggle value={view} onChange={setView} />}
+          toolbar={
+            <StudentRecordsToolbar
+              pageSize={filters.pageSize}
+              pageSizeOptions={PAGE_SIZE_OPTIONS}
+              onPageSizeChange={(pageSize) => update({ pageSize })}
+              canExport={rows.length > 0 && !students.isPlaceholderData}
+              onCopy={() => void copyPage()}
+              onDownloadCsv={downloadCsv}
+              onDownloadExcel={() => void exportFile('Excel')}
+              onDownloadPdf={() => void exportFile('PDF')}
+              onPrint={() => window.print()}
+              isColumnVisible={columns.isVisible}
+              onToggleColumn={columns.toggle}
+              onShowAllColumns={columns.showAll}
+              selectedCount={selectedIds.size}
+              onClearSelection={() => setSelectedIds(new Set())}
+              onBulkEdit={() => announceBulk('Bulk edit')}
+              onBulkDelete={() => announceBulk('Bulk delete')}
+              search={filters.search}
+              onSearchChange={(value) => changeFilters({ search: value })}
+            />
+          }
+          footer={
+            page && page.total > 0 ? (
+              <Pagination
+                page={page.page}
+                pageCount={page.pageCount}
+                total={page.total}
+                pageSize={filters.pageSize}
+                pageSizeOptions={PAGE_SIZE_OPTIONS}
+                onPageChange={(next) => update({ page: next })}
+                onPageSizeChange={(pageSize) => update({ pageSize })}
+                itemLabel="students"
+              />
+            ) : undefined
+          }
         >
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-2.5">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <h2
-                id="student-records-heading"
-                className="flex items-center gap-2 text-lg font-bold tracking-tight text-ink"
-              >
-                <UsersThreeIcon className="size-5 text-primary" aria-hidden="true" />
-                Student records
-              </h2>
-              {page && <StudentStats counts={page.counts} />}
-            </div>
-            <StudentViewToggle value={view} onChange={setView} />
-          </div>
-
-          <StudentRecordsToolbar
-            pageSize={filters.pageSize}
-            pageSizeOptions={PAGE_SIZE_OPTIONS}
-            onPageSizeChange={(pageSize) => update({ pageSize })}
-            canExport={rows.length > 0 && !students.isPlaceholderData}
-            onCopy={() => void copyPage()}
-            onDownloadCsv={downloadCsv}
-            onDownloadExcel={() => void exportFile('Excel')}
-            onDownloadPdf={() => void exportFile('PDF')}
-            onPrint={() => window.print()}
-            isColumnVisible={columns.isVisible}
-            onToggleColumn={columns.toggle}
-            onShowAllColumns={columns.showAll}
-            selectedCount={selectedIds.size}
-            onClearSelection={() => setSelectedIds(new Set())}
-            onBulkEdit={() => announceBulk('Bulk edit')}
-            onBulkDelete={() => announceBulk('Bulk delete')}
-            search={filters.search}
-            onSearchChange={(value) => changeFilters({ search: value })}
-          />
-
           {view === 'list' ? (
             <StudentTable
               students={rows}
@@ -202,20 +205,7 @@ export function StudentListPage() {
               empty={empty}
             />
           )}
-
-          {page && page.total > 0 && (
-            <div className="border-t border-line px-4 py-2.5">
-              <Pagination
-                page={page.page}
-                pageCount={page.pageCount}
-                total={page.total}
-                pageSize={filters.pageSize}
-                itemLabel="students"
-                onPageChange={(next) => update({ page: next })}
-              />
-            </div>
-          )}
-        </section>
+        </RecordsCard>
       </div>
     </PageContainer>
   )

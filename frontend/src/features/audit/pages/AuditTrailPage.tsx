@@ -1,6 +1,7 @@
 import { ClockCounterClockwiseIcon } from '@phosphor-icons/react'
 import { EmptyState } from '@/components/page/EmptyState'
 import { PageContainer } from '@/components/page/PageContainer'
+import { RecordsCard } from '@/components/page/RecordsCard'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Pagination } from '@/components/ui/Pagination'
@@ -41,22 +42,23 @@ export function AuditTrailPage() {
       {/* grid-cols-1 is minmax(0, 1fr): without it the column grows to the table's full width
           and the whole page scrolls sideways instead of the table. */}
       <div className="grid min-w-0 grid-cols-1 gap-5">
-        <section
-          aria-labelledby="audit-trail-heading"
-          className="min-w-0 rounded-md border border-line bg-surface"
+        <RecordsCard
+          title={AUDIT_PERIOD_LABELS[query.period]}
+          icon={ClockCounterClockwiseIcon}
+          toolbar={<AuditToolbar query={query} isFiltered={isFiltered} onChange={update} onReset={reset} />}
+          footer={
+            meta && meta.total > meta.limit ? (
+              <Pagination
+                page={meta.page}
+                pageCount={meta.totalPages}
+                total={meta.total}
+                pageSize={meta.limit}
+                itemLabel="events"
+                onPageChange={(page) => update({ page })}
+              />
+            ) : undefined
+          }
         >
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-2.5">
-            <h2
-              id="audit-trail-heading"
-              className="flex items-center gap-2 text-lg font-bold tracking-tight text-ink"
-            >
-              <ClockCounterClockwiseIcon className="size-5 text-primary" aria-hidden="true" />
-              {AUDIT_PERIOD_LABELS[query.period]}
-            </h2>
-          </div>
-
-          <AuditToolbar query={query} isFiltered={isFiltered} onChange={update} onReset={reset} />
-
           <AuditTable
             events={events.data?.events ?? []}
             isLoading={events.isPending}
@@ -84,20 +86,7 @@ export function AuditTrailPage() {
               )
             }
           />
-
-          {meta && meta.total > meta.limit && (
-            <div className="border-t border-line px-4 py-2.5">
-              <Pagination
-                page={meta.page}
-                pageCount={meta.totalPages}
-                total={meta.total}
-                pageSize={meta.limit}
-                itemLabel="events"
-                onPageChange={(page) => update({ page })}
-              />
-            </div>
-          )}
-        </section>
+        </RecordsCard>
       </div>
     </PageContainer>
   )

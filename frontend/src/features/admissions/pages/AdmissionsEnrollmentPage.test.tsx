@@ -1,22 +1,21 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { renderWithProviders } from '@/test/render'
 import { AdmissionsEnrollmentPage } from './AdmissionsEnrollmentPage'
 
 describe('AdmissionsEnrollmentPage', () => {
-  it('renders heading, kpi stats cards, and sample applicants', async () => {
+  it('renders the heading, the pipeline counts and the applicants', async () => {
     renderWithProviders(<AdmissionsEnrollmentPage />)
 
-    expect(
-      screen.getByRole('heading', { name: /admissions & enrollment/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /admissions & enrollment/i })).toBeInTheDocument()
 
-    // Verify stats region once loaded
+    // Counts sit under the title as chips, each one a filter, like every other list page.
+    const totals = await screen.findByRole('list', { name: 'Application totals' })
+    expect(within(totals).getByText(/Applications$/)).toBeInTheDocument()
+    expect(within(totals).getByText(/Under review$/)).toBeInTheDocument()
+
     await waitFor(() => {
-      expect(
-        screen.getByRole('region', { name: /admissions pipeline metrics/i }),
-      ).toBeInTheDocument()
       expect(screen.getByText('APP-2026-001')).toBeInTheDocument()
       expect(screen.getByText('Rohan Verma')).toBeInTheDocument()
     })
@@ -30,7 +29,7 @@ describe('AdmissionsEnrollmentPage', () => {
       expect(screen.getByText('Rohan Verma')).toBeInTheDocument()
     })
 
-    const searchInput = screen.getByPlaceholderText(/search by name/i)
+    const searchInput = screen.getByPlaceholderText(/search name/i)
     await user.type(searchInput, 'Ananya')
 
     await waitFor(() => {

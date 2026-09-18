@@ -19,7 +19,7 @@ type UsersToolbarProps = {
  */
 export function UsersToolbar({ query, roles, isFiltered, onChange, onReset }: UsersToolbarProps) {
   return (
-    <div className="flex flex-col gap-3 border-b border-line px-4 py-2.5 lg:flex-row lg:items-center lg:justify-between print:hidden">
+    <>
       <div className="flex flex-wrap items-center gap-2">
         <div className="w-40">
           <Select
@@ -64,6 +64,6 @@ export function UsersToolbar({ query, roles, isFiltered, onChange, onReset }: Us
           onValueChange={(search) => onChange({ search })}
         />
       </div>
-    </div>
+    </>
   )
 }

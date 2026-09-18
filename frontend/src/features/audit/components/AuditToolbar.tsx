@@ -27,7 +27,7 @@ export function AuditToolbar({ query, isFiltered, onChange, onReset }: AuditTool
   ]
 
   return (
-    <div className="flex flex-col gap-3 border-b border-line px-4 py-2.5 lg:flex-row lg:items-center lg:justify-between print:hidden">
+    <>
       <div className="flex flex-wrap items-center gap-2">
         <div className="w-44">
           <Select
@@ -66,6 +66,6 @@ export function AuditToolbar({ query, isFiltered, onChange, onReset }: AuditTool
           onValueChange={(search) => onChange({ search })}
         />
       </div>
-    </div>
+    </>
   )
 }

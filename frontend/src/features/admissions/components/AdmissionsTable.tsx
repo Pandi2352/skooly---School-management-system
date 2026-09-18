@@ -1,8 +1,7 @@
 import { CheckIcon, ClockIcon, EyeIcon, GraduationCapIcon } from '@phosphor-icons/react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { SearchInput } from '@/components/ui/SearchInput'
-import { Select } from '@/components/ui/Select'
+import { EmptyState } from '@/components/page/EmptyState'
 import { Table, type TableColumn } from '@/components/ui/Table'
 import type { AdmissionApplication } from '../schemas/admissionPipeline.schema'
 import {
@@ -15,40 +14,11 @@ import {
 type Props = {
   applications: AdmissionApplication[]
   isLoading: boolean
-  search: string
-  onSearchChange: (val: string) => void
-  grade: number | undefined
-  onGradeChange: (grade: number | undefined) => void
   onReview: (app: AdmissionApplication) => void
   onEnroll: (app: AdmissionApplication) => void
 }
 
-const gradeOptions = [
-  { value: '', label: 'All Grades' },
-  { value: '1', label: 'Grade 1' },
-  { value: '2', label: 'Grade 2' },
-  { value: '3', label: 'Grade 3' },
-  { value: '4', label: 'Grade 4' },
-  { value: '5', label: 'Grade 5' },
-  { value: '6', label: 'Grade 6' },
-  { value: '7', label: 'Grade 7' },
-  { value: '8', label: 'Grade 8' },
-  { value: '9', label: 'Grade 9' },
-  { value: '10', label: 'Grade 10' },
-  { value: '11', label: 'Grade 11' },
-  { value: '12', label: 'Grade 12' },
-]
-
-export function AdmissionsTable({
-  applications,
-  isLoading,
-  search,
-  onSearchChange,
-  grade,
-  onGradeChange,
-  onReview,
-  onEnroll,
-}: Props) {
+export function AdmissionsTable({ applications, isLoading, onReview, onEnroll }: Props) {
   const columns: TableColumn<AdmissionApplication>[] = [
     {
       key: 'applicationNo',
@@ -170,45 +140,20 @@ export function AdmissionsTable({
   ]
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="w-full sm:w-72">
-          <SearchInput
-            label="Search applications"
-            placeholder="Search by name, app #, or parent..."
-            value={search}
-            onValueChange={onSearchChange}
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="w-40">
-            <Select
-              label="Filter by Grade"
-              hideLabel
-              value={grade ? String(grade) : ''}
-              onValueChange={(val: string) => onGradeChange(val ? Number(val) : undefined)}
-              options={gradeOptions}
-            />
-          </div>
-        </div>
-      </div>
-
-      <Table
-        caption="Admissions Pipeline Applications"
-        columns={columns}
-        rows={applications}
-        getRowKey={(app) => app._id}
-        isLoading={isLoading}
-        empty={
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-sm font-medium text-ink">No admission applications found</p>
-            <p className="mt-1 text-xs text-ink-muted">
-              Try adjusting your search terms or filter criteria.
-            </p>
-          </div>
-        }
-      />
-    </div>
+    <Table
+      caption="Admission applications"
+      hideCaption
+      bordered={false}
+      columns={columns}
+      rows={applications}
+      getRowKey={(app) => app._id}
+      isLoading={isLoading}
+      empty={
+        <EmptyState
+          title="No applications match this view"
+          description="Try a different grade, clear the search, or pick another status above."
+        />
+      }
+    />
   )
 }

@@ -1,6 +1,7 @@
 import { CaretDownIcon, CheckIcon } from '@phosphor-icons/react'
 import { Select as RadixSelect } from 'radix-ui'
 import { useId } from 'react'
+import { invariant } from '@/lib/assert'
 import { cn } from '@/lib/cn'
 import { FieldMessages } from './FieldMessages'
 import { fieldDescribedBy, fieldLabelClasses } from './fieldStyles'
@@ -35,6 +36,13 @@ export function Select({
   ...rootProps
 }: SelectProps) {
   const id = useId()
+
+  // Radix keeps "" for "nothing is selected", so an option with that value can never be shown and
+  // the field just looks blank. Use a real value such as "all" and translate it in the caller.
+  invariant(
+    !options.some((option) => option.value === ''),
+    `Select "${label}" has an option with an empty value. Give it a real value, like "all".`,
+  )
 
   return (
     <div className="grid gap-1.5">
