@@ -11,6 +11,7 @@ import { RolesModule } from './modules/roles/roles.module'
 import { SchoolSettingsModule } from './modules/school-settings/school-settings.module'
 import { UsersModule } from './modules/users/users.module'
 import { AdmissionsModule } from './modules/admissions/admissions.module'
+import { DataTransferModule } from './modules/data-transfer/data-transfer.module'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 
@@ -28,6 +29,7 @@ import { AppService } from './app.service'
     BrandingModule,
     SchoolSettingsModule,
     AdmissionsModule,
+    DataTransferModule,
     MailModule,
     UsersModule,
     AuthModule,

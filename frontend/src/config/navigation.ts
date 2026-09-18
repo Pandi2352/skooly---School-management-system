@@ -67,7 +67,7 @@ export const modules: Module[] = [
     builtFeature('Admissions & Enrollment', 'Admissions', paths.admissionsEnrollment),
     builtFeature('User Accounts', 'User Accounts', paths.users),
     builtFeature('Role & Permission Management', 'Roles & Permissions', paths.settingsRoles),
-    feature('Data Import & Export', ['Bulk CSV/Excel Import'], 'Import & Export'),
+    builtFeature('Data Import & Export', 'Import & Export', paths.dataImportExport),
     feature(
       'Certificate Generator',
       ['Character Certificate Generation', 'Leaving Letter Generation'],

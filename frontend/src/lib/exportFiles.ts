@@ -1,6 +1,8 @@
 // Excel and PDF exports for tables. Each library is imported only when someone clicks that
 // format, so neither adds to the page's initial download. `rows[0]` is the header row.
 
+import { generateCsv } from './csvParser'
+
 /** Downloads a real .xlsx workbook with a bold header row. */
 export async function downloadXlsxTable(fileName: string, rows: string[][]) {
   const { default: writeXlsxFile } = await import('write-excel-file/browser')
@@ -10,6 +12,20 @@ export async function downloadXlsxTable(fileName: string, rows: string[][]) {
     ...body.map((row) => row.map((value) => ({ value }))),
   ]
   await writeXlsxFile(sheet).toFile(fileName)
+}
+
+/** Downloads a standard UTF-8 CSV file. */
+export function downloadCsvFile(fileName: string, rows: (string | number | null | undefined)[][]) {
+  const csvContent = generateCsv(rows)
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.setAttribute('href', url)
+  link.setAttribute('download', fileName.endsWith('.csv') ? fileName : `${fileName}.csv`)
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
 }
 
 // jsPDF's built-in fonts can't draw ₹, so amounts are written as "Rs" in PDFs only.

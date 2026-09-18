@@ -18,6 +18,8 @@ export const paths = {
   studentEdit: (studentId: string) => `/students/${studentId}/edit`,
   /** Administrative admissions & enrollment pipeline under Core Setup & Administration. */
   admissionsEnrollment: '/core-setup-administration/admissions-enrollment',
+  /** Data Import & Export center under Core Setup & Administration. */
+  dataImportExport: '/core-setup-administration/data-import-export',
   // Staff logins: who can sign in, with which role.
   users: '/users',
   user: (userId: string) => `/users/${userId}`,
