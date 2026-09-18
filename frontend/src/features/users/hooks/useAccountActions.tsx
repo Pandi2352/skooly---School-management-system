@@ -12,13 +12,14 @@ import type { CreatedUser, User } from '../types/user.types'
 import {
   useArchiveUser,
   useChangeUserStatus,
+  useDisableUserTwoFactor,
   useResendInvitation,
   useRevokeUserSessions,
   useSendPasswordReset,
   useSetTemporaryPassword,
 } from './useUsers'
 
-type Confirmation = { action: 'suspend' | 'archive' | 'sign-out-devices'; user: User }
+type Confirmation = { action: 'suspend' | 'archive' | 'sign-out-devices' | 'disable-two-factor'; user: User }
 
 const SHARE_WARNING =
   'Anyone who opens this link can set the password for that account, so share it with that person only.'
@@ -46,6 +47,7 @@ export function useAccountActions(roles: Role[]): {
   const changeStatus = useChangeUserStatus()
   const archiveUser = useArchiveUser()
   const revokeSessions = useRevokeUserSessions()
+  const disableTwoFactor = useDisableUserTwoFactor()
 
   const showCreated = (created: CreatedUser) => {
     if (created.temporaryPassword) {
@@ -135,6 +137,7 @@ export function useAccountActions(roles: Role[]): {
         case 'suspend':
         case 'archive':
         case 'sign-out-devices':
+        case 'disable-two-factor':
           setConfirmation({ action, user })
           break
       }
@@ -153,6 +156,12 @@ export function useAccountActions(roles: Role[]): {
       } else if (action === 'archive') {
         await archiveUser.mutateAsync(user.id)
         toast.success('Account archived', `${user.fullName} is kept on past records but can’t sign in.`)
+      } else if (action === 'disable-two-factor') {
+        await disableTwoFactor.mutateAsync(user.id)
+        toast.success(
+          'Two-step sign-in switched off',
+          `${user.fullName} signs in with their password alone, and can set it up again themselves.`,
+        )
       } else {
         const ended = await revokeSessions.mutateAsync(user.id)
         toast.success(
@@ -189,6 +198,13 @@ export function useAccountActions(roles: Role[]): {
       description: 'Their password keeps working; only the devices they are signed in on are signed out.',
       confirmLabel: 'Sign out',
       tone: 'primary' as const,
+    },
+    'disable-two-factor': {
+      title: `Turn off two-step sign-in for ${confirmation?.user.fullName ?? ''}?`,
+      description:
+        'For someone locked out of their authenticator app. Their password alone will get in again, their sessions end, and they can set it up afresh. Check who you are talking to first.',
+      confirmLabel: 'Turn off',
+      tone: 'danger' as const,
     },
   }[confirmation?.action ?? 'suspend']
 

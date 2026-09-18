@@ -1,6 +1,10 @@
 import type { z } from 'zod'
 import type {
   changePasswordFormSchema,
+  loginResultSchema,
+  recoveryCodesSchema,
+  twoFactorSetupSchema,
+  twoFactorStatusSchema,
   loginFormSchema,
   newPasswordFormSchema,
   passwordChangedSchema,
@@ -15,6 +19,10 @@ export type SignedInUser = z.infer<typeof signedInUserSchema>
 export type SetupState = z.infer<typeof setupStateSchema>
 export type TokenCheck = z.infer<typeof tokenCheckSchema>
 export type PasswordChanged = z.infer<typeof passwordChangedSchema>
+export type LoginResult = z.infer<typeof loginResultSchema>
+export type TwoFactorStatus = z.infer<typeof twoFactorStatusSchema>
+export type TwoFactorSetup = z.infer<typeof twoFactorSetupSchema>
+export type RecoveryCodes = z.infer<typeof recoveryCodesSchema>
 
 export type LoginFormValues = z.infer<typeof loginFormSchema>
 export type SetupFormValues = z.infer<typeof setupFormSchema>

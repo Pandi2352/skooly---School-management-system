@@ -64,6 +64,29 @@ export class User extends BaseSchema {
   @Prop({ type: Date, default: null })
   lockedUntil: Date | null
 
+  @ApiProperty({ description: 'Sign-in also asks for a code from this person’s authenticator app', example: false })
+  @Prop({ type: Boolean, default: false })
+  twoFactorEnabled: boolean
+
+  @ApiProperty({
+    description: 'The authenticator seed, encrypted with TWO_FACTOR_KEY (internal, never returned)',
+    nullable: true,
+    type: String,
+  })
+  @Prop({ type: String, default: null })
+  twoFactorSecret: string | null
+
+  @ApiProperty({ description: 'When two-step sign-in was switched on', nullable: true, type: Date })
+  @Prop({ type: Date, default: null })
+  twoFactorConfirmedAt: Date | null
+
+  @ApiProperty({
+    description: 'SHA-256 of each unused recovery code (internal, never returned)',
+    type: [String],
+  })
+  @Prop({ type: [String], default: [] })
+  twoFactorRecoveryHashes: string[]
+
   @ApiProperty({ description: 'When the invitation email was last sent', nullable: true, type: Date })
   @Prop({ type: Date, default: null })
   invitedAt: Date | null

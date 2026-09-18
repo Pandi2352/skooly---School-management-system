@@ -19,6 +19,7 @@ export const userSchema = z.object({
   status: z.enum(USER_STATUSES),
   mustChangePassword: z.boolean(),
   isLocked: z.boolean(),
+  twoFactorEnabled: z.boolean(),
   lockedUntil: z.string().nullable(),
   lastLoginAt: z.string().nullable(),
   invitedAt: z.string().nullable(),

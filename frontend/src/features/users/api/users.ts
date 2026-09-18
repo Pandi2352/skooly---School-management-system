@@ -121,6 +121,11 @@ export function setTemporaryPassword({
   return api.post(`/users/${id}/temporary-password`, temporaryPasswordSchema, password ? { password } : {})
 }
 
+/** For a colleague locked out of their authenticator app. It can never be switched on for someone. */
+export function disableUserTwoFactor(id: string): Promise<User> {
+  return api.delete(`/users/${id}/two-factor`, userSchema)
+}
+
 export function getUserSessions(id: string): Promise<UserSession[]> {
   return api.get(`/users/${id}/sessions`, userSessionListSchema)
 }

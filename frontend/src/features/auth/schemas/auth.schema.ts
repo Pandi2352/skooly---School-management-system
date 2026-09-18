@@ -12,6 +12,29 @@ export const signedInUserSchema = z.object({
   sessionExpiresAt: z.string(),
 })
 
+/** Signing in either finishes, or pauses for a code from the person's authenticator app. */
+export const loginResultSchema = z.object({
+  twoFactorRequired: z.boolean(),
+  account: signedInUserSchema.nullable(),
+  challengeToken: z.string().nullable(),
+  challengeExpiresAt: z.string().nullable(),
+})
+
+export const twoFactorStatusSchema = z.object({
+  available: z.boolean(),
+  enabled: z.boolean(),
+  confirmedAt: z.string().nullable(),
+  recoveryCodesLeft: z.number(),
+})
+
+export const twoFactorSetupSchema = z.object({
+  secret: z.string(),
+  otpauthUrl: z.string(),
+  qrCodeDataUrl: z.string(),
+})
+
+export const recoveryCodesSchema = z.object({ recoveryCodes: z.array(z.string()) })
+
 export const setupStateSchema = z.object({ needsSetup: z.boolean() })
 
 export const tokenCheckSchema = z.object({
@@ -68,6 +91,19 @@ export const newPasswordFormSchema = z
     confirmPassword: z.string(),
   })
   .refine(passwordsMatch, MATCH_ERROR)
+
+/** Six digits from the app, or a recovery code like ABCD-2345. Spaces and dashes are forgiven. */
+export const twoFactorCodeFormSchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .min(6, 'Enter the six-digit code from your app')
+    .max(20, 'That code is too long'),
+})
+
+export const passwordConfirmFormSchema = z.object({
+  password: z.string().min(1, 'Enter your password'),
+})
 
 export const changePasswordFormSchema = z
   .object({

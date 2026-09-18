@@ -77,6 +77,12 @@ export function canSetTemporaryPassword(user: User): ActionCheck {
   return ALLOWED
 }
 
+export function canDisableTwoFactor(user: User): ActionCheck {
+  if (user.status === 'archived') return deny('This account is archived.')
+  if (!user.twoFactorEnabled) return deny('This person doesn’t use two-step sign-in.')
+  return ALLOWED
+}
+
 export function canEditDetails(user: User): ActionCheck {
   if (user.status === 'archived') return deny('This account is archived.')
   return ALLOWED

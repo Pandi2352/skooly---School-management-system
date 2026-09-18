@@ -24,6 +24,27 @@ export class SignedInUserDto {
   sessionExpiresAt: string
 }
 
+/**
+ * What POST /auth/login answers. Either the person is in, or the password was right and a code from
+ * their authenticator app is still needed: one shape, so the web app always knows what it received.
+ */
+export class LoginResultDto {
+  @ApiProperty({ example: false, description: 'True when a code is needed before a session starts' })
+  twoFactorRequired: boolean
+
+  @ApiPropertyOptional({ type: SignedInUserDto, nullable: true, description: 'Null while a code is still needed' })
+  account: SignedInUserDto | null
+
+  @ApiPropertyOptional({
+    nullable: true,
+    description: 'Send this back with the code. It is valid for a few minutes and can be used once.',
+  })
+  challengeToken: string | null
+
+  @ApiPropertyOptional({ nullable: true, example: '2026-09-18T07:35:00.000Z' })
+  challengeExpiresAt: string | null
+}
+
 export class SetupStateDto {
   @ApiProperty({ example: false, description: 'True when the school has no accounts yet, so the first one can be created' })
   needsSetup: boolean

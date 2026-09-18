@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common'
 import type { AuthenticatedUserContext } from '../../common/guards/permissions.guard'
-import { AUDIT_ACTION_LABELS, type AuditAction } from './audit.constants'
+import { AUDIT_ACTION_LABELS, AUDIT_RETENTION_DAYS, type AuditAction } from './audit.constants'
+import type { AuditListMetaDto } from './dto/audit-list-meta.dto'
+import type { AuditPeriod, ListAuditQueryDto } from './dto/list-audit-query.dto'
 import { AuditRepository, type AuditEventRecord } from './audit.repository'
 import type { AuditEventResponseDto } from './dto/audit-response.dto'
 
@@ -63,11 +65,42 @@ export class AuditService {
     }
   }
 
+  /** The whole trail, newest first, for the Audit Trail page. */
+  async list(query: ListAuditQueryDto): Promise<{ events: AuditEventResponseDto[]; meta: AuditListMetaDto }> {
+    const { events, total } = await this.auditRepository.findPage(
+      {
+        action: query.action,
+        targetUserId: query.userId,
+        search: query.search || undefined,
+        since: startOfPeriod(query.period),
+      },
+      { skip: (query.page - 1) * query.limit, limit: query.limit },
+    )
+    return {
+      events: events.map(toAuditResponse),
+      meta: {
+        total,
+        page: query.page,
+        limit: query.limit,
+        totalPages: query.limit > 0 ? Math.ceil(total / query.limit) : 0,
+        retentionDays: AUDIT_RETENTION_DAYS,
+      },
+    }
+  }
+
   /** The trail for one account, newest first: what was done to it, and what it did. */
   async listForUser(userId: string, limit = 20): Promise<AuditEventResponseDto[]> {
     const { events } = await this.auditRepository.findPage({ targetUserId: userId }, { skip: 0, limit })
     return events.map(toAuditResponse)
   }
+}
+
+const DAYS_IN_PERIOD: Record<Exclude<AuditPeriod, 'all'>, number> = { day: 1, week: 7, month: 30 }
+
+/** The oldest moment a period covers, or undefined for everything that is still kept. */
+function startOfPeriod(period: AuditPeriod): Date | undefined {
+  if (period === 'all') return undefined
+  return new Date(Date.now() - DAYS_IN_PERIOD[period] * 24 * 60 * 60 * 1000)
 }
 
 export function toAuditResponse(event: AuditEventRecord): AuditEventResponseDto {

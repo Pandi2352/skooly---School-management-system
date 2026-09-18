@@ -41,6 +41,9 @@ export class UserResponseDto {
   @ApiProperty({ example: false, description: 'Sign-in is blocked right now after too many wrong passwords' })
   isLocked: boolean
 
+  @ApiProperty({ example: false, description: 'Sign-in also asks for a code from their authenticator app' })
+  twoFactorEnabled: boolean
+
   @ApiProperty({ nullable: true, type: String, example: '2026-09-18T07:30:00.000Z' })
   lockedUntil: string | null
 

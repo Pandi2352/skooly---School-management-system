@@ -5,6 +5,7 @@ import { findWeakPasswordReason, hashPassword, verifyPassword } from '../../comm
 import { generateSecretToken, hashSecretToken } from '../../common/utils/token.util'
 import type { AuthEnvConfig } from '../../config/env.config'
 import { AuditService } from '../audit/audit.service'
+import { TwoFactorService } from './two-factor.service'
 import { MailService } from '../mail/mail.service'
 import type { RoleResponseDto } from '../roles/dto/role-response.dto'
 import { RolesService } from '../roles/roles.service'
@@ -25,6 +26,8 @@ import {
   tokenAlreadyUsed,
   tokenExpired,
   tokenInvalid,
+  twoFactorAlreadyOn,
+  twoFactorChallengeExpired,
   weakPassword,
 } from './auth.errors'
 import type { TokenPurpose } from './constants/auth.constants'
@@ -36,11 +39,13 @@ import {
   SetupDto,
 } from './dto/auth-request.dto'
 import {
+  LoginResultDto,
   PasswordChangedResponseDto,
   SetupStateDto,
   SignedInUserDto,
   TokenCheckDto,
 } from './dto/auth-response.dto'
+import type { TwoFactorSetupDto, TwoFactorStatusDto } from './dto/two-factor.dto'
 import { SessionsRepository } from './sessions/sessions.repository'
 import { UserTokenRecord, UserTokensRepository } from './tokens/user-tokens.repository'
 
@@ -60,6 +65,14 @@ export type IssuedSession = {
 export type SignInResult = { account: SignedInUserDto; session: IssuedSession }
 
 /**
+ * A sign-in either finishes or pauses. It pauses when the password was right and two-step sign-in
+ * is on: the session is only created once the code is checked.
+ */
+export type LoginOutcome =
+  | ({ kind: 'signed-in' } & SignInResult)
+  | { kind: 'two-factor-required'; challengeToken: string; expiresAt: Date }
+
+/**
  * Signing in, signing out and everything about one's own password. It answers the same way for an
  * unknown email as for a wrong password, so this endpoint can't be used to find out who works here.
  */
@@ -76,6 +89,7 @@ export class AuthService {
     private readonly rolesService: RolesService,
     private readonly mailService: MailService,
     private readonly auditService: AuditService,
+    private readonly twoFactorService: TwoFactorService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -126,7 +140,7 @@ export class AuthService {
     return this.startSession(user, role, context, false)
   }
 
-  async login(dto: LoginDto, context: SignInContext): Promise<SignInResult> {
+  async login(dto: LoginDto, context: SignInContext): Promise<LoginOutcome> {
     const user = await this.usersRepository.findByEmailKey(emailKey(dto.email))
     if (!user) {
       // Hash anyway: answering instantly for unknown emails would show which ones exist.
@@ -161,6 +175,11 @@ export class AuthService {
     if (user.status === 'suspended') throw accountSuspended()
     if (user.status === 'archived') throw accountArchived()
 
+    // The password was right; with two-step sign-in on, the session waits for a code.
+    if (user.twoFactorEnabled) {
+      return this.startTwoFactorChallenge(user, context, dto.rememberMe ?? false)
+    }
+
     await this.usersRepository.recordSuccessfulLogin(user._id, now)
     await this.auditService.record('auth.login', {
       actor: { id: user._id, name: user.fullName },
@@ -169,7 +188,64 @@ export class AuthService {
       ...context,
     })
     const role = await this.rolesService.findByIdOrNull(user.roleId)
-    return this.startSession({ ...user, lastLoginAt: now, failedLoginCount: 0, lockedUntil: null }, role, context, dto.rememberMe ?? false)
+    const result = await this.startSession(
+      { ...user, lastLoginAt: now, failedLoginCount: 0, lockedUntil: null },
+      role,
+      context,
+      dto.rememberMe ?? false,
+    )
+    return { kind: 'signed-in', ...result }
+  }
+
+  /**
+   * Finishes a sign-in that was waiting for a code. The handle is used up either way, so a stolen
+   * one can't be replayed, and a wrong code sends the person back to the password step.
+   */
+  async completeTwoFactorSignIn(
+    challengeToken: string,
+    code: string,
+    context: SignInContext,
+  ): Promise<SignInResult> {
+    const record = await this.tokensRepository.findByTokenHash(hashSecretToken(challengeToken))
+    if (!record || record.purpose !== 'two_factor' || record.usedAt) throw twoFactorChallengeExpired()
+    if (new Date(record.expiresAt) <= new Date()) throw twoFactorChallengeExpired()
+
+    const user = await this.usersRepository.findById(record.userId)
+    if (!user || user.status !== 'active') throw twoFactorChallengeExpired()
+
+    let usedRecoveryCode = false
+    try {
+      usedRecoveryCode = (await this.twoFactorService.verifySignIn(user, code)) === 'recovery'
+    } catch (error) {
+      // A wrong code counts towards the same lockout as a wrong password: the second step is not a
+      // free run at guessing six digits.
+      await this.recordFailure(user, context)
+      throw error
+    }
+
+    // The handle is single-use: mark it spent only once the code is accepted.
+    await this.tokensRepository.markUsed(record._id)
+
+    const now = new Date()
+    await this.usersRepository.recordSuccessfulLogin(user._id, now)
+    await this.auditService.record('auth.login', {
+      actor: { id: user._id, name: user.fullName },
+      targetUserId: user._id,
+      targetName: user.fullName,
+      summary: usedRecoveryCode
+        ? `Used a recovery code; ${this.twoFactorService.countRecoveryCodes(user) - 1} left`
+        : 'With a code from their app',
+      ...context,
+    })
+
+    const role = await this.rolesService.findByIdOrNull(user.roleId)
+    return this.startSession(
+      { ...user, lastLoginAt: now, failedLoginCount: 0, lockedUntil: null },
+      role,
+      context,
+      // "Keep me signed in" was chosen at the password step and rides on the challenge record.
+      record.createdBy === 'remember-me',
+    )
   }
 
   /** Who the signed-in person is, re-read from the database so a role change shows up at once. */
@@ -308,6 +384,61 @@ export class AuthService {
     return this.startSession(account, role, context, false)
   }
 
+  // Two-step sign-in ---------------------------------------------------------
+
+  async getTwoFactorStatus(actor: AuthenticatedUserContext): Promise<TwoFactorStatusDto> {
+    const user = await this.usersRepository.findById(actor.id)
+    if (!user) throw sessionNotFound()
+    return {
+      available: this.twoFactorService.isAvailable,
+      enabled: user.twoFactorEnabled,
+      confirmedAt: user.twoFactorConfirmedAt ? new Date(user.twoFactorConfirmedAt).toISOString() : null,
+      recoveryCodesLeft: this.twoFactorService.countRecoveryCodes(user),
+    }
+  }
+
+  async startTwoFactorSetup(actor: AuthenticatedUserContext): Promise<TwoFactorSetupDto> {
+    const user = await this.usersRepository.findById(actor.id)
+    if (!user) throw sessionNotFound()
+    if (user.twoFactorEnabled) throw twoFactorAlreadyOn()
+    return this.twoFactorService.startSetup(user)
+  }
+
+  async confirmTwoFactorSetup(actor: AuthenticatedUserContext, code: string): Promise<string[]> {
+    const user = await this.usersRepository.findById(actor.id)
+    if (!user) throw sessionNotFound()
+    if (user.twoFactorEnabled) throw twoFactorAlreadyOn()
+
+    const recoveryCodes = await this.twoFactorService.confirmSetup(user, code)
+    await this.auditService.record('auth.two_factor_enabled', {
+      actor,
+      targetUserId: user._id,
+      targetName: user.fullName,
+    })
+    return recoveryCodes
+  }
+
+  /** Switching it off asks for the password: a screen left open shouldn't be enough to undo it. */
+  async disableTwoFactor(actor: AuthenticatedUserContext, password: string): Promise<void> {
+    const user = await this.usersRepository.findById(actor.id)
+    if (!user) throw sessionNotFound()
+    if (!(await verifyPassword(user.passwordHash, password))) throw currentPasswordWrong()
+
+    await this.twoFactorService.disable(user)
+    await this.auditService.record('auth.two_factor_disabled', {
+      actor,
+      targetUserId: user._id,
+      targetName: user.fullName,
+    })
+  }
+
+  async regenerateRecoveryCodes(actor: AuthenticatedUserContext, password: string): Promise<string[]> {
+    const user = await this.usersRepository.findById(actor.id)
+    if (!user) throw sessionNotFound()
+    if (!(await verifyPassword(user.passwordHash, password))) throw currentPasswordWrong()
+    return this.twoFactorService.regenerateRecoveryCodes(user)
+  }
+
   async listOwnSessions(actor: AuthenticatedUserContext): Promise<UserSessionResponseDto[]> {
     const sessions = await this.sessionsRepository.findLiveByUser(actor.id, new Date())
     return sessions.map((session) => toSessionResponse(session, actor.sessionId))
@@ -322,6 +453,35 @@ export class AuthService {
 
   async revokeOtherSessions(actor: AuthenticatedUserContext): Promise<number> {
     return this.sessionsRepository.revokeAllForUser(actor.id, 'Signed out from another device', actor.sessionId)
+  }
+
+  /**
+   * Holds a half-finished sign-in for a few minutes. The handle is random and stored only as a
+   * hash, exactly like a session, so it is no more useful to anyone who reads the database.
+   */
+  private async startTwoFactorChallenge(
+    user: UserRecord,
+    context: SignInContext,
+    rememberMe: boolean,
+  ): Promise<LoginOutcome> {
+    const { token, tokenHash } = generateSecretToken()
+    const expiresAt = new Date(Date.now() + this.auth.twoFactorChallengeMinutes * 60_000)
+    await this.tokensRepository.invalidateOpenTokens(user._id, 'two_factor')
+    await this.tokensRepository.create({
+      userId: user._id,
+      purpose: 'two_factor',
+      tokenHash,
+      expiresAt,
+      // The only thing worth carrying from the first step to the second.
+      createdBy: rememberMe ? 'remember-me' : null,
+    })
+    await this.auditService.record('auth.two_factor_challenged', {
+      targetUserId: user._id,
+      targetName: user.fullName,
+      summary: 'Password accepted; waiting for a code',
+      ...context,
+    })
+    return { kind: 'two-factor-required', challengeToken: token, expiresAt }
   }
 
   private async recordFailure(user: UserRecord, context: SignInContext): Promise<void> {

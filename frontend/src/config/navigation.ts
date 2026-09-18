@@ -376,7 +376,7 @@ export const modules: Module[] = [
       feature('Notification Settings'),
       feature('Admission Settings'),
       feature('Admission Form Fields'),
-      feature('Audit Trail'),
+      builtFeature('Audit Trail', 'Audit Trail', paths.settingsAuditTrail),
       feature('Subscription'),
       feature('Subscription History'),
       feature('Module Settings'),

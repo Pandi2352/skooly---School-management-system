@@ -22,12 +22,21 @@ import {
   SetupDto,
 } from './dto/auth-request.dto'
 import {
+  LoginResultDto,
   MessageResponseDto,
   PasswordChangedResponseDto,
   SetupStateDto,
   SignedInUserDto,
   TokenCheckDto,
 } from './dto/auth-response.dto'
+import {
+  RecoveryCodesDto,
+  TwoFactorCodeDto,
+  TwoFactorDisableDto,
+  TwoFactorSetupDto,
+  TwoFactorSignInDto,
+  TwoFactorStatusDto,
+} from './dto/two-factor.dto'
 import { AUTH_RATE_LIMIT } from './constants/auth.constants'
 import { SessionRequiredGuard } from './guards/session-required.guard'
 
@@ -82,14 +91,53 @@ export class AuthController {
     description:
       'Sets an httpOnly session cookie. An unknown email and a wrong password give the same answer, and repeated wrong passwords lock the account for a while.',
   })
-  @ApiSuccess(SignedInUserDto, { description: 'Who signed in, and what they may do' })
+  @ApiSuccess(LoginResultDto, { description: 'A session, or a request for a code when two-step sign-in is on' })
   @ApiErrors(HttpStatus.BAD_REQUEST, HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN, HttpStatus.TOO_MANY_REQUESTS)
   async login(
     @Body() dto: LoginDto,
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
+  ): Promise<LoginResultDto> {
+    const outcome = await this.authService.login(dto, this.contextOf(request))
+    if (outcome.kind === 'two-factor-required') {
+      return {
+        twoFactorRequired: true,
+        account: null,
+        challengeToken: outcome.challengeToken,
+        challengeExpiresAt: outcome.expiresAt.toISOString(),
+      }
+    }
+    return {
+      twoFactorRequired: false,
+      account: this.sendSession(outcome, response),
+      challengeToken: null,
+      challengeExpiresAt: null,
+    }
+  }
+
+  @Post('login/two-factor')
+  @Throttle({ default: { limit: AUTH_RATE_LIMIT.limit, ttl: AUTH_RATE_LIMIT.ttlSeconds * 1000 } })
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ResponseMessage('Signed in successfully.')
+  @ApiOperation({
+    summary: 'Finish signing in with a code',
+    description:
+      'Takes the handle from /auth/login with a code from the authenticator app, or a recovery code, which is then used up.',
+  })
+  @ApiSuccess(SignedInUserDto, { description: 'Who signed in, and what they may do' })
+  @ApiErrors(HttpStatus.BAD_REQUEST, HttpStatus.UNAUTHORIZED, HttpStatus.TOO_MANY_REQUESTS)
+  async loginWithTwoFactor(
+    @Body() dto: TwoFactorSignInDto,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
   ): Promise<SignedInUserDto> {
-    return this.sendSession(await this.authService.login(dto, this.contextOf(request)), response)
+    const result = await this.authService.completeTwoFactorSignIn(
+      dto.challengeToken,
+      dto.code,
+      this.contextOf(request),
+    )
+    return this.sendSession(result, response)
   }
 
   @Post('logout')
@@ -182,6 +230,79 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ): Promise<SignedInUserDto> {
     return this.sendSession(await this.authService.setPasswordWithToken(dto, this.contextOf(request)), response)
+  }
+
+  @Get('two-factor')
+  @UseGuards(SessionRequiredGuard)
+  @ResponseMessage('Two-step sign-in status fetched successfully.')
+  @ApiOperation({ summary: 'Is two-step sign-in on for me?' })
+  @ApiSuccess(TwoFactorStatusDto, { description: 'Whether it is available, on, and how many recovery codes are left' })
+  @ApiErrors(HttpStatus.UNAUTHORIZED)
+  getTwoFactorStatus(@CurrentUser() actor: AuthenticatedUserContext): Promise<TwoFactorStatusDto> {
+    return this.authService.getTwoFactorStatus(actor)
+  }
+
+  @Post('two-factor/setup')
+  @UseGuards(SessionRequiredGuard)
+  @HttpCode(HttpStatus.OK)
+  @ResponseMessage('Scan the QR code, then enter a code to finish.')
+  @ApiOperation({
+    summary: 'Start setting up two-step sign-in',
+    description: 'Returns a QR code and the same seed as text. Nothing changes until a code confirms it.',
+  })
+  @ApiSuccess(TwoFactorSetupDto, { description: 'The QR code and seed to put into an authenticator app' })
+  @ApiErrors(HttpStatus.UNAUTHORIZED, HttpStatus.CONFLICT, HttpStatus.SERVICE_UNAVAILABLE)
+  startTwoFactorSetup(@CurrentUser() actor: AuthenticatedUserContext): Promise<TwoFactorSetupDto> {
+    return this.authService.startTwoFactorSetup(actor)
+  }
+
+  @Post('two-factor/enable')
+  @UseGuards(SessionRequiredGuard)
+  @HttpCode(HttpStatus.OK)
+  @ResponseMessage('Two-step sign-in is on.')
+  @ApiOperation({
+    summary: 'Confirm and switch on two-step sign-in',
+    description: 'The recovery codes come back once and are stored only as hashes, so keep them somewhere safe.',
+  })
+  @ApiSuccess(RecoveryCodesDto, { description: 'Recovery codes, shown this one time' })
+  @ApiErrors(HttpStatus.BAD_REQUEST, HttpStatus.UNAUTHORIZED, HttpStatus.CONFLICT)
+  async enableTwoFactor(
+    @CurrentUser() actor: AuthenticatedUserContext,
+    @Body() dto: TwoFactorCodeDto,
+  ): Promise<RecoveryCodesDto> {
+    return { recoveryCodes: await this.authService.confirmTwoFactorSetup(actor, dto.code) }
+  }
+
+  @Post('two-factor/disable')
+  @UseGuards(SessionRequiredGuard)
+  @HttpCode(HttpStatus.OK)
+  @ResponseMessage('Two-step sign-in is off.')
+  @ApiOperation({ summary: 'Switch off two-step sign-in', description: 'Asks for the account password.' })
+  @ApiSuccess(MessageResponseDto, { description: 'It is off, and the seed has been forgotten' })
+  @ApiErrors(HttpStatus.BAD_REQUEST, HttpStatus.UNAUTHORIZED)
+  async disableTwoFactor(
+    @CurrentUser() actor: AuthenticatedUserContext,
+    @Body() dto: TwoFactorDisableDto,
+  ): Promise<MessageResponseDto> {
+    await this.authService.disableTwoFactor(actor, dto.password)
+    return { message: 'Two-step sign-in is off. Signing in now needs only your password.' }
+  }
+
+  @Post('two-factor/recovery-codes')
+  @UseGuards(SessionRequiredGuard)
+  @HttpCode(HttpStatus.OK)
+  @ResponseMessage('New recovery codes created.')
+  @ApiOperation({
+    summary: 'Replace my recovery codes',
+    description: 'Asks for the password. The previous codes stop working straight away.',
+  })
+  @ApiSuccess(RecoveryCodesDto, { description: 'The new codes, shown this one time' })
+  @ApiErrors(HttpStatus.BAD_REQUEST, HttpStatus.UNAUTHORIZED)
+  async regenerateRecoveryCodes(
+    @CurrentUser() actor: AuthenticatedUserContext,
+    @Body() dto: TwoFactorDisableDto,
+  ): Promise<RecoveryCodesDto> {
+    return { recoveryCodes: await this.authService.regenerateRecoveryCodes(actor, dto.password) }
   }
 
   @Get('sessions')

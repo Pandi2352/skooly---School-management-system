@@ -42,6 +42,13 @@ export interface AuthEnvConfig {
   invitationExpiryHours: number
   /** How long a password reset link works. */
   resetExpiryMinutes: number
+  /** How long the second step of a sign-in stays open after the password is accepted. */
+  twoFactorChallengeMinutes: number
+  /**
+   * Encrypts two-step sign-in seeds, which have to be readable to check codes. Empty means two-step
+   * sign-in can't be switched on: seeds would otherwise sit in the database in the clear.
+   */
+  twoFactorKey: string
 }
 
 export interface MailEnvConfig {
@@ -102,6 +109,8 @@ export default (): { app: AppEnvConfig; auth: AuthEnvConfig; mail: MailEnvConfig
       loginLockMinutes: toInt(process.env.LOGIN_LOCK_MINUTES, 15),
       invitationExpiryHours: toInt(process.env.INVITATION_EXPIRY_HOURS, 72),
       resetExpiryMinutes: toInt(process.env.PASSWORD_RESET_EXPIRY_MINUTES, 60),
+      twoFactorChallengeMinutes: toInt(process.env.TWO_FACTOR_CHALLENGE_MINUTES, 5),
+      twoFactorKey: (process.env.TWO_FACTOR_KEY || '').trim(),
     },
     mail: {
       host: smtpHost,

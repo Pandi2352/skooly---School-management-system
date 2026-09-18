@@ -23,6 +23,10 @@ export type UserRecord = {
   lastLoginAt: Date | null
   failedLoginCount: number
   lockedUntil: Date | null
+  twoFactorEnabled: boolean
+  twoFactorSecret: string | null
+  twoFactorConfirmedAt: Date | null
+  twoFactorRecoveryHashes: string[]
   invitedAt: Date | null
   activatedAt: Date | null
   createdBy: string | null
@@ -53,6 +57,10 @@ export type UserChanges = Partial<
     | 'lastLoginAt'
     | 'failedLoginCount'
     | 'lockedUntil'
+    | 'twoFactorEnabled'
+    | 'twoFactorSecret'
+    | 'twoFactorConfirmedAt'
+    | 'twoFactorRecoveryHashes'
     | 'invitedAt'
     | 'activatedAt'
     | 'updatedBy'

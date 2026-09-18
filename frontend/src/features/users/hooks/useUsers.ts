@@ -5,6 +5,7 @@ import {
   changeUserRole,
   changeUserStatus,
   createUser,
+  disableUserTwoFactor,
   getUser,
   getUserAudit,
   getUserSessions,
@@ -91,6 +92,11 @@ export function useSetTemporaryPassword() {
     mutationFn: setTemporaryPassword,
     onSuccess: (result) => refresh(result.user.id),
   })
+}
+
+export function useDisableUserTwoFactor() {
+  const refresh = useRefreshUsers()
+  return useMutation({ mutationFn: disableUserTwoFactor, onSuccess: (user) => refresh(user.id) })
 }
 
 export function useRevokeUserSessions() {

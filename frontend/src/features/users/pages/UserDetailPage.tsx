@@ -69,6 +69,7 @@ export function UserDetailPage() {
     { label: 'Phone', value: user.phone || '—' },
     { label: 'Designation', value: user.designation || '—' },
     { label: 'Role', value: user.role?.name ?? 'No role' },
+    { label: 'Two-step sign-in', value: user.twoFactorEnabled ? 'On' : 'Off' },
     { label: 'Last sign-in', value: describeLastSignIn(user.lastLoginAt) },
     { label: 'Invitation sent', value: formatDate(user.invitedAt) },
     { label: 'Password first set', value: formatDate(user.activatedAt) },

@@ -28,6 +28,7 @@ export const paths = {
   settingsBranding: '/settings/branding',
   settingsCustomFields: '/settings/custom-fields',
   settingsRoles: '/settings/roles',
+  settingsAuditTrail: '/settings/audit-trail',
   // Matches the navigation slug of "Backup Management", so the sidebar link lands here.
   backups: '/backup-management',
   templateGallery: '/template-gallery',

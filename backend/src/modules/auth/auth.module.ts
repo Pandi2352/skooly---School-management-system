@@ -3,11 +3,13 @@ import { APP_GUARD } from '@nestjs/core'
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { CsrfGuard } from '../../common/guards/csrf.guard'
 import { PermissionsGuard } from '../../common/guards/permissions.guard'
+import { BrandingModule } from '../branding/branding.module'
 import { MailModule } from '../mail/mail.module'
 import { RolesModule } from '../roles/roles.module'
 import { UsersModule } from '../users/users.module'
 import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
+import { TwoFactorService } from './two-factor.service'
 import { AuthenticatedGuard } from './guards/authenticated.guard'
 import { SessionGuard } from './guards/session.guard'
 import { SessionRequiredGuard } from './guards/session-required.guard'
@@ -36,10 +38,13 @@ import { TokensModule } from './tokens/tokens.module'
     TokensModule,
     RolesModule,
     MailModule,
+    // The authenticator app shows the school's name, which comes from branding.
+    BrandingModule,
   ],
   controllers: [AuthController],
   providers: [
     AuthService,
+    TwoFactorService,
     SessionRequiredGuard,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: CsrfGuard },
@@ -47,6 +52,6 @@ import { TokensModule } from './tokens/tokens.module'
     { provide: APP_GUARD, useClass: AuthenticatedGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },
   ],
-  exports: [AuthService],
+  exports: [AuthService, TwoFactorService],
 })
 export class AuthModule {}

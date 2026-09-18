@@ -4,4 +4,5 @@ export const authKeys = {
   session: () => [...authKeys.all, 'session'] as const,
   setupState: () => [...authKeys.all, 'setup-state'] as const,
   sessions: () => [...authKeys.all, 'sessions'] as const,
+  twoFactor: () => [...authKeys.all, 'two-factor'] as const,
 }

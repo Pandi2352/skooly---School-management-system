@@ -65,7 +65,7 @@ I recommend the first option in each row; say the word if you want a different o
 | D6 | Sign-in identifier | **Email only**, unique, case-insensitive. | Email or staff ID. |
 | D7 | Menu placement | **Administration → User Accounts** (plus a shortcut in the gear menu). Sits next to Roles & Permissions. | A separate top-level "Administration" section in the sidebar. |
 | D8 | Deleting accounts | **Soft delete** (status `archived`): keeps history honest for audit and "who created this student". | Hard delete. |
-| D9 | Two-factor sign-in | Still Phase F. Everything else in this table is built. | Now. |
+| D9 | Two-factor sign-in | **Built.** Authenticator app, recovery codes, administrator override. | — |
 | D10 | Turning on enforcement | **Flip `AUTH_ENABLED=true` at the end of Phase C**, once login, guards and the seeded administrator all work. | Enforce from day one (blocks all work in between). |
 
 ---
@@ -134,7 +134,8 @@ Feeds the existing "Audit Trail" menu entry later.
 | Session expiry | 12 hours idle (30 days with "keep me signed in"), 30 days absolute, and MongoDB removes ended sessions on its own. Status and permissions are re-read on every request, so suspending someone or changing their role takes effect at once. |
 | After a password change | Every other session of that account ends and the person is emailed. Suspending, archiving or setting a temporary password ends all of them. |
 | Privilege escalation | Only an account that already has full access may grant a full-access role. |
-| Audit trail | `modules/audit` records sign-ins, failures, lockouts, and every account change with who did it, from which address. Records are written once, kept 400 days, and shown on the account's page. |
+| Audit trail | `modules/audit` records sign-ins, failures, lockouts, and every account change with who did it, from which address. Records are written once, kept 400 days, and read on the Audit Trail page and each account's page. |
+| Two-step sign-in | Optional per person: an authenticator app on top of the password, with ten single-use recovery codes. Seeds are encrypted with `TWO_FACTOR_KEY`; a wrong code counts towards the sign-in lockout. |
 | Transport & headers | helmet, `Cache-Control: no-store` on API answers, no referrer, and `TRUST_PROXY` decides whether a forwarded address may be believed. |
 | Unsafe settings | `config/security.config.ts` refuses to start production when sign-in is off, CORS allows `*`, or the API or web app is not on https. In development it prints the same list as warnings. |
 
@@ -283,7 +284,7 @@ everywhere else".
 | ~~C. Frontend sign-in~~ **built** | `useSession`, RequireAuth, real LoginPage, SetupPage, user menu, 401 handling. `AUTH_ENABLED` is still `false` — flip it once the first administrator exists | Nobody reaches a page without signing in; demo personas are gone. |
 | ~~D. Frontend accounts~~ **built** | Users list and detail, all dialogs, my account page, permission-filtered sidebar | An administrator can run the whole lifecycle from the UI. |
 | **E. Email polish** | SMTP is wired and sending; what remains is checking deliverability and the from-address | A colleague can be invited and can reset their own password. |
-| **F. Extras** | Two-factor, audit trail page, session policy settings | — |
+| ~~F. Extras~~ **built** | Two-step sign-in and the Audit Trail page. Session policy settings are still open | — |
 
 Phases A–D are the module; E and F are follow-ups.
 

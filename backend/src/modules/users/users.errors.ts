@@ -77,3 +77,10 @@ export const archivedAccount = (action: string) =>
 
 export const weakPassword = (reason: string, field = 'password') =>
   new AppException(HttpStatus.BAD_REQUEST, ErrorCode.WEAK_PASSWORD, reason, [{ field, message: reason }])
+
+export const twoFactorNotOn = (name: string) =>
+  new AppException(
+    HttpStatus.BAD_REQUEST,
+    UserErrorCode.TWO_FACTOR_NOT_ON,
+    `${name} doesn’t use two-step sign-in, so there is nothing to switch off.`,
+  )

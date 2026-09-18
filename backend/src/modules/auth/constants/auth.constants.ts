@@ -14,10 +14,19 @@ export enum AuthErrorCode {
   TOKEN_ALREADY_USED = 'TOKEN_ALREADY_USED',
   CURRENT_PASSWORD_WRONG = 'CURRENT_PASSWORD_WRONG',
   PASSWORD_UNCHANGED = 'PASSWORD_UNCHANGED',
+  TWO_FACTOR_REQUIRED = 'TWO_FACTOR_REQUIRED',
+  TWO_FACTOR_UNAVAILABLE = 'TWO_FACTOR_UNAVAILABLE',
+  TWO_FACTOR_NOT_CONFIGURED = 'TWO_FACTOR_NOT_CONFIGURED',
+  TWO_FACTOR_ALREADY_ON = 'TWO_FACTOR_ALREADY_ON',
+  TWO_FACTOR_CODE_WRONG = 'TWO_FACTOR_CODE_WRONG',
+  TWO_FACTOR_CHALLENGE_EXPIRED = 'TWO_FACTOR_CHALLENGE_EXPIRED',
 }
 
-/** What a one-time emailed link is for. */
-export const TOKEN_PURPOSES = ['invitation', 'password_reset'] as const
+/**
+ * What a one-time secret is for: two arrive by email, and "two_factor" is the short-lived handle
+ * for a sign-in that has passed the password and is waiting for a code.
+ */
+export const TOKEN_PURPOSES = ['invitation', 'password_reset', 'two_factor'] as const
 export type TokenPurpose = (typeof TOKEN_PURPOSES)[number]
 
 /** Sign-in endpoints are rate limited by IP on top of the per-account lock. */

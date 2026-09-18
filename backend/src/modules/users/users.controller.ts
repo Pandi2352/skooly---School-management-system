@@ -240,6 +240,24 @@ export class UsersController {
     return this.usersService.archive(id, actor)
   }
 
+  @Delete(':id/two-factor')
+  @RequirePermissions(USER_PERMISSIONS.edit)
+  @ResponseMessage('Two-step sign-in switched off successfully.')
+  @ApiOperation({
+    summary: 'Switch off two-step sign-in for someone',
+    description:
+      'For a colleague who has lost their phone and their recovery codes. Their sessions end, and they set it up again themselves.',
+  })
+  @ApiParam(USER_ID_PARAM)
+  @ApiSuccess(UserResponseDto, { description: 'The account, now signing in with a password alone' })
+  @ApiErrors(HttpStatus.BAD_REQUEST, HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN, HttpStatus.NOT_FOUND)
+  disableTwoFactor(
+    @Param('id', UuidParamPipe) id: string,
+    @CurrentUser() actor?: AuthenticatedUserContext,
+  ): Promise<UserResponseDto> {
+    return this.usersService.disableTwoFactor(id, actor)
+  }
+
   @Get(':id/audit')
   @RequirePermissions(USER_PERMISSIONS.view)
   @ResponseMessage('Account history fetched successfully.')

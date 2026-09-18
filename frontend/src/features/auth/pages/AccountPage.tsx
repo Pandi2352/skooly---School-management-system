@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/useToast'
 import { getErrorMessage } from '@/lib/api/getErrorMessage'
 import { describeLastSignIn } from '@/features/users/utils/userRules'
 import { SessionList } from '../components/SessionList'
+import { TwoFactorCard } from '../components/TwoFactorCard'
 import { useOwnSessions, useRevokeOtherSessions, useRevokeOwnSession, useSession } from '../hooks/useSession'
 
 /** The signed-in person's own account: their details, their password and where they are signed in. */
@@ -68,6 +69,8 @@ export function AccountPage() {
             ))}
           </dl>
         </Card>
+
+        <TwoFactorCard />
 
         <Card
           title="Signed-in devices"

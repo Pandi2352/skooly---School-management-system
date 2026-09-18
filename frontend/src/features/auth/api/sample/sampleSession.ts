@@ -16,6 +16,7 @@ export const SAMPLE_SESSION: SignedInUser = {
     status: 'active',
     mustChangePassword: false,
     isLocked: false,
+    twoFactorEnabled: false,
     lockedUntil: null,
     lastLoginAt: '2026-09-18T08:00:00.000Z',
     invitedAt: null,

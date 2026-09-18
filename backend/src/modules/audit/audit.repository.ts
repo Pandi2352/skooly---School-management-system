@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import type { FilterQuery, Model } from 'mongoose'
+import { escapeRegex } from '../../common/utils/mongo-error.util'
 import { generateUuid } from '../../common/utils/uuid.util'
 import type { AuditAction } from './audit.constants'
 import { AuditEvent, AuditEventDocument } from './schemas/audit-event.schema'
@@ -21,7 +22,14 @@ export type AuditEventRecord = {
 
 export type NewAuditEvent = Omit<AuditEventRecord, '_id' | 'createdAt' | 'updatedAt'>
 
-export type AuditListFilter = { targetUserId?: string; action?: AuditAction }
+export type AuditListFilter = {
+  targetUserId?: string
+  action?: AuditAction
+  /** Matches the person who acted, the account affected, or the summary. */
+  search?: string
+  /** Nothing older than this. */
+  since?: Date
+}
 
 /** All database access for the audit trail. Events are written and read, never changed. */
 @Injectable()
@@ -39,6 +47,11 @@ export class AuditRepository {
     const query: FilterQuery<AuditEventDocument> = {}
     if (filter.targetUserId) query.targetUserId = filter.targetUserId
     if (filter.action) query.action = filter.action
+    if (filter.since) query.createdAt = { $gte: filter.since }
+    if (filter.search) {
+      const pattern = new RegExp(escapeRegex(filter.search), 'i')
+      query.$or = [{ actorName: pattern }, { targetName: pattern }, { summary: pattern }]
+    }
 
     const [events, total] = await Promise.all([
       this.auditModel

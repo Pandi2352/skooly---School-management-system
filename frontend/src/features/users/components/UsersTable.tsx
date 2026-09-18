@@ -78,6 +78,7 @@ export function UsersTable({
             </Badge>
           )}
           {user.mustChangePassword && <Badge tone="neutral">Temporary password</Badge>}
+          {user.twoFactorEnabled && <Badge tone="info">Two-step</Badge>}
         </span>
       ),
     },

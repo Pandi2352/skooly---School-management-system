@@ -41,6 +41,7 @@ import {
   roleNotFound,
   roleUnchanged,
   statusUnchanged,
+  twoFactorNotOn,
   userNotFound,
   weakPassword,
 } from './users.errors'
@@ -56,6 +57,7 @@ const SESSION_END_REASONS = {
   archived: 'Account archived',
   passwordSet: 'Password changed by an administrator',
   revoked: 'Signed out by an administrator',
+  twoFactorOff: 'Two-step sign-in switched off by an administrator',
 } as const
 
 /**
@@ -398,6 +400,35 @@ export class UsersService implements OnModuleInit {
     return this.auditService.listForUser(id)
   }
 
+  /**
+   * Switches off two-step sign-in for someone who has lost their phone and their recovery codes.
+   * It can't be switched on for another person: only whoever holds the app can do that.
+   */
+  async disableTwoFactor(id: string, actor?: AuthenticatedUserContext): Promise<UserResponseDto> {
+    const user = await this.getUserOrThrow(id)
+    if (!user.twoFactorEnabled) throw twoFactorNotOn(user.fullName)
+
+    const updated = await this.usersRepository.updateById(id, {
+      twoFactorEnabled: false,
+      twoFactorSecret: null,
+      twoFactorConfirmedAt: null,
+      twoFactorRecoveryHashes: [],
+      updatedBy: actor?.id ?? null,
+    })
+    if (!updated) throw userNotFound(id)
+
+    // Anyone signed in as them keeps only a password between themselves and the account, so those
+    // sessions end and the person sets it up again.
+    await this.sessionsRepository.revokeAllForUser(id, SESSION_END_REASONS.twoFactorOff)
+    await this.auditService.record('user.two_factor_disabled', {
+      actor,
+      targetUserId: updated._id,
+      targetName: updated.fullName,
+      summary: 'Switched off by an administrator',
+    })
+    return this.present(updated)
+  }
+
   async listSessions(id: string): Promise<UserSessionResponseDto[]> {
     await this.getUserOrThrow(id)
     const sessions = await this.sessionsRepository.findLiveByUser(id, new Date())
@@ -423,19 +454,7 @@ export class UsersService implements OnModuleInit {
   }
 
   private get authConfig(): AuthEnvConfig {
-    return (
-      this.configService.get<AuthEnvConfig>('auth') ?? {
-        cookieName: 'skooly_session',
-        cookieDomain: '',
-        sessionIdleMinutes: 720,
-        sessionAbsoluteDays: 30,
-        rememberMeIdleDays: 30,
-        loginMaxAttempts: 5,
-        loginLockMinutes: 15,
-        invitationExpiryHours: 72,
-        resetExpiryMinutes: 60,
-      }
-    )
+    return this.configService.getOrThrow<AuthEnvConfig>('auth')
   }
 
   /** The page in the web app that an emailed link opens. */

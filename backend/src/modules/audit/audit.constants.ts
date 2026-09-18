@@ -11,6 +11,9 @@ export const AUDIT_ACTIONS = [
   'auth.password_reset_requested',
   'auth.password_set_from_link',
   'auth.setup_completed',
+  'auth.two_factor_challenged',
+  'auth.two_factor_enabled',
+  'auth.two_factor_disabled',
   'user.created',
   'user.updated',
   'user.role_changed',
@@ -21,6 +24,7 @@ export const AUDIT_ACTIONS = [
   'user.password_reset_sent',
   'user.temporary_password_set',
   'user.sessions_revoked',
+  'user.two_factor_disabled',
 ] as const
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number]
@@ -35,6 +39,9 @@ export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   'auth.password_reset_requested': 'Asked for a password reset',
   'auth.password_set_from_link': 'Set a password from an emailed link',
   'auth.setup_completed': 'Created the first administrator account',
+  'auth.two_factor_challenged': 'Password accepted, code requested',
+  'auth.two_factor_enabled': 'Turned on two-step sign-in',
+  'auth.two_factor_disabled': 'Turned off two-step sign-in',
   'user.created': 'Account created',
   'user.updated': 'Details changed',
   'user.role_changed': 'Role changed',
@@ -45,6 +52,7 @@ export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   'user.password_reset_sent': 'Password reset link sent',
   'user.temporary_password_set': 'Temporary password set',
   'user.sessions_revoked': 'Signed out of every device',
+  'user.two_factor_disabled': 'Two-step sign-in switched off by an administrator',
 }
 
 /** Permission key for reading the trail: Settings & Billing → Audit Trail in the menu. */

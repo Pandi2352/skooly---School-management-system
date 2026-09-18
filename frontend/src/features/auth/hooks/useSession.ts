@@ -4,6 +4,12 @@ import { authKeys } from '../api/authKeys'
 import {
   changeOwnPassword,
   createFirstAdministrator,
+  disableTwoFactor,
+  enableTwoFactor,
+  getTwoFactorStatus,
+  loginWithTwoFactor,
+  regenerateRecoveryCodes,
+  startTwoFactorSetup,
   getCurrentAccount,
   getOwnSessions,
   getSetupState,
@@ -47,7 +53,49 @@ function useStartSession() {
 
 export function useLogin() {
   const startSession = useStartSession()
-  return useMutation({ mutationFn: login, onSuccess: startSession })
+  return useMutation({
+    mutationFn: login,
+    // A sign-in that still needs a code has no account yet; the second step starts the session.
+    onSuccess: (result) => {
+      if (result.account) startSession(result.account)
+    },
+  })
+}
+
+export function useLoginWithTwoFactor() {
+  const startSession = useStartSession()
+  return useMutation({ mutationFn: loginWithTwoFactor, onSuccess: startSession })
+}
+
+export function useTwoFactorStatus() {
+  return useQuery({ queryKey: authKeys.twoFactor(), queryFn: getTwoFactorStatus })
+}
+
+export function useStartTwoFactorSetup() {
+  return useMutation({ mutationFn: startTwoFactorSetup })
+}
+
+function useRefreshTwoFactor() {
+  const queryClient = useQueryClient()
+  return () => {
+    void queryClient.invalidateQueries({ queryKey: authKeys.twoFactor() })
+    void queryClient.invalidateQueries({ queryKey: authKeys.session() })
+  }
+}
+
+export function useEnableTwoFactor() {
+  const refresh = useRefreshTwoFactor()
+  return useMutation({ mutationFn: enableTwoFactor, onSuccess: refresh })
+}
+
+export function useDisableTwoFactor() {
+  const refresh = useRefreshTwoFactor()
+  return useMutation({ mutationFn: disableTwoFactor, onSuccess: refresh })
+}
+
+export function useRegenerateRecoveryCodes() {
+  const refresh = useRefreshTwoFactor()
+  return useMutation({ mutationFn: regenerateRecoveryCodes, onSuccess: refresh })
 }
 
 export function useCreateFirstAdministrator() {

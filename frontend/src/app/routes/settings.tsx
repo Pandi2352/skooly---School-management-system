@@ -20,6 +20,21 @@ export const settingsRoutes: RouteObject[] = [
         }),
       },
       {
+        path: 'audit-trail',
+        lazy: async () => {
+          const { AuditTrailPage } = await import('@/features/audit/pages/AuditTrailPage')
+          const { RequirePermission } = await import('@/features/auth/guards/RequirePermission')
+          const { AUDIT_PERMISSIONS } = await import('@/features/audit/constants')
+          return {
+            element: (
+              <RequirePermission permission={AUDIT_PERMISSIONS.view} pageName="Audit Trail">
+                <AuditTrailPage />
+              </RequirePermission>
+            ),
+          }
+        },
+      },
+      {
         path: 'roles',
         lazy: async () => ({
           Component: (await import('@/features/roles/pages/RolesPage')).RolesPage,

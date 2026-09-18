@@ -1,5 +1,6 @@
 import { Global, Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
+import { AuditController } from './audit.controller'
 import { AuditRepository } from './audit.repository'
 import { AuditService } from './audit.service'
 import { AuditEvent, AuditEventSchema } from './schemas/audit-event.schema'
@@ -11,6 +12,7 @@ import { AuditEvent, AuditEventSchema } from './schemas/audit-event.schema'
 @Global()
 @Module({
   imports: [MongooseModule.forFeature([{ name: AuditEvent.name, schema: AuditEventSchema }])],
+  controllers: [AuditController],
   providers: [AuditRepository, AuditService],
   exports: [AuditService],
 })

@@ -6,6 +6,7 @@ import {
   PencilSimpleIcon,
   PlayIcon,
   ProhibitIcon,
+  ShieldSlashIcon,
   SignOutIcon,
   UserSwitchIcon,
 } from '@phosphor-icons/react'
@@ -18,6 +19,7 @@ import type { User } from '../types/user.types'
 import {
   canArchive,
   canChangeRole,
+  canDisableTwoFactor,
   canEditDetails,
   canReactivate,
   canResendInvitation,
@@ -37,6 +39,7 @@ export type UserAction =
   | 'suspend'
   | 'activate'
   | 'sign-out-devices'
+  | 'disable-two-factor'
   | 'archive'
 
 type UserRowActionsProps = {
@@ -72,6 +75,12 @@ export function UserRowActions({ user, context, onAction }: UserRowActionsProps)
     { action: 'send-reset', label: 'Email a password reset', icon: EnvelopeSimpleIcon, check: editing(canSendPasswordReset(user)) },
     { action: 'temporary-password', label: 'Set a temporary password', icon: KeyIcon, check: editing(canSetTemporaryPassword(user)) },
     { action: 'sign-out-devices', label: 'Sign out all devices', icon: SignOutIcon, check: editing(canEditDetails(user)) },
+    {
+      action: 'disable-two-factor',
+      label: 'Turn off two-step sign-in',
+      icon: ShieldSlashIcon,
+      check: editing(canDisableTwoFactor(user)),
+    },
   ]
 
   const statusEntry: MenuEntry =

@@ -102,3 +102,41 @@ export const passwordUnchanged = () =>
 
 export const weakPassword = (reason: string, field = 'newPassword') =>
   new AppException(HttpStatus.BAD_REQUEST, ErrorCode.WEAK_PASSWORD, reason, [{ field, message: reason }])
+
+// Two-step sign-in ----------------------------------------------------------
+
+export const twoFactorUnavailable = () =>
+  new AppException(
+    HttpStatus.SERVICE_UNAVAILABLE,
+    AuthErrorCode.TWO_FACTOR_UNAVAILABLE,
+    'Two-step sign-in isn’t available on this server yet. Ask whoever runs it to set TWO_FACTOR_KEY.',
+  )
+
+export const twoFactorNotConfigured = () =>
+  new AppException(
+    HttpStatus.BAD_REQUEST,
+    AuthErrorCode.TWO_FACTOR_NOT_CONFIGURED,
+    'Set up two-step sign-in first: scan the QR code, then enter a code from your app.',
+  )
+
+export const twoFactorAlreadyOn = () =>
+  new AppException(
+    HttpStatus.CONFLICT,
+    AuthErrorCode.TWO_FACTOR_ALREADY_ON,
+    'Two-step sign-in is already on for this account.',
+  )
+
+export const twoFactorCodeWrong = () =>
+  new AppException(
+    HttpStatus.BAD_REQUEST,
+    AuthErrorCode.TWO_FACTOR_CODE_WRONG,
+    'That code isn’t right. Codes change every 30 seconds, so check your app for the current one.',
+    [{ field: 'code', message: 'Check the current code in your app.' }],
+  )
+
+export const twoFactorChallengeExpired = () =>
+  new AppException(
+    HttpStatus.UNAUTHORIZED,
+    AuthErrorCode.TWO_FACTOR_CHALLENGE_EXPIRED,
+    'This sign-in took too long. Enter your email and password again.',
+  )

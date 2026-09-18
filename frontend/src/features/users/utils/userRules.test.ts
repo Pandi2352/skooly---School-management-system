@@ -3,6 +3,7 @@ import type { User } from '../types/user.types'
 import {
   canArchive,
   canChangeRole,
+  canDisableTwoFactor,
   canResendInvitation,
   canSendPasswordReset,
   canSuspend,
@@ -21,6 +22,7 @@ const makeUser = (overrides: Partial<User> = {}): User => ({
   status: 'active',
   mustChangePassword: false,
   isLocked: false,
+  twoFactorEnabled: false,
   lockedUntil: null,
   lastLoginAt: null,
   invitedAt: null,
@@ -85,6 +87,20 @@ describe('invitations and resets', () => {
   it('offers a password reset only once a password exists', () => {
     expect(canSendPasswordReset(makeUser({ status: 'active' })).allowed).toBe(true)
     expect(canSendPasswordReset(makeUser({ status: 'invited' })).allowed).toBe(false)
+  })
+})
+
+describe('two-step sign-in', () => {
+  it('can only be switched off for someone who uses it', () => {
+    expect(canDisableTwoFactor(makeUser({ twoFactorEnabled: true })).allowed).toBe(true)
+    expect(canDisableTwoFactor(makeUser({ twoFactorEnabled: false }))).toEqual({
+      allowed: false,
+      reason: 'This person doesn’t use two-step sign-in.',
+    })
+  })
+
+  it('is left alone on an archived account', () => {
+    expect(canDisableTwoFactor(makeUser({ status: 'archived', twoFactorEnabled: true })).allowed).toBe(false)
   })
 })
 

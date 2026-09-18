@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { EnvelopeSimpleIcon, LockSimpleIcon, SignInIcon } from '@phosphor-icons/react'
+import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { paths } from '@/app/paths'
@@ -14,6 +15,7 @@ import { loginFormSchema } from '../schemas/auth.schema'
 import { safeRedirect } from '../utils/safeRedirect'
 import type { LoginFormValues } from '../types/auth.types'
 import { PasswordInput } from './PasswordInput'
+import { TwoFactorStep } from './TwoFactorStep'
 
 /** A locked or suspended account needs its own explanation, not a field error next to the password. */
 const ACCOUNT_BLOCKED_CODES = ['ACCOUNT_LOCKED', 'ACCOUNT_SUSPENDED', 'ACCOUNT_ARCHIVED']
@@ -22,6 +24,8 @@ export function LoginForm() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const signIn = useLogin()
+  // Set when the password is right but the account also asks for a code from an authenticator app.
+  const [challengeToken, setChallengeToken] = useState<string | null>(null)
 
   const {
     register,
@@ -40,8 +44,12 @@ export function LoginForm() {
 
   const submit = handleSubmit(async (values) => {
     try {
-      const account = await signIn.mutateAsync(values)
-      const destination = account.mustChangePassword ? paths.accountPassword : next
+      const result = await signIn.mutateAsync(values)
+      if (result.twoFactorRequired && result.challengeToken) {
+        setChallengeToken(result.challengeToken)
+        return
+      }
+      const destination = result.account?.mustChangePassword ? paths.accountPassword : next
       void navigate(destination, { replace: true })
     } catch (error) {
       if (error instanceof ApiError && ACCOUNT_BLOCKED_CODES.includes(error.errorCode ?? '')) return
@@ -53,6 +61,16 @@ export function LoginForm() {
     signIn.error instanceof ApiError && ACCOUNT_BLOCKED_CODES.includes(signIn.error.errorCode ?? '')
       ? signIn.error.messages[0]
       : null
+
+  if (challengeToken) {
+    return (
+      <TwoFactorStep
+        challengeToken={challengeToken}
+        destination={next}
+        onStartOver={() => setChallengeToken(null)}
+      />
+    )
+  }
 
   return (
     <form onSubmit={submit} className="space-y-4" noValidate>
