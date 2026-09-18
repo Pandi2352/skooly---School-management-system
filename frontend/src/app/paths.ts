@@ -16,6 +16,8 @@ export const paths = {
   studentNew: '/students/new',
   student: (studentId: string) => `/students/${studentId}`,
   studentEdit: (studentId: string) => `/students/${studentId}/edit`,
+  /** Administrative admissions & enrollment pipeline under Core Setup & Administration. */
+  admissionsEnrollment: '/core-setup-administration/admissions-enrollment',
   // Staff logins: who can sign in, with which role.
   users: '/users',
   user: (userId: string) => `/users/${userId}`,

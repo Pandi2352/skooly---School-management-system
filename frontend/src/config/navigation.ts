@@ -64,11 +64,7 @@ const defineModule = (
 
 export const modules: Module[] = [
   defineModule('Core Setup & Administration', 'Administration', [
-    feature(
-      'Admissions & Enrollment',
-      ['Online Admission Forms', 'Document Uploads', 'Admission Approval Workflows'],
-      'Admissions',
-    ),
+    builtFeature('Admissions & Enrollment', 'Admissions', paths.admissionsEnrollment),
     builtFeature('User Accounts', 'User Accounts', paths.users),
     builtFeature('Role & Permission Management', 'Roles & Permissions', paths.settingsRoles),
     feature('Data Import & Export', ['Bulk CSV/Excel Import'], 'Import & Export'),
