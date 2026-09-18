@@ -124,9 +124,10 @@ export class TwoFactorService {
     if (secret && this.isCodeValid(secret, cleaned)) return 'app'
 
     const usedHash = hashSecretToken(cleaned)
-    if (user.twoFactorRecoveryHashes.includes(usedHash)) {
+    const recoveryHashes = user.twoFactorRecoveryHashes ?? []
+    if (recoveryHashes.includes(usedHash)) {
       await this.usersRepository.updateById(user._id, {
-        twoFactorRecoveryHashes: user.twoFactorRecoveryHashes.filter((hash) => hash !== usedHash),
+        twoFactorRecoveryHashes: recoveryHashes.filter((hash) => hash !== usedHash),
       })
       this.logger.warn(`A recovery code was used to sign in as ${user.email}`)
       return 'recovery'
@@ -137,7 +138,7 @@ export class TwoFactorService {
 
   /** How many recovery codes are left, for the warning when they are running out. */
   countRecoveryCodes(user: UserRecord): number {
-    return user.twoFactorRecoveryHashes.length
+    return user.twoFactorRecoveryHashes?.length ?? 0
   }
 
   private readSecret(user: UserRecord): Secret | null {

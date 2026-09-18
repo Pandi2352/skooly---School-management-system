@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import type { Module, NavSection } from '@/config/navigation'
+import type { Module } from '@/config/navigation'
 import { SAMPLE_SESSION } from '../api/sample/sampleSession'
 import type { SignedInUser } from '../types/auth.types'
-import { filterNavSections } from './navigationAccess'
+import { filterNavSections, type NavSectionGroup } from './navigationAccess'
 
 const studentModule: Module = {
   label: 'Student Information',
   shortLabel: 'Students',
   slug: 'student-information',
-  section: 'Modules' as NavSection,
+  section: 'Modules',
   features: [
     { label: 'Student List', shortLabel: 'Student List', slug: 'student-list', capabilities: [] },
     { label: 'Health Records', shortLabel: 'Health', slug: 'health-records', capabilities: [] },
@@ -19,13 +19,13 @@ const singlePageModule: Module = {
   label: 'Backup Management',
   shortLabel: 'Backup Management',
   slug: 'backup-management',
-  section: 'System' as NavSection,
+  section: 'System',
   features: [],
 }
 
-const sections = [
-  { label: 'Modules' as NavSection, modules: [studentModule] },
-  { label: 'System' as NavSection, modules: [singlePageModule] },
+const sections: NavSectionGroup[] = [
+  { label: 'Modules', modules: [studentModule] },
+  { label: 'System', modules: [singlePageModule] },
 ]
 
 const sessionWith = (permissions: string[]): SignedInUser => ({

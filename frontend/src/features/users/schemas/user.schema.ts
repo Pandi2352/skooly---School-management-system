@@ -97,7 +97,7 @@ const email = z
   .string()
   .trim()
   .min(1, 'Enter an email address')
-  .email('Enter a valid email address, like asha.menon@school.in')
+  .pipe(z.email('Enter a valid email address, like asha.menon@school.in'))
 
 const fullName = z
   .string()

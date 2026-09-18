@@ -39,7 +39,6 @@ import {
   SetupDto,
 } from './dto/auth-request.dto'
 import {
-  LoginResultDto,
   PasswordChangedResponseDto,
   SetupStateDto,
   SignedInUserDto,

@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ArrowsClockwiseIcon } from '@phosphor-icons/react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { RadioGroup } from '@/components/ui/RadioGroup'
@@ -40,7 +40,6 @@ export function UserForm({ user, roles, onDone, onCancel }: UserFormProps) {
     handleSubmit,
     setError,
     setValue,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
@@ -57,7 +56,8 @@ export function UserForm({ user, roles, onDone, onCancel }: UserFormProps) {
     },
   })
 
-  const handover = watch('handover')
+  // useWatch subscribes to the one field; watch() returns a function React Compiler can't memoise.
+  const handover = useWatch({ control, name: 'handover' })
 
   const submit = handleSubmit(async (values) => {
     try {
@@ -104,7 +104,7 @@ export function UserForm({ user, roles, onDone, onCancel }: UserFormProps) {
   })
 
   return (
-    <form onSubmit={submit} className="space-y-4" noValidate>
+    <form onSubmit={(event) => void submit(event)} className="space-y-4" noValidate>
       <Input
         label="Full name"
         placeholder="e.g. Asha Menon"

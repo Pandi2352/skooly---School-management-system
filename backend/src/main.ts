@@ -1,13 +1,11 @@
 import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory, Reflector } from '@nestjs/core'
+import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
 import type { NextFunction, Request, Response } from 'express'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { resolve } from 'node:path'
-// cookie-parser exports the function itself, with no `default` on it. This project compiles
-// without esModuleInterop, so a default import would emit `.default` and be undefined at run time.
-import cookieParser = require('cookie-parser')
 import { AppModule } from './app.module'
 import { AllExceptionsFilter } from './common/filters/http-exception.filter'
 import { TransformInterceptor } from './common/interceptors/transform.interceptor'

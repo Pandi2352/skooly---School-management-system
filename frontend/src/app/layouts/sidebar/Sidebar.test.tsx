@@ -1,25 +1,22 @@
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
-import { TooltipProvider } from '@/components/ui/Tooltip'
+import { renderWithProviders } from '@/test/render'
 import { Sidebar } from './Sidebar'
 
+// The sidebar only lists pages the signed-in role can open, so it needs a session to render at all.
 function renderSidebar(path: string, collapsed = false) {
-  render(
-    <TooltipProvider>
-      <MemoryRouter initialEntries={[path]}>
-        <Sidebar
-          mode="static"
-          open
-          collapsed={collapsed}
-          closeButtonRef={{ current: null }}
-          onClose={vi.fn()}
-          onExpand={vi.fn()}
-          onNavigate={vi.fn()}
-        />
-      </MemoryRouter>
-    </TooltipProvider>,
+  renderWithProviders(
+    <Sidebar
+      mode="static"
+      open
+      collapsed={collapsed}
+      closeButtonRef={{ current: null }}
+      onClose={vi.fn()}
+      onExpand={vi.fn()}
+      onNavigate={vi.fn()}
+    />,
+    { route: path },
   )
 }
 

@@ -90,7 +90,7 @@ export function SetPasswordPage() {
       }
       footer={backToSignIn}
     >
-      <form onSubmit={submit} className="space-y-4" noValidate>
+      <form onSubmit={(event) => void submit(event)} className="space-y-4" noValidate>
         {/* The address is shown so nobody sets a password on the wrong account. */}
         <p className="rounded-md border border-line bg-canvas px-3 py-2 text-sm text-ink-muted">
           Signing in as <span className="font-medium text-ink">{link.data.email}</span>

@@ -59,7 +59,7 @@ const email = z
   .string()
   .trim()
   .min(1, 'Enter the email address you sign in with')
-  .email('Enter a valid email address')
+  .pipe(z.email('Enter a valid email address'))
 
 export const loginFormSchema = z.object({
   email,

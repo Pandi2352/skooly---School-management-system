@@ -73,7 +73,7 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4" noValidate>
+    <form onSubmit={(event) => void submit(event)} className="space-y-4" noValidate>
       {blockedMessage && (
         <Alert tone="warning" title="You can’t sign in right now">
           {blockedMessage}

@@ -34,7 +34,7 @@ describe('Navbar', () => {
     expect(screen.getByRole('button', { name: /Notifications/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Settings and preferences' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'App Launcher' })).toBeInTheDocument()
-    expect(screen.getByLabelText(/User account/)).toBeInTheDocument()
+    expect(screen.getByLabelText(/Your account/)).toBeInTheDocument()
   })
 
   it('displays the notifications badge count of 4', () => {
@@ -47,9 +47,11 @@ describe('Navbar', () => {
     expect(screen.getByText('26-27')).toBeInTheDocument()
   })
 
-  it('displays the user avatar with SA initials', () => {
+  it('shows the signed-in person, not a name written into the code', async () => {
     renderNavbar()
-    expect(screen.getByText('SA')).toBeInTheDocument()
+    expect(screen.getByLabelText(/Your account: Sample Administrator/)).toBeInTheDocument()
+    // The avatar falls back to initials on a tick, once it knows there is no photo to load.
+    expect(await screen.findByText('SA')).toBeInTheDocument()
   })
 
   it('calls onMenuClick when hamburger button is clicked', async () => {

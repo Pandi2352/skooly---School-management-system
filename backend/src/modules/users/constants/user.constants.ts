@@ -24,7 +24,7 @@ export const USER_LIMITS = {
 } as const
 
 /** Letters, spaces and the marks that appear in names: . ' - and / for initials. */
-export const USER_NAME_PATTERN = /^[\p{L}][\p{L}\p{M} .'\-\/]*$/u
+export const USER_NAME_PATTERN = /^[\p{L}][\p{L}\p{M} .'\-/]*$/u
 
 /** Digits with an optional country code, plus spaces or dashes for readability. */
 export const USER_PHONE_PATTERN = /^\+?[\d][\d\s-]{5,}$/

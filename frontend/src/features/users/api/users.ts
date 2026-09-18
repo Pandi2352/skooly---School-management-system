@@ -25,7 +25,8 @@ import { readSampleUsers } from './sample/sampleUsers'
 export type UserListQuery = {
   search: string
   status: UserStatus | 'all'
-  roleId: string | 'all'
+  /** A role id, or "all" for every role. */
+  roleId: string
   page: number
   limit: number
   sortBy: string

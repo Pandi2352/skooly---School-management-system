@@ -169,7 +169,7 @@ export function TwoFactorCard() {
         description="Scan this with your authenticator app, then enter the code it shows."
       >
         {setup && (
-          <form onSubmit={confirmSetup} className="grid gap-4" noValidate>
+          <form onSubmit={(event) => void confirmSetup(event)} className="grid gap-4" noValidate>
             <div className="grid justify-items-center gap-3">
               {/* The QR code is drawn by the server, so the seed never has to be handled here. */}
               <img
@@ -223,7 +223,7 @@ export function TwoFactorCard() {
             : 'Your current recovery codes stop working straight away. Enter your password to confirm.'
         }
       >
-        <form onSubmit={confirmWithPassword} className="grid gap-4" noValidate>
+        <form onSubmit={(event) => void confirmWithPassword(event)} className="grid gap-4" noValidate>
           <PasswordInput
             label="Your password"
             autoComplete="current-password"

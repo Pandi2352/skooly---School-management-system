@@ -53,7 +53,7 @@ export function TwoFactorStep({ challengeToken, destination, onStartOver }: TwoF
     finishSignIn.error.errorCode === 'TWO_FACTOR_CHALLENGE_EXPIRED'
 
   return (
-    <form onSubmit={submit} className="space-y-4" noValidate>
+    <form onSubmit={(event) => void submit(event)} className="space-y-4" noValidate>
       <div className="flex items-start gap-3 rounded-md border border-line bg-canvas px-3 py-2.5">
         <DeviceMobileIcon className="mt-0.5 size-5 flex-none text-primary" aria-hidden="true" />
         <p className="text-sm text-ink-muted">

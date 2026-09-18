@@ -59,7 +59,7 @@ export function ForgotPasswordPage() {
       description="Enter the email address you sign in with and we’ll send you a link to choose a new password."
       footer={backToSignIn}
     >
-      <form onSubmit={submit} className="space-y-4" noValidate>
+      <form onSubmit={(event) => void submit(event)} className="space-y-4" noValidate>
         {requestReset.isError && (
           <Alert tone="danger" title="Couldn’t send the link">
             {getErrorMessage(requestReset.error)}

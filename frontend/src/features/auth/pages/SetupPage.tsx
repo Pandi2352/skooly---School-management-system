@@ -56,7 +56,7 @@ export function SetupPage() {
       title="Set up your school"
       description="This creates the first administrator account. You can add everyone else afterwards."
     >
-      <form onSubmit={submit} className="space-y-4" noValidate>
+      <form onSubmit={(event) => void submit(event)} className="space-y-4" noValidate>
         {setupState.isError && (
           <Alert tone="danger" title="Couldn’t reach the server">
             {getErrorMessage(setupState.error)}

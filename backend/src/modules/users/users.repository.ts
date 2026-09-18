@@ -170,6 +170,30 @@ export class UsersRepository {
       .exec()
   }
 
+  /**
+   * Fills in fields added after a row was written. Mongoose applies a default when it writes a
+   * document, not to documents already stored, so without this an older account comes back missing
+   * the field and the web app refuses the response.
+   *
+   * Returns how many rows were filled in.
+   */
+  async backfillTwoFactorDefaults(): Promise<number> {
+    const result = await this.userModel
+      .updateMany(
+        { twoFactorEnabled: { $exists: false } },
+        {
+          $set: {
+            twoFactorEnabled: false,
+            twoFactorSecret: null,
+            twoFactorConfirmedAt: null,
+            twoFactorRecoveryHashes: [],
+          },
+        },
+      )
+      .exec()
+    return result.modifiedCount
+  }
+
   /** Brings indexes in line with the schema, dropping ones older versions created. */
   async syncIndexes(): Promise<void> {
     await this.userModel.syncIndexes()

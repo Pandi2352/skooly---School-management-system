@@ -11,7 +11,8 @@ const UNITS: [limitInMinutes: number, minutesPerUnit: number, name: string][] = 
 export function formatEventTime(at: string, now: Date = new Date()): { relative: string; absolute: string } {
   const when = new Date(at)
   const absolute = when.toLocaleString()
-  const minutesAgo = Math.max(0, Math.round((now.getTime() - when.getTime()) / 60_000))
+  // Whole minutes only: 30 seconds ago is "just now", not "1 minute ago".
+  const minutesAgo = Math.max(0, Math.floor((now.getTime() - when.getTime()) / 60_000))
 
   if (minutesAgo < 1) return { relative: 'Just now', absolute }
   for (const [limit, perUnit, name] of UNITS) {

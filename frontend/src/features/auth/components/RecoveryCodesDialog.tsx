@@ -59,7 +59,7 @@ export function RecoveryCodesDialog({ codes, onClose }: RecoveryCodesDialogProps
           </Alert>
 
           <div className="flex flex-wrap justify-end gap-2">
-            <Button variant="secondary" onClick={copy}>
+            <Button variant="secondary" onClick={() => void copy()}>
               {copied ? (
                 <CheckIcon className="size-4.5 text-success" aria-hidden="true" />
               ) : (

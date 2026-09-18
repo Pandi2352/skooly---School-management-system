@@ -73,7 +73,7 @@ export function ChangeRoleDialog({ user, roles, onClose }: ChangeRoleDialogProps
             <Button variant="secondary" onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={save} loading={changeRole.isPending} disabled={value === currentRoleId}>
+            <Button onClick={() => void save()} loading={changeRole.isPending} disabled={value === currentRoleId}>
               Save role
             </Button>
           </div>

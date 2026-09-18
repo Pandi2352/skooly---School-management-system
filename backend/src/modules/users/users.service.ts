@@ -82,6 +82,10 @@ export class UsersService implements OnModuleInit {
   async onModuleInit(): Promise<void> {
     try {
       await this.usersRepository.syncIndexes()
+      const filled = await this.usersRepository.backfillTwoFactorDefaults()
+      if (filled > 0) {
+        this.logger.log(`Filled in two-step sign-in defaults on ${filled} account(s) created before that field existed.`)
+      }
     } catch (error) {
       // The app still runs: a missing index costs speed, not correctness, and is worth reporting.
       this.logger.error(`Could not sync user indexes: ${error instanceof Error ? error.message : 'unknown error'}`)

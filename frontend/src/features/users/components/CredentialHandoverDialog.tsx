@@ -59,7 +59,7 @@ export function CredentialHandoverDialog({ handover, onClose }: CredentialHandov
               <code className="min-w-0 flex-1 rounded-md border border-line bg-canvas px-3 py-2 font-mono text-sm wrap-anywhere text-ink">
                 {handover.secretValue}
               </code>
-              <Button variant="secondary" onClick={copy}>
+              <Button variant="secondary" onClick={() => void copy()}>
                 {copied ? (
                   <CheckIcon className="size-4.5 text-success" aria-hidden="true" />
                 ) : (

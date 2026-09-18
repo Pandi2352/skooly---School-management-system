@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import type { AuditListQuery } from '../api/audit'
 import {
@@ -31,13 +31,13 @@ export function useAuditFilters() {
   const period = params.get('period') ?? ''
   const page = Number(params.get('page'))
 
-  const query: AuditListQuery = {
+  const query: AuditListQuery = useMemo(() => ({
     search: params.get('search') ?? DEFAULTS.search,
     action: isAction(action) ? action : DEFAULTS.action,
     period: isPeriod(period) ? period : DEFAULTS.period,
     page: Number.isInteger(page) && page > 0 ? page : DEFAULTS.page,
     limit: DEFAULTS.limit,
-  }
+  }), [params, action, period, page])
 
   const update = useCallback(
     (changes: Partial<AuditListQuery>) => {

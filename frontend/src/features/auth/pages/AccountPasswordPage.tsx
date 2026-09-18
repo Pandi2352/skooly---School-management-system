@@ -68,7 +68,7 @@ export function AccountPasswordPage() {
       }
     >
       <Card className="max-w-lg">
-        <form onSubmit={submit} className="space-y-4" noValidate>
+        <form onSubmit={(event) => void submit(event)} className="space-y-4" noValidate>
           {mustChange && (
             <Alert tone="warning" title="A temporary password is in use">
               Until you set your own password, the rest of the app stays closed.

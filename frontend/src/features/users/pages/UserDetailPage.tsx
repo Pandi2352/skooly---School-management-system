@@ -42,7 +42,7 @@ export function UserDetailPage() {
 
   if (account.isPending) return <LoadingState label="Loading the account" />
 
-  if (account.isError || !account.data) {
+  if (account.isError) {
     return (
       <PageContainer title="Account">
         <EmptyState

@@ -97,7 +97,7 @@ const RELATIVE_UNITS: [limitInMinutes: number, minutesPerUnit: number, name: str
 /** "Never signed in", "12 minutes ago", or a date once it stops being useful as "x days ago". */
 export function describeLastSignIn(lastLoginAt: string | null, now: Date = new Date()): string {
   if (!lastLoginAt) return 'Never signed in'
-  const minutesAgo = Math.max(0, Math.round((now.getTime() - new Date(lastLoginAt).getTime()) / 60_000))
+  const minutesAgo = Math.max(0, Math.floor((now.getTime() - new Date(lastLoginAt).getTime()) / 60_000))
   if (minutesAgo < 1) return 'Just now'
   for (const [limit, perUnit, name] of RELATIVE_UNITS) {
     if (minutesAgo < limit) {

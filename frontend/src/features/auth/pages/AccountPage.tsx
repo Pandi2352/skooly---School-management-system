@@ -9,6 +9,7 @@ import { buttonClasses } from '@/components/ui/buttonStyles'
 import { Card } from '@/components/ui/Card'
 import { useToast } from '@/hooks/useToast'
 import { getErrorMessage } from '@/lib/api/getErrorMessage'
+import type { UserSession } from '@/features/users/types/user.types'
 import { describeLastSignIn } from '@/features/users/utils/userRules'
 import { SessionList } from '../components/SessionList'
 import { TwoFactorCard } from '../components/TwoFactorCard'
@@ -27,6 +28,24 @@ export function AccountPage() {
 
   const { user, fullAccess } = session.data
   const otherSessionCount = (sessions.data ?? []).filter((item) => !item.isCurrent).length
+
+  const signOutOtherDevices = async () => {
+    try {
+      const message = await revokeOthers.mutateAsync()
+      toast.success('Other devices signed out', message)
+    } catch (error) {
+      toast.error('Couldn’t sign out the other devices', getErrorMessage(error))
+    }
+  }
+
+  const signOutDevice = async (device: UserSession) => {
+    try {
+      await revokeOne.mutateAsync(device.id)
+      toast.success('Device signed out', `${device.device} has been signed out.`)
+    } catch (error) {
+      toast.error('Couldn’t sign out that device', getErrorMessage(error))
+    }
+  }
 
   const details: { label: string; value: string }[] = [
     { label: 'Name', value: user.fullName },
@@ -81,14 +100,7 @@ export function AccountPage() {
                 variant="secondary"
                 size="sm"
                 loading={revokeOthers.isPending}
-                onClick={async () => {
-                  try {
-                    const message = await revokeOthers.mutateAsync()
-                    toast.success('Other devices signed out', message)
-                  } catch (error) {
-                    toast.error('Couldn’t sign out the other devices', getErrorMessage(error))
-                  }
-                }}
+                onClick={() => void signOutOtherDevices()}
               >
                 Sign out other devices
               </Button>
@@ -100,14 +112,7 @@ export function AccountPage() {
             isLoading={sessions.isPending}
             revokingId={revokeOne.isPending ? revokeOne.variables : undefined}
             emptyMessage="You are not signed in anywhere else."
-            onRevoke={async (item) => {
-              try {
-                await revokeOne.mutateAsync(item.id)
-                toast.success('Device signed out', `${item.device} has been signed out.`)
-              } catch (error) {
-                toast.error('Couldn’t sign out that device', getErrorMessage(error))
-              }
-            }}
+            onRevoke={(item) => void signOutDevice(item)}
           />
         </Card>
       </div>

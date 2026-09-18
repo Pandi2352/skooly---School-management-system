@@ -5,7 +5,10 @@
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    // Both on: a CommonJS package with no `default` export (cookie-parser) can then be
+    // imported normally, instead of compiling to an undefined `.default` at run time.
     "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "target": "ES2022",
     "sourceMap": true,
     "outDir": "./dist",

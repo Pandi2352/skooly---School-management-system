@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import type { UserListQuery } from '../api/users'
 import { DEFAULT_USERS_PAGE_SIZE, USER_SORT_FIELDS, USER_STATUSES, type UserSortField, type UserStatus } from '../constants'
@@ -32,7 +32,7 @@ export function useUserFilters() {
   const sortBy = params.get('sort') ?? ''
   const sortOrder = params.get('order') ?? ''
 
-  const query: UserListQuery = {
+  const query: UserListQuery = useMemo(() => ({
     search: params.get('search') ?? DEFAULTS.search,
     status: isStatus(status) ? status : DEFAULTS.status,
     roleId: params.get('role') ?? DEFAULTS.roleId,
@@ -40,7 +40,7 @@ export function useUserFilters() {
     limit: DEFAULTS.limit,
     sortBy: isSortField(sortBy) ? sortBy : DEFAULTS.sortBy,
     sortOrder: sortOrder === 'desc' ? 'desc' : DEFAULTS.sortOrder,
-  }
+  }), [params, status, sortBy, sortOrder])
 
   const update = useCallback(
     (changes: Partial<UserListQuery>) => {

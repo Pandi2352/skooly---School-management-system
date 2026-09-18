@@ -26,7 +26,8 @@ export function toUserResponse(user: UserRecord, role: UserRoleSummaryDto | null
     status: user.status,
     mustChangePassword: user.mustChangePassword,
     isLocked: user.lockedUntil !== null && new Date(user.lockedUntil) > now,
-    twoFactorEnabled: user.twoFactorEnabled,
+    // ?? false: a row written before this field existed must not break the whole response.
+    twoFactorEnabled: user.twoFactorEnabled ?? false,
     lockedUntil: iso(user.lockedUntil),
     lastLoginAt: iso(user.lastLoginAt),
     invitedAt: iso(user.invitedAt),
