@@ -25,7 +25,7 @@ export const paths = {
   settings: '/settings',
   settingsGeneral: '/settings/general',
   settingsSchool: '/settings/school',
-  settingsBranding: '/settings/branding',
+  settingsBranding: '/settings/school?tab=branding',
   settingsCustomFields: '/settings/custom-fields',
   settingsRoles: '/settings/roles',
   settingsAuditTrail: '/settings/audit-trail',

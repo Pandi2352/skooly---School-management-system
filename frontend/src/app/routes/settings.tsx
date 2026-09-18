@@ -15,9 +15,7 @@ export const settingsRoutes: RouteObject[] = [
       },
       {
         path: 'branding',
-        lazy: async () => ({
-          Component: (await import('@/features/branding/pages/BrandingPage')).BrandingPage,
-        }),
+        element: <Navigate to={paths.settingsBranding} replace />,
       },
       {
         path: 'audit-trail',

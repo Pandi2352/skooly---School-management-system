@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module'
 import { BrandingModule } from './modules/branding/branding.module'
 import { MailModule } from './modules/mail/mail.module'
 import { RolesModule } from './modules/roles/roles.module'
+import { SchoolSettingsModule } from './modules/school-settings/school-settings.module'
 import { UsersModule } from './modules/users/users.module'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
@@ -24,6 +25,7 @@ import { AppService } from './app.service'
     AuditModule,
     RolesModule,
     BrandingModule,
+    SchoolSettingsModule,
     MailModule,
     UsersModule,
     AuthModule,

@@ -1,7 +1,11 @@
 import { useSearchParams } from 'react-router-dom'
 import { PageContainer } from '@/components/page/PageContainer'
+import { AttendanceSettingsPanel } from '../components/AttendanceSettingsPanel'
+import { BrandingPanel } from '../components/BrandingPanel'
+import { IntegrationsSettingsPanel } from '../components/IntegrationsSettingsPanel'
 import { SchoolProfilePanel } from '../components/SchoolProfilePanel'
 import { SchoolSettingsNav } from '../components/SchoolSettingsNav'
+import { SecuritySettingsPanel } from '../components/SecuritySettingsPanel'
 import { SettingsComingSoon } from '../components/SettingsComingSoon'
 import { SettingsQuickGuide } from '../components/SettingsQuickGuide'
 import { SystemSettingsPanel } from '../components/SystemSettingsPanel'
@@ -21,11 +25,19 @@ export function SchoolSettingsPage() {
           <SettingsQuickGuide className="hidden lg:block" />
         </aside>
 
-        <div className="min-w-0 rounded-md border border-line bg-surface">
+        <div className={tab === 'branding' ? 'min-w-0' : 'min-w-0 rounded-md border border-line bg-surface'}>
           {tab === 'profile' ? (
             <SchoolProfilePanel />
+          ) : tab === 'branding' ? (
+            <BrandingPanel />
           ) : tab === 'system' ? (
             <SystemSettingsPanel />
+          ) : tab === 'security' ? (
+            <SecuritySettingsPanel />
+          ) : tab === 'attendance' ? (
+            <AttendanceSettingsPanel />
+          ) : tab === 'integrations' ? (
+            <IntegrationsSettingsPanel />
           ) : (
             <SettingsComingSoon tab={tab} />
           )}

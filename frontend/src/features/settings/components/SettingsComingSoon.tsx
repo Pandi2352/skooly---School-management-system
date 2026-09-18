@@ -3,12 +3,12 @@ import { EmptyState } from '@/components/page/EmptyState'
 import { buttonClasses } from '@/components/ui/buttonStyles'
 import type { SettingsTab } from '../types/settings.types'
 
-type PlannedTab = Exclude<SettingsTab, 'profile' | 'system'>
+type PlannedTab = Exclude<
+  SettingsTab,
+  'profile' | 'branding' | 'system' | 'attendance' | 'security' | 'integrations'
+>
 
 const sections: Record<PlannedTab, string> = {
-  attendance: 'Attendance',
-  security: 'Security',
-  integrations: 'Integrations',
   social: 'Social Media',
   telegram: 'Telegram Bot',
 }

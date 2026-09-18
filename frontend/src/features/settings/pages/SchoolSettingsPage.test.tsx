@@ -46,9 +46,60 @@ describe('SchoolSettingsPage', () => {
     expect(screen.getByText(/^ROLL\/\d{2}-\d{2}\/001$/)).toBeInTheDocument()
   })
 
-  it('shows a coming-soon panel for sections that are not built', async () => {
+  it('shows Branding & Identity panel when branding tab is selected', async () => {
+    renderWithProviders(<SchoolSettingsPage />, { route: '/settings/school?tab=branding' })
+    expect(await screen.findByRole('link', { name: /Branding & Identity/ })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(await screen.findByRole('textbox', { name: /Display Name/ })).toBeInTheDocument()
+  })
+
+  it('shows Security settings panel when security tab is selected', async () => {
     renderWithProviders(<SchoolSettingsPage />, { route: '/settings/school?tab=security' })
-    expect(await screen.findByText('Security is coming soon')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Security/ })).toHaveAttribute('aria-current', 'page')
+    expect(await screen.findByRole('link', { name: /Security/ })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(
+      await screen.findByRole('spinbutton', { name: /Session Inactivity Timeout/ }),
+    ).toHaveValue(30)
+    expect(
+      screen.getByRole('spinbutton', { name: /Max Failed Attempts Before Lockout/ }),
+    ).toHaveValue(5)
+  })
+
+  it('shows Attendance settings panel when attendance tab is selected', async () => {
+    renderWithProviders(<SchoolSettingsPage />, { route: '/settings/school?tab=attendance' })
+    expect(await screen.findByRole('link', { name: /Attendance/ })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(
+      await screen.findByRole('textbox', { name: /Morning Check-In Time/ }),
+    ).toHaveValue('08:30')
+    expect(
+      screen.getByRole('spinbutton', { name: /Minimum Attendance Requirement/ }),
+    ).toHaveValue(75)
+  })
+
+  it('shows Integrations settings panel when integrations tab is selected', async () => {
+    renderWithProviders(<SchoolSettingsPage />, { route: '/settings/school?tab=integrations' })
+    expect(await screen.findByRole('link', { name: /Integrations/ })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(await screen.findByRole('textbox', { name: /SMTP Server Host/ })).toHaveValue(
+      'smtp.mailgun.org',
+    )
+    expect(screen.getByRole('textbox', { name: /Sender Email Address/ })).toHaveValue(
+      'notifications@skooly.edu',
+    )
+  })
+
+  it('shows a coming-soon panel for sections that are not built', async () => {
+    renderWithProviders(<SchoolSettingsPage />, { route: '/settings/school?tab=social' })
+    expect(await screen.findByText('Social Media is coming soon')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Social Media/ })).toHaveAttribute('aria-current', 'page')
   })
 })

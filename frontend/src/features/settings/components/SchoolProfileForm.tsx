@@ -126,8 +126,8 @@ export function SchoolProfileForm({ profile }: { profile: SchoolProfile }) {
             Branding & appearance
           </SettingsSectionHeading>
           <p className="text-sm text-ink-muted">
-            The logo, favicon, principal signature, school seal, login image and colour theme are managed on the
-            Branding page, with a preview of where each one appears.{' '}
+            The logo, favicon, principal signature, school seal, login image and colour theme are managed in the
+            Branding & Identity tab, with a live preview of where each one appears.{' '}
             <Link to={paths.settingsBranding} className="font-semibold text-primary underline underline-offset-2">
               Open Branding
             </Link>

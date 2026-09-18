@@ -3,6 +3,7 @@ import {
   BellIcon,
   BuildingsIcon,
   ClockIcon,
+  PaintBrushIcon,
   PlugIcon,
   ShareNetworkIcon,
   ShieldCheckIcon,
@@ -19,6 +20,7 @@ type TabLink = { id: SettingsTab; label: string; icon: Icon }
 
 const schoolTabs: TabLink[] = [
   { id: 'profile', label: 'School Profile', icon: BuildingsIcon },
+  { id: 'branding', label: 'Branding & Identity', icon: PaintBrushIcon },
   { id: 'system', label: 'System & Formats', icon: SlidersHorizontalIcon },
   { id: 'attendance', label: 'Attendance', icon: ClockIcon },
   { id: 'security', label: 'Security', icon: ShieldCheckIcon },

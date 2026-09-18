@@ -1,6 +1,9 @@
 import type { z } from 'zod'
 import type { DATE_FORMATS, SETTINGS_TABS, SESSION_FORMATS } from '../constants'
+import type { attendanceSettingsSchema, weekdaySchema } from '../schemas/attendanceSettings.schema'
+import type { integrationsSettingsSchema } from '../schemas/integrationsSettings.schema'
 import type { schoolProfileSchema } from '../schemas/schoolProfile.schema'
+import type { securitySettingsSchema } from '../schemas/securitySettings.schema'
 import type {
   datedSequenceSchema,
   sequenceSchema,
@@ -18,3 +21,8 @@ export type DateFormat = (typeof DATE_FORMATS)[number]
 /** Form sections that hold a sequence. */
 export type SequenceName = 'feeReceipt' | 'admission' | 'roll'
 export type DatedSequenceName = 'feeReceipt' | 'admission'
+
+export type SecuritySettings = z.infer<typeof securitySettingsSchema>
+export type AttendanceSettings = z.infer<typeof attendanceSettingsSchema>
+export type Weekday = z.infer<typeof weekdaySchema>
+export type IntegrationsSettings = z.infer<typeof integrationsSettingsSchema>
