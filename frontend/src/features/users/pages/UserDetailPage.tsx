@@ -102,7 +102,7 @@ export function UserDetailPage() {
       }
       actions={<UserRowActions user={user} context={context} onAction={runAction} />}
     >
-      <div className="grid gap-5 @4xl:grid-cols-2">
+      <div className="grid min-w-0 grid-cols-1 items-start gap-5 xl:grid-cols-2">
         <Card title="Details">
           <dl className="grid gap-3">
             {details.map((detail) => (

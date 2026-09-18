@@ -11,6 +11,12 @@ type NormalizedError = Pick<ApiErrorResponse, 'statusCode' | 'message' | 'errorC
 const INTERNAL_MESSAGE = 'Something went wrong on our side. Please try again.'
 
 /**
+ * How Nest reports an address that matches no route: "Cannot POST /api/auth/login". Read quickly it
+ * sounds like the endpoint refused the request, which sends people looking in the wrong place.
+ */
+const UNMATCHED_ROUTE = /^Cannot ([A-Z]+) (\S+)$/
+
+/**
  * Turns every thrown error into the standard error envelope. Expected errors keep their message;
  * unexpected ones are logged with their stack and answered with a generic message, so internals
  * never leak to clients.
@@ -85,6 +91,20 @@ export function normalizeException(exception: unknown): NormalizedError {
   if (exception instanceof HttpException) {
     const statusCode = exception.getStatus()
     const { message, errors } = readHttpExceptionBody(exception)
+
+    const unmatched = statusCode === HttpStatus.NOT_FOUND ? UNMATCHED_ROUTE.exec(message) : null
+    if (unmatched) {
+      const [, method, path] = unmatched
+      return {
+        statusCode,
+        message:
+          `This server has no ${method} ${path}. Check the address for a typo, and check the server's startup log: ` +
+          'if the route is missing from it, the running server is an older build, or the module that provides it failed to load.',
+        errorCode: ErrorCode.ENDPOINT_NOT_FOUND,
+        errors: [],
+      }
+    }
+
     return {
       statusCode,
       // Hide details of 5xx HttpExceptions too; 4xx messages are meant for the client.

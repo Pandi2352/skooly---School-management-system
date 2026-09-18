@@ -13,11 +13,50 @@ type UsersToolbarProps = {
   onReset: () => void
 }
 
-/** Search and filters for the account list. Every change goes into the URL, so a link shares them. */
+/**
+ * Filters on the left, search on the right, matching the student list's toolbar. Every change goes
+ * into the URL, so a filtered list can be shared as a link or survive a reload.
+ */
 export function UsersToolbar({ query, roles, isFiltered, onChange, onReset }: UsersToolbarProps) {
   return (
-    <div className="flex flex-wrap items-end gap-3">
-      <div className="min-w-56 flex-1">
+    <div className="flex flex-col gap-3 border-b border-line px-4 py-2.5 lg:flex-row lg:items-center lg:justify-between print:hidden">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="w-40">
+          <Select
+            label="Status"
+            hideLabel
+            size="sm"
+            value={query.status}
+            onValueChange={(status) => onChange({ status: status as UserListQuery['status'] })}
+            options={[
+              { value: 'all', label: 'All statuses' },
+              ...USER_STATUSES.map((status) => ({ value: status, label: USER_STATUS_LABELS[status] })),
+            ]}
+          />
+        </div>
+
+        <div className="w-44">
+          <Select
+            label="Role"
+            hideLabel
+            size="sm"
+            value={query.roleId}
+            onValueChange={(roleId) => onChange({ roleId })}
+            options={[
+              { value: 'all', label: 'All roles' },
+              ...roles.map((role) => ({ value: role.id, label: role.name })),
+            ]}
+          />
+        </div>
+
+        {isFiltered && (
+          <Button variant="ghost" size="sm" onClick={onReset}>
+            Clear filters
+          </Button>
+        )}
+      </div>
+
+      <div className="lg:w-72">
         <SearchInput
           label="Search accounts by name or email"
           placeholder="Search name or email"
@@ -25,34 +64,6 @@ export function UsersToolbar({ query, roles, isFiltered, onChange, onReset }: Us
           onValueChange={(search) => onChange({ search })}
         />
       </div>
-
-      <Select
-        label="Status"
-        size="sm"
-        value={query.status}
-        onValueChange={(status) => onChange({ status: status as UserListQuery['status'] })}
-        options={[
-          { value: 'all', label: 'All statuses' },
-          ...USER_STATUSES.map((status) => ({ value: status, label: USER_STATUS_LABELS[status] })),
-        ]}
-      />
-
-      <Select
-        label="Role"
-        size="sm"
-        value={query.roleId}
-        onValueChange={(roleId) => onChange({ roleId })}
-        options={[
-          { value: 'all', label: 'All roles' },
-          ...roles.map((role) => ({ value: role.id, label: role.name })),
-        ]}
-      />
-
-      {isFiltered && (
-        <Button variant="ghost" size="sm" onClick={onReset}>
-          Clear filters
-        </Button>
-      )}
     </div>
   )
 }

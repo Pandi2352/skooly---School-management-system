@@ -4,8 +4,7 @@ import type {
   createdUserSchema,
   invitationSentSchema,
   temporaryPasswordSchema,
-  userCreateFormSchema,
-  userEditFormSchema,
+  userFormSchema,
   userListMetaSchema,
   userRoleSummarySchema,
   userSchema,
@@ -22,7 +21,6 @@ export type TemporaryPasswordResult = z.infer<typeof temporaryPasswordSchema>
 export type UserSession = z.infer<typeof userSessionSchema>
 export type AccountEvent = z.infer<typeof auditEventSchema>
 
-export type UserCreateFormValues = z.infer<typeof userCreateFormSchema>
-export type UserEditFormValues = z.infer<typeof userEditFormSchema>
+export type UserFormValues = z.infer<typeof userFormSchema>
 
 export type UserListResult = { users: User[]; meta: UserListMeta }

@@ -112,30 +112,32 @@ const phone = z
 
 const designation = z.string().trim().max(60, 'Use 60 characters or fewer')
 
-/** Editing an existing account: contact details only, since role and status have their own actions. */
-export const userEditFormSchema = z.object({
-  fullName,
-  email,
-  phone,
-  designation,
-})
-
 export const passwordFieldSchema = z
   .string()
   .min(PASSWORD_MIN_LENGTH, `Use at least ${PASSWORD_MIN_LENGTH} characters`)
   .max(128, 'Use 128 characters or fewer')
 
 /**
- * Adding an account. "How they get in" decides whether a password is needed: an invitation emails
- * a link, a temporary password is read out to someone standing at the desk.
+ * One schema for adding and for editing, because the form is one form: `mode` says which, and the
+ * questions that only apply when adding — the role, and how the person first gets in — are checked
+ * only then. Editing touches contact details alone; role and status have their own actions.
  */
-export const userCreateFormSchema = userEditFormSchema
-  .extend({
-    roleId: z.string().min(1, 'Choose a role'),
+export const userFormSchema = z
+  .object({
+    mode: z.enum(['create', 'edit']),
+    fullName,
+    email,
+    phone,
+    designation,
+    roleId: z.string(),
     handover: z.enum(['invitation', 'temporary-password']),
     temporaryPassword: z.string(),
   })
   .superRefine((values, context) => {
+    if (values.mode !== 'create') return
+    if (values.roleId === '') {
+      context.addIssue({ code: 'custom', path: ['roleId'], message: 'Choose a role' })
+    }
     if (values.handover !== 'temporary-password') return
     const result = passwordFieldSchema.safeParse(values.temporaryPassword)
     if (!result.success) {

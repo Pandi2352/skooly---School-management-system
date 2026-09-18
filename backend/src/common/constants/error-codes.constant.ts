@@ -10,6 +10,8 @@ export enum ErrorCode {
   UNAUTHORIZED = 'UNAUTHORIZED',
   FORBIDDEN = 'FORBIDDEN',
   NOT_FOUND = 'NOT_FOUND',
+  /** There is no endpoint at that address at all, as opposed to no record with that id. */
+  ENDPOINT_NOT_FOUND = 'ENDPOINT_NOT_FOUND',
   METHOD_NOT_ALLOWED = 'METHOD_NOT_ALLOWED',
   CONFLICT = 'CONFLICT',
   DUPLICATE_RESOURCE = 'DUPLICATE_RESOURCE',

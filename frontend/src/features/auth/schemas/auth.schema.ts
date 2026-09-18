@@ -46,22 +46,28 @@ export const loginFormSchema = z.object({
 
 export const forgotPasswordFormSchema = z.object({ email })
 
-/** Used for the first administrator and for accepting an invitation: the same care either way. */
-const withConfirmation = <T extends z.ZodRawShape>(shape: T) =>
-  z
-    .object({ ...shape, password: passwordFieldSchema, confirmPassword: z.string() })
-    .refine((values) => values.password === values.confirmPassword, {
-      path: ['confirmPassword'],
-      message: 'Both passwords must match',
-    })
+/** Both places where a password is chosen ask for it twice, so a typo can't lock someone out. */
+const passwordsMatch = (values: { password: string; confirmPassword: string }) =>
+  values.password === values.confirmPassword
 
-export const setupFormSchema = withConfirmation({
-  fullName: z.string().trim().min(2, 'Enter your full name').max(80, 'Use 80 characters or fewer'),
-  email,
-  designation: z.string().trim().max(60, 'Use 60 characters or fewer'),
-})
+const MATCH_ERROR = { path: ['confirmPassword'], message: 'Both passwords must match' }
 
-export const newPasswordFormSchema = withConfirmation({})
+export const setupFormSchema = z
+  .object({
+    fullName: z.string().trim().min(2, 'Enter your full name').max(80, 'Use 80 characters or fewer'),
+    email,
+    designation: z.string().trim().max(60, 'Use 60 characters or fewer'),
+    password: passwordFieldSchema,
+    confirmPassword: z.string(),
+  })
+  .refine(passwordsMatch, MATCH_ERROR)
+
+export const newPasswordFormSchema = z
+  .object({
+    password: passwordFieldSchema,
+    confirmPassword: z.string(),
+  })
+  .refine(passwordsMatch, MATCH_ERROR)
 
 export const changePasswordFormSchema = z
   .object({

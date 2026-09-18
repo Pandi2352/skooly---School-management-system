@@ -3,9 +3,10 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { paths } from '@/app/paths'
 import { EmptyState } from '@/components/page/EmptyState'
-import { Badge } from '@/components/ui/Badge'
 import { Avatar } from '@/components/ui/Avatar'
+import { Badge } from '@/components/ui/Badge'
 import { Table, type TableColumn } from '@/components/ui/Table'
+import { cn } from '@/lib/cn'
 import type { User } from '../types/user.types'
 import { describeLastSignIn, type AccountContext } from '../utils/userRules'
 import { UserRowActions, type UserAction } from './UserRowActions'
@@ -13,7 +14,10 @@ import { UserStatusBadge } from './UserStatusBadge'
 
 type UsersTableProps = {
   users: User[]
+  /** First load, nothing to show yet. */
   isLoading: boolean
+  /** A new page or filter is loading while the previous rows stay on screen. */
+  isRefreshing?: boolean
   error?: string
   onRetry?: () => void
   context: AccountContext
@@ -22,7 +26,16 @@ type UsersTableProps = {
   empty: ReactNode
 }
 
-export function UsersTable({ users, isLoading, error, onRetry, context, onAction, empty }: UsersTableProps) {
+export function UsersTable({
+  users,
+  isLoading,
+  isRefreshing = false,
+  error,
+  onRetry,
+  context,
+  onAction,
+  empty,
+}: UsersTableProps) {
   const columns: TableColumn<User>[] = [
     {
       key: 'person',
@@ -82,16 +95,22 @@ export function UsersTable({ users, isLoading, error, onRetry, context, onAction
   ]
 
   return (
-    <Table
-      caption="Staff accounts"
-      hideCaption
-      columns={columns}
-      rows={users}
-      getRowKey={(user) => user.id}
-      isLoading={isLoading}
-      error={error}
-      onRetry={onRetry}
-      empty={empty ?? <EmptyState icon={UsersIcon} title="No accounts yet" />}
-    />
+    <div
+      aria-busy={isRefreshing || undefined}
+      className={cn('transition-opacity motion-reduce:transition-none', isRefreshing && 'opacity-60')}
+    >
+      <Table
+        caption="Staff accounts"
+        hideCaption
+        bordered={false}
+        columns={columns}
+        rows={users}
+        getRowKey={(user) => user.id}
+        isLoading={isLoading}
+        error={error}
+        onRetry={onRetry}
+        empty={empty ?? <EmptyState icon={UsersIcon} title="No accounts yet" />}
+      />
+    </div>
   )
 }

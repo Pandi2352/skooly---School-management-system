@@ -20,7 +20,7 @@ export function AccountHistoryCard({ events, isLoading, personName }: AccountHis
     <Card
       title="History"
       description="Sign-ins, lockouts and changes made by administrators, newest first."
-      className="@4xl:col-span-2"
+      className="xl:col-span-2"
     >
       {isLoading ? (
         <LoadingState label="Loading the history" />
@@ -40,7 +40,7 @@ export function AccountHistoryCard({ events, isLoading, personName }: AccountHis
                   {event.summary && <span>{event.summary}</span>}
                   {event.summary && event.actorName && <span aria-hidden="true"> · </span>}
                   {event.actorName && <span>by {event.actorName}</span>}
-                  {event.ip && <span className="hidden @xl:inline"> · {event.ip}</span>}
+                  {event.ip && <span className="hidden sm:inline"> · {event.ip}</span>}
                 </p>
               </div>
               <time dateTime={event.at} className="text-sm whitespace-nowrap text-ink-muted">

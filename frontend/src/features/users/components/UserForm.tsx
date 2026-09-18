@@ -10,8 +10,8 @@ import { getErrorMessage } from '@/lib/api/getErrorMessage'
 import { ApiError } from '@/lib/api/ApiError'
 import type { Role } from '@/features/roles/types/role.types'
 import { useCreateUser, useUpdateUser } from '../hooks/useUsers'
-import { userCreateFormSchema, userEditFormSchema } from '../schemas/user.schema'
-import type { CreatedUser, User, UserCreateFormValues } from '../types/user.types'
+import { userFormSchema } from '../schemas/user.schema'
+import type { CreatedUser, User, UserFormValues } from '../types/user.types'
 import { generateReadablePassword } from '../utils/generatePassword'
 
 type UserFormProps = {
@@ -42,9 +42,11 @@ export function UserForm({ user, roles, onDone, onCancel }: UserFormProps) {
     setValue,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<UserCreateFormValues>({
-    resolver: zodResolver(isEditing ? userEditFormSchema : userCreateFormSchema),
+  } = useForm<UserFormValues>({
+    resolver: zodResolver(userFormSchema),
     defaultValues: {
+      // Adding asks for a role and how the person gets in; editing asks neither.
+      mode: isEditing ? 'edit' : 'create',
       fullName: user?.fullName ?? '',
       email: user?.email ?? '',
       phone: user?.phone ?? '',
@@ -122,7 +124,7 @@ export function UserForm({ user, roles, onDone, onCancel }: UserFormProps) {
         {...register('email')}
       />
 
-      <div className="grid gap-4 @md:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Input
           label="Phone"
           placeholder="e.g. +91 98765 43210"

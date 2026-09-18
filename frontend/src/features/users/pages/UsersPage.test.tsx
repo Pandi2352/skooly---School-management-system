@@ -16,15 +16,21 @@ describe('UsersPage', () => {
     expect(within(row as HTMLElement).getByText('Never signed in')).toBeInTheDocument()
   })
 
-  it('filters by status from the counts along the top', async () => {
-    const user = userEvent.setup({ delay: null })
-    renderWithProviders(<UsersPage />, { route: '/users' })
-    expect(await screen.findByRole('link', { name: 'Sample Administrator' })).toBeInTheDocument()
-
-    await user.click(screen.getByRole('button', { name: /Suspended/ }))
+  it('filters the list by status, and says so in the URL', async () => {
+    renderWithProviders(<UsersPage />, { route: '/users?status=suspended' })
 
     expect(await screen.findByRole('link', { name: 'Sample Teacher' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Sample Administrator' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Clear filters' })).toBeInTheDocument()
+  })
+
+  it('counts every account in the school under the title, not just the page', async () => {
+    renderWithProviders(<UsersPage />, { route: '/users' })
+
+    const totals = await screen.findByRole('list', { name: 'Account totals' })
+    expect(within(totals).getByText('1 Active')).toBeInTheDocument()
+    expect(within(totals).getByText('1 Invited')).toBeInTheDocument()
+    expect(within(totals).getByText('1 Suspended')).toBeInTheDocument()
   })
 
   it('explains why an invited account cannot be sent a password reset', async () => {
