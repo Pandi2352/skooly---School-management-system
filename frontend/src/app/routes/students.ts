@@ -27,6 +27,13 @@ export const studentRoutes: RouteObject[] = [
             .StudentDetailPage,
         }),
       },
+      {
+        path: ':studentId/edit',
+        lazy: async () => ({
+          Component: (await import('@/features/students/pages/StudentEditPage'))
+            .StudentEditPage,
+        }),
+      },
     ],
   },
 ]

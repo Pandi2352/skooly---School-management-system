@@ -26,6 +26,42 @@ export const admissionRoutes: RouteObject[] = [
         },
       },
       {
+        path: 'applications',
+        lazy: async () => {
+          const { AdmissionsEnrollmentPage } = await import(
+            '@/features/admissions/pages/AdmissionsEnrollmentPage'
+          )
+          return { element: guard(<AdmissionsEnrollmentPage />, 'Applications Pipeline') }
+        },
+      },
+      {
+        path: 'enrollment',
+        lazy: async () => {
+          const { AdmissionsEnrollmentPage } = await import(
+            '@/features/admissions/pages/AdmissionsEnrollmentPage'
+          )
+          return { element: guard(<AdmissionsEnrollmentPage />, 'Enrollment Desk') }
+        },
+      },
+      {
+        path: 'inquiries',
+        lazy: async () => {
+          const { AdmissionsInquiriesPage } = await import(
+            '@/features/admissions/pages/AdmissionsInquiriesPage'
+          )
+          return { element: guard(<AdmissionsInquiriesPage />, 'Inquiries & Leads') }
+        },
+      },
+      {
+        path: 'assessments',
+        lazy: async () => {
+          const { AdmissionsAssessmentsPage } = await import(
+            '@/features/admissions/pages/AdmissionsAssessmentsPage'
+          )
+          return { element: guard(<AdmissionsAssessmentsPage />, 'Merit & Assessments') }
+        },
+      },
+      {
         path: 'settings',
         lazy: async () => {
           const { AdmissionSettingsPage, ADMISSION_SETTINGS_PERMISSIONS } = await import(
@@ -50,15 +86,6 @@ export const admissionRoutes: RouteObject[] = [
         lazy: async () => {
           const { PlannedFeaturePage } = await import('@/pages/PlannedFeaturePage')
           return { element: <PlannedFeaturePage moduleSlug="admissions" /> }
-        },
-      },
-      {
-        path: 'applications',
-        lazy: async () => {
-          const { AdmissionsEnrollmentPage } = await import(
-            '@/features/admissions/pages/AdmissionsEnrollmentPage'
-          )
-          return { element: guard(<AdmissionsEnrollmentPage />, 'Applications') }
         },
       },
     ],

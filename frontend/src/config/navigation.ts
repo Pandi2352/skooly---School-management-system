@@ -66,6 +66,9 @@ export const modules: Module[] = [
   defineModule('Admissions', 'Admissions', [
     builtFeature('Admissions Overview', 'Overview', paths.admissionsOverview),
     builtFeature('Applications', 'Applications', paths.admissionsApplications),
+    builtFeature('Enrollment Desk', 'Enrollment Desk', paths.admissionsEnrollmentDesk),
+    builtFeature('Inquiries & Leads', 'Inquiries & Leads', paths.admissionsInquiries),
+    builtFeature('Merit & Assessments', 'Merit & Assessments', paths.admissionsAssessments),
     builtFeature('Direct Walk-in Admission', 'Walk-in Admission', paths.studentNew),
     builtFeature('Admission Form Fields', 'Form Fields', paths.settingsCustomFields),
     builtFeature('Admission Settings', 'Settings', paths.admissionsSettings),

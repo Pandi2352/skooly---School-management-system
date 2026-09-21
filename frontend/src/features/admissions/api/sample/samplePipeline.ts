@@ -382,12 +382,59 @@ export function updateSampleApplicationDetails(
   id: string,
   input: {
     firstName?: string
+    middleName?: string
     lastName?: string
+    dateOfBirth?: string
+    gender?: 'male' | 'female' | 'other'
     gradeApplied?: number
+    bloodGroup?: string
     previousSchool?: string
+    category?: string
+    house?: string
+    religion?: string
+    nationalId?: string
+    penId?: string
+    caste?: string
+    subCaste?: string
+    motherTongue?: string
+    placeOfBirth?: string
+    nationality?: string
+    belowPovertyLine?: boolean
+    rightToEducation?: boolean
+    phone?: string
+    email?: string
+    admissionNo?: string
+    rollNo?: string
+    admissionDate?: string
+    biometricId?: string
     parentName?: string
     parentPhone?: string
     parentEmail?: string
+    parentOccupation?: string
+    parentAddress?: string
+    guardianType?: 'father' | 'mother' | 'guardian'
+    fatherName?: string
+    fatherPhone?: string
+    fatherOccupation?: string
+    fatherQualification?: string
+    fatherAadhaar?: string
+    fatherIncomePaise?: number | null
+    motherName?: string
+    motherPhone?: string
+    motherOccupation?: string
+    motherQualification?: string
+    motherAadhaar?: string
+    emergencyName?: string
+    emergencyPhone?: string
+    permanentAddress?: string
+    heightCm?: string
+    weightKg?: string
+    medicalConditions?: string
+    allergies?: string
+    bankName?: string
+    accountNumber?: string
+    ifscCode?: string
+    accountHolderName?: string
   },
 ): AdmissionApplication {
   const idx = mutableApplications.findIndex((a) => a._id === id || a.applicationNo === id)
@@ -399,15 +446,71 @@ export function updateSampleApplicationDetails(
     student: {
       ...target.student,
       firstName: input.firstName ?? target.student.firstName,
+      middleName: input.middleName ?? target.student.middleName,
       lastName: input.lastName ?? target.student.lastName,
+      dateOfBirth: input.dateOfBirth ?? target.student.dateOfBirth,
+      gender: input.gender ?? target.student.gender,
       gradeApplied: input.gradeApplied ?? target.student.gradeApplied,
+      bloodGroup: input.bloodGroup ?? target.student.bloodGroup,
       previousSchool: input.previousSchool ?? target.student.previousSchool,
+      category: input.category ?? target.student.category,
+      house: input.house ?? target.student.house,
+      religion: input.religion ?? target.student.religion,
+      nationalId: input.nationalId ?? target.student.nationalId,
+      penId: input.penId ?? target.student.penId,
+      caste: input.caste ?? target.student.caste,
+      subCaste: input.subCaste ?? target.student.subCaste,
+      motherTongue: input.motherTongue ?? target.student.motherTongue,
+      placeOfBirth: input.placeOfBirth ?? target.student.placeOfBirth,
+      nationality: input.nationality ?? target.student.nationality,
+      belowPovertyLine: input.belowPovertyLine ?? target.student.belowPovertyLine,
+      rightToEducation: input.rightToEducation ?? target.student.rightToEducation,
+      phone: input.phone ?? target.student.phone,
+      email: input.email ?? target.student.email,
     },
     parent: {
       ...target.parent,
+      guardianType: input.guardianType ?? target.parent.guardianType,
       name: input.parentName ?? target.parent.name,
       phone: input.parentPhone ?? target.parent.phone,
       email: input.parentEmail ?? target.parent.email,
+      occupation: input.parentOccupation ?? target.parent.occupation,
+      address: input.parentAddress ?? target.parent.address,
+      fatherName: input.fatherName ?? target.parent.fatherName,
+      fatherPhone: input.fatherPhone ?? target.parent.fatherPhone,
+      fatherOccupation: input.fatherOccupation ?? target.parent.fatherOccupation,
+      fatherQualification: input.fatherQualification ?? target.parent.fatherQualification,
+      fatherAadhaar: input.fatherAadhaar ?? target.parent.fatherAadhaar,
+      fatherIncomePaise: input.fatherIncomePaise ?? target.parent.fatherIncomePaise,
+      motherName: input.motherName ?? target.parent.motherName,
+      motherPhone: input.motherPhone ?? target.parent.motherPhone,
+      motherOccupation: input.motherOccupation ?? target.parent.motherOccupation,
+      motherQualification: input.motherQualification ?? target.parent.motherQualification,
+      motherAadhaar: input.motherAadhaar ?? target.parent.motherAadhaar,
+      emergencyName: input.emergencyName ?? target.parent.emergencyName,
+      emergencyPhone: input.emergencyPhone ?? target.parent.emergencyPhone,
+      permanentAddress: input.permanentAddress ?? target.parent.permanentAddress,
+    },
+    academic: {
+      ...target.academic,
+      admissionNo: input.admissionNo ?? target.academic?.admissionNo,
+      rollNo: input.rollNo ?? target.academic?.rollNo,
+      admissionDate: input.admissionDate ?? target.academic?.admissionDate,
+      biometricId: input.biometricId ?? target.academic?.biometricId,
+    },
+    health: {
+      ...target.health,
+      heightCm: input.heightCm ?? target.health?.heightCm,
+      weightKg: input.weightKg ?? target.health?.weightKg,
+      medicalConditions: input.medicalConditions ?? target.health?.medicalConditions,
+      allergies: input.allergies ?? target.health?.allergies,
+    },
+    bank: {
+      ...target.bank,
+      bankName: input.bankName ?? target.bank?.bankName,
+      accountNumber: input.accountNumber ?? target.bank?.accountNumber,
+      ifsc: input.ifscCode ?? target.bank?.ifsc,
+      accountHolder: input.accountHolderName ?? target.bank?.accountHolder,
     },
     updatedAt: new Date().toISOString(),
   }

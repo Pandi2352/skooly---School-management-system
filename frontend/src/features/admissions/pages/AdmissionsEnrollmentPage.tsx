@@ -215,6 +215,10 @@ export function AdmissionsEnrollmentPage() {
         onClose={() => setReviewApplication(null)}
         onUpdateStatus={handleUpdateStatus}
         onEnrollClick={setEnrollApplication}
+        onEditClick={(app) => {
+          setReviewApplication(null)
+          setEditApplication(app)
+        }}
         isSubmitting={updateStatus.isPending}
       />
 

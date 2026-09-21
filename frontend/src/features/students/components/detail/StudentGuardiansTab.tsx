@@ -91,6 +91,91 @@ export function StudentGuardiansTab({ student }: { student: StudentDetail }) {
         )}
       </div>
 
+      {/* Dedicated Father & Mother Profiles if available */}
+      {student.parents && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Card title="Father's Profile" description="Employment, educational background, and identification.">
+            <dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+              <div>
+                <dt className="text-xs text-ink-muted">Father's Full Name</dt>
+                <dd className="mt-0.5 font-semibold text-ink">{student.parents.fatherName ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Phone Number</dt>
+                <dd className="mt-0.5 font-semibold tabular-nums text-ink">{student.parents.fatherPhone ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Occupation</dt>
+                <dd className="mt-0.5 font-semibold text-ink">{student.parents.fatherOccupation ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Education Qualification</dt>
+                <dd className="mt-0.5 font-semibold text-ink">{student.parents.fatherQualification ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Aadhaar / National ID</dt>
+                <dd className="mt-0.5 font-semibold tabular-nums text-ink">{student.parents.fatherAadhaar ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Annual Income</dt>
+                <dd className="mt-0.5 font-semibold tabular-nums text-ink">
+                  {typeof student.parents.fatherIncomePaise === 'number'
+                    ? `₹ ${(student.parents.fatherIncomePaise / 100).toLocaleString('en-IN')}`
+                    : '—'}
+                </dd>
+              </div>
+            </dl>
+          </Card>
+
+          <Card title="Mother's Profile" description="Employment, educational background, and identification.">
+            <dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+              <div>
+                <dt className="text-xs text-ink-muted">Mother's Full Name</dt>
+                <dd className="mt-0.5 font-semibold text-ink">{student.parents.motherName ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Phone Number</dt>
+                <dd className="mt-0.5 font-semibold tabular-nums text-ink">{student.parents.motherPhone ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Occupation</dt>
+                <dd className="mt-0.5 font-semibold text-ink">{student.parents.motherOccupation ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Education Qualification</dt>
+                <dd className="mt-0.5 font-semibold text-ink">{student.parents.motherQualification ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Aadhaar / National ID</dt>
+                <dd className="mt-0.5 font-semibold tabular-nums text-ink">{student.parents.motherAadhaar ?? '—'}</dd>
+              </div>
+            </dl>
+          </Card>
+
+          {Boolean(student.parents.emergencyName ?? student.parents.permanentAddress) && (
+            <div className="lg:col-span-2">
+              <Card title="Emergency & Permanent Residence" description="Off-campus emergency contact and registered permanent home.">
+                <dl className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+                  <div>
+                    <dt className="text-xs text-ink-muted">Emergency Contact Name & Phone</dt>
+                    <dd className="mt-0.5 font-semibold text-ink">
+                      {student.parents.emergencyName ?? '—'}
+                      {student.parents.emergencyPhone ? ` (${student.parents.emergencyPhone})` : ''}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-ink-muted">Permanent Living Address</dt>
+                    <dd className="mt-0.5 font-semibold text-ink">
+                      {student.parents.permanentAddress ?? student.residentialAddress}
+                    </dd>
+                  </div>
+                </dl>
+              </Card>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Sibling Linkage Section */}
       <Card
         title="Enrolled Siblings"

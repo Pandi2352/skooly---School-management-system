@@ -28,6 +28,7 @@ type Props = {
     notes: string,
   ) => Promise<void>
   onEnrollClick: (application: AdmissionApplication) => void
+  onEditClick?: (application: AdmissionApplication) => void
   isSubmitting: boolean
 }
 
@@ -37,6 +38,7 @@ export function AdmissionReviewDrawer({
   onClose,
   onUpdateStatus,
   onEnrollClick,
+  onEditClick,
   isSubmitting,
 }: Props) {
   const [notes, setNotes] = useState(application?.reviewerNotes ?? '')
@@ -70,6 +72,16 @@ export function AdmissionReviewDrawer({
       footer={
         <div className="flex w-full flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
+            {onEditClick && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => onEditClick(application)}
+                className="flex items-center gap-1.5"
+              >
+                Edit Details
+              </Button>
+            )}
             {application.status !== 'under-review' && (
               <Button
                 variant="secondary"

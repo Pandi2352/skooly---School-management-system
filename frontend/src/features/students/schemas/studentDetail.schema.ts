@@ -79,7 +79,53 @@ export const studentDocumentSchema = z.object({
   fileUrl: z.string(),
 })
 
+export const studentBankSchema = z.object({
+  bankName: z.string().optional(),
+  accountNumber: z.string().optional(),
+  ifscCode: z.string().optional(),
+  accountHolderName: z.string().optional(),
+})
+
+export const studentParentProfileSchema = z.object({
+  fatherName: z.string().optional(),
+  fatherPhone: z.string().optional(),
+  fatherOccupation: z.string().optional(),
+  fatherQualification: z.string().optional(),
+  fatherAadhaar: z.string().optional(),
+  fatherIncomePaise: z.number().nullable().optional(),
+  motherName: z.string().optional(),
+  motherPhone: z.string().optional(),
+  motherOccupation: z.string().optional(),
+  motherQualification: z.string().optional(),
+  motherAadhaar: z.string().optional(),
+  emergencyName: z.string().optional(),
+  emergencyPhone: z.string().optional(),
+  permanentAddress: z.string().optional(),
+})
+
 export const studentDetailSchema = studentSchema.extend({
+  middleName: z.string().optional(),
+  category: z.string().optional(),
+  house: z.string().optional(),
+  religion: z.string().optional(),
+  nationalId: z.string().optional(),
+  penId: z.string().optional(),
+  caste: z.string().optional(),
+  subCaste: z.string().optional(),
+  motherTongue: z.string().optional(),
+  placeOfBirth: z.string().optional(),
+  nationality: z.string().optional(),
+  belowPovertyLine: z.boolean().optional(),
+  rightToEducation: z.boolean().optional(),
+  studentPhone: z.string().optional(),
+  studentEmail: z.string().optional(),
+  biometricId: z.string().optional(),
+  previousSchool: z.string().optional(),
+  heightCm: z.string().optional(),
+  weightKg: z.string().optional(),
+  bank: studentBankSchema.optional(),
+  parents: studentParentProfileSchema.optional(),
+  customFields: z.record(z.string(), z.string()).optional(),
   rollNo: z.string(),
   dob: z.string(),
   gender: genderSchema,

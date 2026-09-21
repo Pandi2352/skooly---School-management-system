@@ -110,15 +110,67 @@ export async function updateAdmissionStatus(
   return api.patch(`/admissions/${id}/status`, admissionApplicationSchema, input)
 }
 
-/** Corrections to the applicant's own details: a misheard name, the wrong grade, a new number. */
+/** Corrections to the applicant's own details across all 7 steps. */
 export type UpdateAdmissionDetailsInput = {
+  // Student basic & personal
   firstName?: string
+  middleName?: string
   lastName?: string
+  dateOfBirth?: string
+  gender?: 'male' | 'female' | 'other'
   gradeApplied?: number
+  bloodGroup?: string
   previousSchool?: string
+  category?: string
+  house?: string
+  religion?: string
+  nationalId?: string
+  penId?: string
+  caste?: string
+  subCaste?: string
+  motherTongue?: string
+  placeOfBirth?: string
+  nationality?: string
+  belowPovertyLine?: boolean
+  rightToEducation?: boolean
+  phone?: string
+  email?: string
+  // Academic
+  admissionNo?: string
+  rollNo?: string
+  admissionDate?: string
+  biometricId?: string
+  // Parents
   parentName?: string
   parentPhone?: string
   parentEmail?: string
+  parentOccupation?: string
+  parentAddress?: string
+  guardianType?: 'father' | 'mother' | 'guardian'
+  fatherName?: string
+  fatherPhone?: string
+  fatherOccupation?: string
+  fatherQualification?: string
+  fatherAadhaar?: string
+  fatherIncomePaise?: number | null
+  motherName?: string
+  motherPhone?: string
+  motherOccupation?: string
+  motherQualification?: string
+  motherAadhaar?: string
+  emergencyName?: string
+  emergencyPhone?: string
+  permanentAddress?: string
+  // Health
+  heightCm?: string
+  weightKg?: string
+  medicalConditions?: string
+  allergies?: string
+  // Bank
+  bankName?: string
+  accountNumber?: string
+  ifscCode?: string
+  accountHolderName?: string
 }
 
 export async function updateAdmissionDetails(

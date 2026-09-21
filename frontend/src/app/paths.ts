@@ -24,6 +24,9 @@ export const paths = {
   admissions: '/admissions',
   admissionsOverview: '/admissions/overview',
   admissionsApplications: '/admissions/applications',
+  admissionsEnrollmentDesk: '/admissions/enrollment',
+  admissionsInquiries: '/admissions/inquiries',
+  admissionsAssessments: '/admissions/assessments',
   admissionsSettings: '/admissions/settings',
   // Staff logins: who can sign in, with which role.
   users: '/users',

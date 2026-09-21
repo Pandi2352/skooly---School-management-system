@@ -19,9 +19,11 @@ import type {
   documentTypeSchema,
   guardianDetailSchema,
   siblingSchema,
+  studentBankSchema,
   studentDetailSchema,
   studentDocumentSchema,
   studentInvoiceSchema,
+  studentParentProfileSchema,
 } from '../schemas/studentDetail.schema'
 
 // Data from the API: types derived from the schemas, so they can't drift apart.
@@ -33,6 +35,8 @@ export type ClassOption = z.infer<typeof classOptionSchema>
 export type StudentSummary = z.infer<typeof studentSummarySchema>
 
 export type StudentDetail = z.infer<typeof studentDetailSchema>
+export type StudentBank = z.infer<typeof studentBankSchema>
+export type StudentParentProfile = z.infer<typeof studentParentProfileSchema>
 export type GuardianDetail = z.infer<typeof guardianDetailSchema>
 export type Sibling = z.infer<typeof siblingSchema>
 export type StudentInvoice = z.infer<typeof studentInvoiceSchema>

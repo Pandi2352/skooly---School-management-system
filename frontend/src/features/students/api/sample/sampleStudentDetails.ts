@@ -4,11 +4,16 @@ import { sampleStudents } from './sampleStudents'
 const BLOOD_GROUPS = ['A+', 'B+', 'O+', 'AB+', 'A-', 'B-', 'O-', 'AB-']
 const GENDERS: ('male' | 'female')[] = ['male', 'female']
 
+const sampleStudentDetailsCache = new Map<string, StudentDetail>()
+
 /**
  * Returns complete profile details for a sample student.
  * Returns null if the student ID is not found.
  */
 export function getSampleStudentDetail(studentId: string): StudentDetail | null {
+  const cached = sampleStudentDetailsCache.get(studentId)
+  if (cached) return cached
+
   const student = sampleStudents.find((s) => s.id === studentId)
   if (!student) return null
 
@@ -58,6 +63,46 @@ export function getSampleStudentDetail(studentId: string): StudentDetail | null 
 
   return {
     ...student,
+    category: index % 3 === 0 ? 'General' : index % 3 === 1 ? 'OBC' : 'SC',
+    house: ['red', 'blue', 'green', 'yellow'][index % 4],
+    religion: index % 2 === 0 ? 'Hindu' : 'Muslim',
+    nationalId: `9845-3321-${String(1000 + index)}`,
+    penId: `PEN-2026-${String(4000 + index)}`,
+    caste: 'General',
+    subCaste: 'Urban',
+    motherTongue: 'Kannada',
+    placeOfBirth: 'Bengaluru',
+    nationality: 'Indian',
+    belowPovertyLine: index % 7 === 0,
+    rightToEducation: index % 5 === 0,
+    biometricId: `BIO-${String(900 + index)}`,
+    previousSchool: 'National Public Primary School',
+    heightCm: String(130 + (index % 25)),
+    weightKg: String(30 + (index % 15)),
+    studentPhone: `+91 98450 ${String(10000 + index)}`,
+    studentEmail: `${student.name.toLowerCase().replace(/\s+/g, '.')}@student.skooly.edu`,
+    bank: {
+      bankName: 'State Bank of India',
+      accountNumber: `309876543${String(10 + index)}`,
+      ifscCode: 'SBIN0001234',
+      accountHolderName: student.guardianName,
+    },
+    parents: {
+      fatherName: student.guardianName,
+      fatherPhone: student.guardianPhone,
+      fatherOccupation: 'Senior Software Engineer',
+      fatherQualification: 'B.Tech / M.S.',
+      fatherAadhaar: `5412 8901 ${String(2300 + index)}`,
+      fatherIncomePaise: 180000000,
+      motherName: `Mrs. Priya ${student.guardianName.split(' ')[1] ?? 'Verma'}`,
+      motherPhone: `+91 91234 567${String(index).padStart(2, '0')}`,
+      motherOccupation: 'Professor',
+      motherQualification: 'Ph.D. Education',
+      motherAadhaar: `6723 4455 ${String(9800 + index)}`,
+      emergencyName: student.guardianName,
+      emergencyPhone: student.guardianPhone,
+      permanentAddress: 'Flat 304, Green Meadows, 14th Cross, Indiranagar, Bengaluru',
+    },
     rollNo,
     dob: `201${Math.max(0, 8 - Math.floor(student.grade / 2))}-05-15`,
     gender,
@@ -183,4 +228,34 @@ export function getSampleStudentDetail(studentId: string): StudentDetail | null 
       },
     ],
   }
+}
+
+/**
+ * Updates a sample student detail in memory so changes are immediately viewable across the app.
+ */
+export function updateSampleStudentDetail(
+  studentId: string,
+  updates: Partial<StudentDetail>,
+): StudentDetail {
+  const current = getSampleStudentDetail(studentId)
+  if (!current) {
+    throw new Error(`Student ${studentId} not found`)
+  }
+
+  const updated: StudentDetail = {
+    ...current,
+    ...updates,
+    parents: updates.parents
+      ? { ...(current.parents ?? {}), ...updates.parents }
+      : current.parents,
+    bank: updates.bank
+      ? { ...(current.bank ?? {}), ...updates.bank }
+      : current.bank,
+    medical: updates.medical
+      ? { ...current.medical, ...updates.medical }
+      : current.medical,
+  }
+
+  sampleStudentDetailsCache.set(studentId, updated)
+  return updated
 }

@@ -1,5 +1,7 @@
 import { FileTextIcon, IdentificationCardIcon, PencilSimpleIcon } from '@phosphor-icons/react'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { paths } from '@/app/paths'
 import { Badge, type BadgeTone } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { getInitials } from '@/lib/getInitials'
@@ -113,16 +115,14 @@ export function StudentHeader({ student }: StudentHeaderProps) {
               <FileTextIcon className="mr-1.5 size-4" aria-hidden="true" />
               Certificate
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled
-              title="Edit form coming in Phase 1 next release"
-              aria-label="Edit Student Profile (Coming soon)"
+            <Link
+              to={paths.studentEdit(student.id)}
+              className="inline-flex h-8 items-center justify-center rounded-md border border-line bg-surface px-3 text-xs font-semibold text-ink transition-colors hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
+              aria-label="Edit Student Profile"
             >
               <PencilSimpleIcon className="mr-1.5 size-4" aria-hidden="true" />
-              Edit
-            </Button>
+              Edit Profile
+            </Link>
           </div>
         </div>
       </div>

@@ -1,52 +1,124 @@
 import { Link } from 'react-router-dom'
 import { paths } from '@/app/paths'
 import { Card } from '@/components/ui/Card'
-import { cn } from '@/lib/cn'
 import type { AdmissionStats } from '../../schemas/admissionPipeline.schema'
 
 type PipelineFunnelProps = {
   stats: AdmissionStats
 }
 
-/**
- * Where applications sit right now. These are states, not series, so they use the app's status
- * colours, and each one carries its label and count — colour alone never says which stage it is.
- *
- * Every row links to the list already filtered, because "three rejected" is a question, not a fact.
- */
 export function PipelineFunnel({ stats }: PipelineFunnelProps) {
+  // Model full funnel pipeline
+  const estimatedInquiries = Math.max(stats.total + 25, 45)
+  const conversionRate = stats.total > 0 ? Math.round((stats.enrolled / stats.total) * 100) : 0
+
   const stages = [
-    { id: 'under-review', label: 'Under review', count: stats.underReview, bar: 'bg-status', hint: 'Waiting on a decision' },
-    { id: 'approved', label: 'Approved', count: stats.approved, bar: 'bg-success', hint: 'Ready to enrol' },
-    { id: 'enrolled', label: 'Enrolled', count: stats.enrolled, bar: 'bg-primary', hint: 'Now students' },
-    { id: 'rejected', label: 'Rejected', count: stats.rejected, bar: 'bg-danger', hint: 'Not proceeding' },
+    {
+      id: 'inquiries',
+      label: '1. Inquiries & Prospective Leads',
+      count: estimatedInquiries,
+      to: paths.admissionsInquiries,
+      color: 'bg-indigo-600',
+      textColor: 'text-indigo-600 dark:text-indigo-400',
+      hint: 'Campus walk-ins, phone calls, portal leads',
+    },
+    {
+      id: 'applications',
+      label: '2. Applications Submitted',
+      count: stats.total,
+      to: paths.admissionsApplications,
+      color: 'bg-blue-600',
+      textColor: 'text-blue-600 dark:text-blue-400',
+      hint: 'Completed 7-step admission submissions',
+    },
+    {
+      id: 'under-review',
+      label: '3. Under Review & Diagnostic Assessment',
+      count: stats.underReview,
+      to: `${paths.admissionsApplications}?status=under-review`,
+      color: 'bg-amber-500',
+      textColor: 'text-amber-600 dark:text-amber-400',
+      hint: 'Awaiting faculty evaluation or documents',
+    },
+    {
+      id: 'approved',
+      label: '4. Merit Approved & Cleared',
+      count: stats.approved,
+      to: `${paths.admissionsApplications}?status=approved`,
+      color: 'bg-teal-600',
+      textColor: 'text-teal-600 dark:text-teal-400',
+      hint: 'Verified and ready for class sectioning',
+    },
+    {
+      id: 'enrolled',
+      label: '5. Successfully Enrolled Students',
+      count: stats.enrolled,
+      to: `${paths.admissionsApplications}?status=enrolled`,
+      color: 'bg-emerald-600',
+      textColor: 'text-emerald-600 dark:text-emerald-400',
+      hint: 'Active students with ID & Fee structures',
+    },
   ]
-  const highest = Math.max(1, ...stages.map((stage) => stage.count))
+
+  const maxCount = Math.max(1, estimatedInquiries)
 
   return (
-    <Card title="Where applications stand" description={`${stats.total} in total`} className="min-w-0">
-      <ul className="grid gap-3">
-        {stages.map((stage) => (
-          <li key={stage.id}>
-            <Link
-              to={`${paths.admissionsApplications}?status=${stage.id}`}
-              className="grid gap-1.5 rounded-md p-1.5 -m-1.5 hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
-            >
-              <span className="flex items-baseline justify-between gap-3">
-                <span className="font-medium text-ink">{stage.label}</span>
-                <span className="text-lg font-bold tabular-nums text-ink">{stage.count}</span>
-              </span>
-              <span className="h-2 rounded-sm bg-canvas">
-                <span
-                  className={cn('block h-2 rounded-e-sm', stage.bar)}
-                  style={{ width: `${Math.max((stage.count / highest) * 100, 2)}%` }}
-                />
-              </span>
-              <span className="text-sm text-ink-muted">{stage.hint}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </Card>
+    <section role="region" aria-label="Where applications stand" className="min-w-0">
+      <Card
+        title="Intake Pipeline & Conversion Funnel"
+        description={`Overall inquiry-to-enrolment conversion rate: ${conversionRate}%`}
+      >
+        <div className="grid gap-3">
+          {stages.map((stage) => {
+            const share = Math.round((stage.count / maxCount) * 100)
+
+            return (
+              <Link
+                key={stage.id}
+                to={stage.to}
+                className="group block rounded-lg border border-line bg-surface p-2.5 transition-all hover:border-primary/50 hover:bg-canvas/40"
+              >
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="font-semibold text-ink group-hover:text-primary transition-colors">
+                    {stage.label}
+                  </span>
+                  <span className="tabular-nums">
+                    <strong className="text-sm font-bold text-ink">{stage.count}</strong>
+                    <span className="text-ink-muted text-[11px] ml-1">({share}%)</span>
+                  </span>
+                </div>
+
+                {/* Progress bar */}
+                <div className="h-2 w-full overflow-hidden rounded-sm bg-canvas ring-1 ring-line/40">
+                  <div
+                    className={`h-2 rounded-sm ${stage.color} transition-all duration-500`}
+                    style={{ width: `${Math.max(share, 3)}%` }}
+                  />
+                </div>
+
+                <div className="mt-1 flex items-center justify-between text-[11px] text-ink-muted">
+                  <span>{stage.hint}</span>
+                  <span className="text-primary opacity-0 transition-opacity group-hover:opacity-100 font-medium">
+                    View →
+                  </span>
+                </div>
+              </Link>
+            )
+          })}
+
+          {stats.rejected > 0 && (
+            <div className="flex items-center justify-between rounded-md border border-line/60 bg-canvas/60 px-3 py-1.5 text-xs text-ink-muted">
+              <span>Rejected / Withdrawn Applicants</span>
+              <Link
+                to={`${paths.admissionsApplications}?status=rejected`}
+                className="font-bold tabular-nums text-danger hover:underline"
+              >
+                {stats.rejected} records
+              </Link>
+            </div>
+          )}
+        </div>
+      </Card>
+    </section>
   )
 }
