@@ -63,6 +63,13 @@ const defineModule = (
 })
 
 export const modules: Module[] = [
+  defineModule('Admissions', 'Admissions', [
+    builtFeature('Admissions Overview', 'Overview', paths.admissionsOverview),
+    builtFeature('Applications', 'Applications', paths.admissionsApplications),
+    builtFeature('Direct Walk-in Admission', 'Walk-in Admission', paths.studentNew),
+    builtFeature('Admission Form Fields', 'Form Fields', paths.settingsCustomFields),
+    builtFeature('Admission Settings', 'Settings', paths.admissionsSettings),
+  ]),
   defineModule('Core Setup & Administration', 'Administration', [
     builtFeature('Admissions & Enrollment', 'Admissions', paths.admissionsEnrollment),
     builtFeature('User Accounts', 'User Accounts', paths.users),
@@ -128,7 +135,6 @@ export const modules: Module[] = [
   ]),
   defineModule('Student Information', 'Student Information', [
     feature('Student Dashboard', ['Student Demographics Overview', 'Enrollment Metrics']),
-    builtFeature('Student Admission', 'Student Admission', paths.studentNew),
     builtFeature('Student List', 'Student List', paths.students),
     feature('Search by Photo', ['Facial Directory Index', 'Photo Search']),
     feature(
@@ -364,13 +370,14 @@ export const modules: Module[] = [
     // so the "Not built yet" pages don't describe features nobody has specified.
     [
       builtFeature('School Settings', 'School Settings', paths.settingsSchool),
+      // Also under Administration → Admission Form Fields, which is where the permission lives.
       builtFeature('Custom Fields', 'Custom Fields', paths.settingsCustomFields),
       // Same page as Administration → Roles & Permissions; listed in both menus.
       builtFeature('Roles & Permissions', 'Roles & Permissions', paths.settingsRoles),
       feature('Payment Gateway'),
       feature('Notification Settings'),
-      feature('Admission Settings'),
-      feature('Admission Form Fields'),
+      // Same page as Admissions → Admission Settings; listed in both menus.
+      builtFeature('Admission Settings', 'Admission Settings', paths.admissionsSettings),
       builtFeature('Audit Trail', 'Audit Trail', paths.settingsAuditTrail),
       feature('Subscription'),
       feature('Subscription History'),
@@ -395,6 +402,26 @@ export function findModule(slug: string) {
 
 export function findFeature(module: Module, slug: string) {
   return module.features.find((f) => f.slug === slug)
+}
+
+const routeOwners = new Map<string, string>()
+for (const module of modules) {
+  for (const item of module.features) {
+    if (item.route && !routeOwners.has(item.route)) {
+      routeOwners.set(item.route, `${module.slug}.${item.slug}`)
+    }
+  }
+}
+
+/**
+ * The id this page's permissions are stored under: "<module>.<page>". A page listed under two
+ * modules keeps the id of the first one, so Roles & Permissions doesn't show it twice and a role
+ * granted there works from either menu entry.
+ */
+export function featurePermissionId(module: Module, item: Feature): string {
+  if (item.alias) return `${item.alias.module}.${item.alias.feature}`
+  if (item.route) return routeOwners.get(item.route) ?? `${module.slug}.${item.slug}`
+  return `${module.slug}.${item.slug}`
 }
 
 export function featurePath(module: Module, item: Feature) {

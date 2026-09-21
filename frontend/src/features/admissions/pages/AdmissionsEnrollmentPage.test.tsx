@@ -17,7 +17,8 @@ describe('AdmissionsEnrollmentPage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('APP-2026-001')).toBeInTheDocument()
-      expect(screen.getByText('Rohan Verma')).toBeInTheDocument()
+      // The name is rendered twice per row: once to read, once for screen readers on the avatar.
+      expect(screen.getAllByText('Rohan Verma').length).toBeGreaterThan(0)
     })
   })
 
@@ -26,15 +27,17 @@ describe('AdmissionsEnrollmentPage', () => {
     renderWithProviders(<AdmissionsEnrollmentPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Rohan Verma')).toBeInTheDocument()
+      expect(screen.getByText('APP-2026-001')).toBeInTheDocument()
     })
 
     const searchInput = screen.getByPlaceholderText(/search name/i)
     await user.type(searchInput, 'Ananya')
 
+    // Application numbers are unique per row; a name now appears twice, since the avatar also
+    // renders it for screen readers.
     await waitFor(() => {
-      expect(screen.getByText('Ananya Sharma')).toBeInTheDocument()
-      expect(screen.queryByText('Rohan Verma')).not.toBeInTheDocument()
+      expect(screen.getByText('APP-2026-002')).toBeInTheDocument()
+      expect(screen.queryByText('APP-2026-001')).not.toBeInTheDocument()
     })
   })
 

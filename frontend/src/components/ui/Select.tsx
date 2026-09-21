@@ -1,4 +1,4 @@
-import { CaretDownIcon, CheckIcon } from '@phosphor-icons/react'
+import { CaretDownIcon, CaretUpIcon, CheckIcon } from '@phosphor-icons/react'
 import { Select as RadixSelect } from 'radix-ui'
 import { useId } from 'react'
 import { invariant } from '@/lib/assert'
@@ -45,7 +45,9 @@ export function Select({
   )
 
   return (
-    <div className="grid gap-1.5">
+    // content-start: a grid item stretches to its row's height by default, so a neighbouring field
+    // with a hint would push this one's label and control down, out of line across the row.
+    <div className="grid content-start gap-1.5">
       <label htmlFor={id} className={fieldLabelClasses(hideLabel)}>
         {label}
         {rootProps.required && (
@@ -79,7 +81,17 @@ export function Select({
             sideOffset={4}
             className="z-50 max-h-(--radix-select-content-available-height) min-w-(--radix-select-trigger-width) overflow-hidden rounded-md border border-line bg-surface text-ink shadow-lg"
           >
-            <RadixSelect.Viewport className="p-1">
+            {/* Arrows appear only when there is more list above or below. */}
+            <RadixSelect.ScrollUpButton className="flex h-6 items-center justify-center bg-surface text-ink-muted">
+              <CaretUpIcon className="size-4" aria-hidden="true" />
+            </RadixSelect.ScrollUpButton>
+
+            {/*
+              A long list (twelve grades, forty bus routes) would otherwise run off the bottom of
+              the window. It scrolls at roughly eight rows, which is enough to show there is more
+              without covering the page behind it.
+            */}
+            <RadixSelect.Viewport className="max-h-72 overflow-y-auto p-1">
               {options.map((option) => (
                 <RadixSelect.Item
                   key={option.value}
@@ -95,6 +107,10 @@ export function Select({
                 </RadixSelect.Item>
               ))}
             </RadixSelect.Viewport>
+
+            <RadixSelect.ScrollDownButton className="flex h-6 items-center justify-center bg-surface text-ink-muted">
+              <CaretDownIcon className="size-4" aria-hidden="true" />
+            </RadixSelect.ScrollDownButton>
           </RadixSelect.Content>
         </RadixSelect.Portal>
       </RadixSelect.Root>

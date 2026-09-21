@@ -22,3 +22,14 @@ export const CUSTOM_FIELD_TYPE_OPTIONS = CUSTOM_FIELD_TYPES.map((type) => ({
 }))
 
 export const CUSTOM_VALUE_MAX_LENGTH = 500
+
+/**
+ * Permission keys for this page, matching what the Roles & Permissions page shows for
+ * Admissions → Admission Form Fields. Filling in an admission needs none of them.
+ */
+export const CUSTOM_FIELD_PERMISSIONS = {
+  view: 'admissions.admission-form-fields:view',
+  create: 'admissions.admission-form-fields:create',
+  edit: 'admissions.admission-form-fields:edit',
+  delete: 'admissions.admission-form-fields:delete',
+} as const

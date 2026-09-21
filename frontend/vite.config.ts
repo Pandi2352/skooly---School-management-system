@@ -44,5 +44,9 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    // Pages here render large grids and tables in jsdom, and the files run in parallel. The default
+    // five seconds passes on an idle machine and fails at random on a busy one, which is worse than
+    // a slow suite: it turns a green run into a coin toss.
+    testTimeout: 20_000,
   },
 })

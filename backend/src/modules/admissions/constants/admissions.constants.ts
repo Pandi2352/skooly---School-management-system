@@ -1,3 +1,14 @@
+/**
+ * Permission keys for the admissions pipeline, matching what the Roles & Permissions page shows for
+ * Admissions → Applications.
+ */
+export const ADMISSION_PERMISSIONS = {
+  view: 'admissions.applications:view',
+  create: 'admissions.applications:create',
+  edit: 'admissions.applications:edit',
+  delete: 'admissions.applications:delete',
+} as const
+
 export const ADMISSION_STATUSES = ['under-review', 'approved', 'enrolled', 'rejected'] as const
 export type AdmissionStatus = (typeof ADMISSION_STATUSES)[number]
 

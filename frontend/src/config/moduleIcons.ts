@@ -5,6 +5,7 @@ import {
   BuildingsIcon,
   BusIcon,
   ChatsCircleIcon,
+  ClipboardTextIcon,
   CurrencyInrIcon,
   DatabaseIcon,
   DeviceMobileIcon,
@@ -20,6 +21,7 @@ import {
 
 // Keyed by module slug from navigation.ts; each glyph names what the module manages.
 export const moduleIcons: Record<string, Icon> = {
+  admissions: ClipboardTextIcon,
   'core-setup-and-administration': BuildingsIcon,
   'academic-management': GraduationCapIcon,
   'student-information': GraduationCapIcon,

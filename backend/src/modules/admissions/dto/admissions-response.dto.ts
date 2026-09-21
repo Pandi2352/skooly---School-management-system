@@ -96,6 +96,22 @@ export class AdmissionApplicationResponseDto {
   updatedAt?: Date
 }
 
+export class AdmissionGradeCountDto {
+  @ApiProperty({ example: 5 })
+  grade: number
+
+  @ApiProperty({ example: 7 })
+  count: number
+}
+
+export class AdmissionDayCountDto {
+  @ApiProperty({ example: '2026-03-04' })
+  day: string
+
+  @ApiProperty({ example: 3 })
+  count: number
+}
+
 export class AdmissionStatsResponseDto {
   @ApiProperty({ example: 42 })
   total: number
@@ -111,6 +127,18 @@ export class AdmissionStatsResponseDto {
 
   @ApiProperty({ example: 4 })
   rejected: number
+
+  @ApiProperty({ type: [AdmissionGradeCountDto], description: 'Applications per grade, lowest grade first' })
+  byGrade: AdmissionGradeCountDto[]
+
+  @ApiProperty({
+    type: [AdmissionDayCountDto],
+    description: 'Applications per day over the recent window, including days with none',
+  })
+  byDay: AdmissionDayCountDto[]
+
+  @ApiProperty({ example: 30, description: 'How many days the byDay window covers' })
+  windowDays: number
 }
 
 export class PaginatedAdmissionsResponseDto {

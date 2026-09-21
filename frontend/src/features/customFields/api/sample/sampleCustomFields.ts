@@ -1,61 +1,69 @@
-import type { CustomField, CustomFieldInput } from '../../types/customField.types'
-import { moveItem, uniqueFieldKey } from '../../utils/customFields'
+import type { CustomField, CustomFieldListResult } from '../../types/customField.types'
 
-// SAMPLE DATA: two example fields until the custom fields API exists (antislop R-38). Changes only
-// update this in-memory list, which resets on reload; success messages say so.
-
-let fields: CustomField[] = [
+/**
+ * Stand-in questions for unit tests only, never shown to a school: the app reads the real API in
+ * every other mode. They are the two an Indian school most often adds, so the tests read like the
+ * real thing.
+ */
+const SAMPLE_FIELDS: CustomField[] = [
   {
     id: 'sample-field-1',
+    form: 'admission',
     key: 'birth_marks',
-    label: 'Birth Marks',
+    label: 'Birth marks',
     type: 'text',
     options: [],
-    placeholder: 'e.g. Mole on the left hand',
+    placeholder: 'e.g. mole on the left hand',
     helpText: 'Used to identify the student.',
     required: false,
     active: true,
+    position: 0,
+    createdAt: '2026-09-01T09:00:00.000Z',
+    updatedAt: '2026-09-01T09:00:00.000Z',
   },
   {
     id: 'sample-field-2',
+    form: 'admission',
     key: 'previous_board',
-    label: 'Previous School Board',
+    label: 'Previous school board',
     type: 'select',
     options: ['CBSE', 'ICSE', 'State Board', 'Other'],
-    placeholder: 'Select board',
+    placeholder: 'Choose a board',
     helpText: '',
-    required: false,
+    required: true,
     active: true,
+    position: 1,
+    createdAt: '2026-09-01T09:05:00.000Z',
+    updatedAt: '2026-09-01T09:05:00.000Z',
+  },
+  {
+    id: 'sample-field-3',
+    form: 'admission',
+    key: 'hostel_required',
+    label: 'Hostel required',
+    type: 'checkbox',
+    options: [],
+    placeholder: '',
+    helpText: 'Tick if the family wants a hostel place.',
+    required: false,
+    active: false,
+    position: 2,
+    createdAt: '2026-09-01T09:10:00.000Z',
+    updatedAt: '2026-09-01T09:10:00.000Z',
   },
 ]
 
-export const readSampleCustomFields = () => fields
+export const readSampleCustomFields = (): CustomField[] => SAMPLE_FIELDS
 
-export function createSampleCustomField(input: CustomFieldInput, now: Date): CustomField {
-  const field: CustomField = {
-    ...input,
-    id: `sample-field-${String(now.getTime())}`,
-    key: uniqueFieldKey(
-      input.label,
-      fields.map((item) => item.key),
-    ),
+export function sampleListResult(): CustomFieldListResult {
+  const active = SAMPLE_FIELDS.filter((field) => field.active)
+  return {
+    fields: SAMPLE_FIELDS,
+    meta: {
+      total: SAMPLE_FIELDS.length,
+      active: active.length,
+      required: active.filter((field) => field.required).length,
+      limit: 60,
+    },
   }
-  fields = [...fields, field]
-  return field
-}
-
-export function updateSampleCustomField(id: string, input: CustomFieldInput): CustomField {
-  const existing = fields.find((item) => item.id === id)
-  if (!existing) throw new Error('This field doesn’t exist any more. Reload the page.')
-  const updated: CustomField = { ...existing, ...input }
-  fields = fields.map((item) => (item.id === id ? updated : item))
-  return updated
-}
-
-export function deleteSampleCustomField(id: string) {
-  fields = fields.filter((item) => item.id !== id)
-}
-
-export function moveSampleCustomField(id: string, direction: 'up' | 'down') {
-  fields = moveItem(fields, id, direction)
 }

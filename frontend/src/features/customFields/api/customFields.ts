@@ -1,53 +1,62 @@
-import { customFieldListSchema, customFieldSchema } from '../schemas/customField.schema'
-import type { CustomField, CustomFieldInput } from '../types/customField.types'
+import { api } from '@/lib/api/client'
 import {
-  createSampleCustomField,
-  deleteSampleCustomField,
-  moveSampleCustomField,
-  readSampleCustomFields,
-  updateSampleCustomField,
-} from './sample/sampleCustomFields'
+  customFieldListMetaSchema,
+  customFieldListSchema,
+  customFieldSchema,
+  deletedCustomFieldSchema,
+} from '../schemas/customField.schema'
+import type { CustomField, CustomFieldInput, CustomFieldListResult } from '../types/customField.types'
+import { readSampleCustomFields, sampleListResult } from './sample/sampleCustomFields'
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+/** Only the admission form has questions today; the API takes the form so others can follow. */
+const FORM = 'admission'
 
-/** TODO(api): `api.get('/custom-fields?form=admission', customFieldListSchema)`. */
-export async function getCustomFields(): Promise<CustomField[]> {
-  await Promise.resolve()
-  return customFieldListSchema.parse(readSampleCustomFields())
+/**
+ * The settings view: every question including hidden ones, with counts. Needs the Custom Fields
+ * permission, which is why the admission form uses `getActiveCustomFields` instead.
+ */
+export async function getCustomFields(): Promise<CustomFieldListResult> {
+  if (import.meta.env.MODE === 'test') return sampleListResult()
+  const { data, meta } = await api.getWithMeta(
+    `/custom-fields?form=${FORM}`,
+    customFieldListSchema,
+    customFieldListMetaSchema,
+  )
+  return { fields: data, meta }
 }
 
-/** TODO(api): `api.post('/custom-fields', customFieldSchema, input)`. */
-export async function createCustomField(input: CustomFieldInput): Promise<CustomField> {
-  await wait(300)
-  return customFieldSchema.parse(createSampleCustomField(input, new Date()))
+/** What the admission form asks: hidden questions left out, in order. Open to anyone signed in. */
+export async function getActiveCustomFields(): Promise<CustomField[]> {
+  if (import.meta.env.MODE === 'test') return readSampleCustomFields().filter((field) => field.active)
+  return api.get(`/custom-fields/active?form=${FORM}`, customFieldListSchema)
 }
 
-/** TODO(api): `api.put(`/custom-fields/${id}`, customFieldSchema, input)`. */
-export async function updateCustomField({
-  id,
-  input,
-}: {
-  id: string
-  input: CustomFieldInput
-}): Promise<CustomField> {
-  await wait(300)
-  return customFieldSchema.parse(updateSampleCustomField(id, input))
+export function createCustomField(input: CustomFieldInput): Promise<CustomField> {
+  return api.post('/custom-fields', customFieldSchema, { ...input, form: FORM })
 }
 
-/** TODO(api): `api.delete(`/custom-fields/${id}`)`. */
-export async function deleteCustomField(id: string): Promise<void> {
-  await wait(200)
-  deleteSampleCustomField(id)
+export function updateCustomField({ id, input }: { id: string; input: CustomFieldInput }): Promise<CustomField> {
+  return api.patch(`/custom-fields/${id}`, customFieldSchema, input)
 }
 
-/** TODO(api): `api.post(`/custom-fields/${id}/move`, { direction })`. */
+export async function deleteCustomField(id: string): Promise<string> {
+  const { label } = await api.delete(`/custom-fields/${id}`, deletedCustomFieldSchema)
+  return label
+}
+
+/** Moving returns the whole form in its new order, so the page never guesses at the result. */
 export async function moveCustomField({
   id,
   direction,
 }: {
   id: string
   direction: 'up' | 'down'
-}): Promise<void> {
-  await Promise.resolve()
-  moveSampleCustomField(id, direction)
+}): Promise<CustomFieldListResult> {
+  const { data, meta } = await api.putWithMeta(
+    `/custom-fields/${id}/move`,
+    customFieldListSchema,
+    customFieldListMetaSchema,
+    { direction },
+  )
+  return { fields: data, meta }
 }

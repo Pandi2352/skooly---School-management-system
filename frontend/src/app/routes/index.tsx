@@ -14,7 +14,7 @@ import { settingsRoutes } from './settings'
 import { studentRoutes } from './students'
 import { userRoutes } from './users'
 import { templateRoutes } from './templates'
-import { admissionsRoutes } from './admissions'
+import { admissionRoutes } from './admissions'
 import { dataTransferRoutes } from './dataTransfer'
 
 // The route tree. Each area keeps its routes in its own file in this folder.
@@ -36,8 +36,8 @@ export const routes: RouteObject[] = [
             children: [
               { index: true, element: <Navigate to={paths.dashboard} replace /> },
               ...dashboardRoutes,
+              ...admissionRoutes,
               ...studentRoutes,
-              ...admissionsRoutes,
               ...dataTransferRoutes,
               ...userRoutes,
               ...accountRoutes,

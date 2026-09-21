@@ -6,10 +6,12 @@ import { StorageModule } from './common/storage/storage.module'
 import { AuditModule } from './modules/audit/audit.module'
 import { AuthModule } from './modules/auth/auth.module'
 import { BrandingModule } from './modules/branding/branding.module'
+import { CustomFieldsModule } from './modules/custom-fields/custom-fields.module'
 import { MailModule } from './modules/mail/mail.module'
 import { RolesModule } from './modules/roles/roles.module'
 import { SchoolSettingsModule } from './modules/school-settings/school-settings.module'
 import { UsersModule } from './modules/users/users.module'
+import { AdmissionSettingsModule } from './modules/admission-settings/admission-settings.module'
 import { AdmissionsModule } from './modules/admissions/admissions.module'
 import { DataTransferModule } from './modules/data-transfer/data-transfer.module'
 import { AppController } from './app.controller'
@@ -29,6 +31,8 @@ import { AppService } from './app.service'
     BrandingModule,
     SchoolSettingsModule,
     AdmissionsModule,
+    AdmissionSettingsModule,
+    CustomFieldsModule,
     DataTransferModule,
     MailModule,
     UsersModule,

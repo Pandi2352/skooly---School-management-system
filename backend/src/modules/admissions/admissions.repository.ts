@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import type { FilterQuery, Model } from 'mongoose'
+import type { FilterQuery, Model, SortOrder } from 'mongoose'
 import { generateUuid } from '../../common/utils/uuid.util'
 import { SEED_ADMISSION_APPLICATIONS, type AdmissionStatus } from './constants/admissions.constants'
 import {
@@ -30,17 +30,25 @@ export class AdmissionsRepository {
     filter: FilterQuery<AdmissionApplicationDocument>,
     skip = 0,
     limit = 20,
+    sort: Record<string, SortOrder> = { appliedAt: -1, createdAt: -1 },
   ): Promise<AdmissionApplicationDocument[]> {
-    return this.applicationModel
-      .find(filter)
-      .sort({ appliedAt: -1, createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .exec()
+    return this.applicationModel.find(filter).sort(sort).skip(skip).limit(limit).exec()
   }
 
   async count(filter: FilterQuery<AdmissionApplicationDocument>): Promise<number> {
     return this.applicationModel.countDocuments(filter).exec()
+  }
+
+  /** Edits the applicant's own details. Status has its own path, so it can't change by accident. */
+  async updateDetails(
+    id: string,
+    changes: Record<string, unknown>,
+  ): Promise<AdmissionApplicationDocument | null> {
+    return this.applicationModel.findByIdAndUpdate(id, { $set: changes }, { new: true, runValidators: true }).exec()
+  }
+
+  async deleteById(id: string): Promise<AdmissionApplicationDocument | null> {
+    return this.applicationModel.findByIdAndDelete(id).exec()
   }
 
   async findById(id: string): Promise<AdmissionApplicationDocument | null> {
@@ -94,6 +102,29 @@ export class AdmissionsRepository {
         { new: true },
       )
       .exec()
+  }
+
+  /** How many applications per grade, for the grade chart. Grades with none are left out. */
+  async countByGrade(): Promise<{ grade: number; count: number }[]> {
+    const rows = await this.applicationModel
+      .aggregate<{ _id: number; count: number }>([
+        { $group: { _id: '$student.gradeApplied', count: { $sum: 1 } } },
+        { $sort: { _id: 1 } },
+      ])
+      .exec()
+    return rows.map((row) => ({ grade: row._id, count: row.count }))
+  }
+
+  /** Applications per day since a date, for the trend. Days with none are filled in by the caller. */
+  async countByDay(since: Date): Promise<{ day: string; count: number }[]> {
+    const rows = await this.applicationModel
+      .aggregate<{ _id: string; count: number }>([
+        { $match: { appliedAt: { $gte: since } } },
+        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$appliedAt' } }, count: { $sum: 1 } } },
+        { $sort: { _id: 1 } },
+      ])
+      .exec()
+    return rows.map((row) => ({ day: row._id, count: row.count }))
   }
 
   async getStats(): Promise<{

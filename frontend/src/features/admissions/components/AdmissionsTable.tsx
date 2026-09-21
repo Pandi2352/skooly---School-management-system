@@ -1,8 +1,10 @@
-import { CheckIcon, ClockIcon, EyeIcon, GraduationCapIcon } from '@phosphor-icons/react'
-import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
+import { CheckIcon, ClockIcon } from '@phosphor-icons/react'
+import type { ReactNode } from 'react'
 import { EmptyState } from '@/components/page/EmptyState'
+import { Avatar } from '@/components/ui/Avatar'
+import { Badge } from '@/components/ui/Badge'
 import { Table, type TableColumn } from '@/components/ui/Table'
+import { cn } from '@/lib/cn'
 import type { AdmissionApplication } from '../schemas/admissionPipeline.schema'
 import {
   calculateApplicantAge,
@@ -10,150 +12,140 @@ import {
   getAdmissionStatusTone,
   getVerifiedDocumentsCount,
 } from '../utils/admissionsPipelineUtils'
+import { AdmissionRowActions, type AdmissionAction } from './AdmissionRowActions'
 
 type Props = {
   applications: AdmissionApplication[]
   isLoading: boolean
-  onReview: (app: AdmissionApplication) => void
-  onEnroll: (app: AdmissionApplication) => void
+  isRefreshing?: boolean
+  error?: string
+  onRetry?: () => void
+  onAction: (action: AdmissionAction, application: AdmissionApplication) => void
+  empty: ReactNode
 }
 
-export function AdmissionsTable({ applications, isLoading, onReview, onEnroll }: Props) {
+const dateOnly = (value: string) =>
+  new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+
+export function AdmissionsTable({
+  applications,
+  isLoading,
+  isRefreshing = false,
+  error,
+  onRetry,
+  onAction,
+  empty,
+}: Props) {
   const columns: TableColumn<AdmissionApplication>[] = [
     {
       key: 'applicationNo',
       header: 'Application #',
       cell: (app) => (
-        <div className="flex flex-col gap-0.5">
-          <span className="font-mono text-xs font-semibold text-ink">
-            {app.applicationNo}
-          </span>
-          <span className="text-[0.75rem] text-ink-muted">
-            {new Date(app.appliedAt).toLocaleDateString(undefined, {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-            })}
-          </span>
-        </div>
+        <span className="font-mono text-xs font-semibold whitespace-nowrap text-ink">
+          {app.applicationNo}
+        </span>
       ),
     },
     {
       key: 'student',
-      header: 'Applicant Name',
-      cell: (app) => {
-        const age = calculateApplicantAge(app.student.dateOfBirth)
-        return (
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-canvas font-semibold text-ink text-xs border border-line">
-              {app.student.firstName[0]}
-              {app.student.lastName[0]}
-            </div>
-            <div className="flex flex-col">
-              <span className="font-medium text-ink text-sm">
-                {app.student.firstName} {app.student.lastName}
-              </span>
-              <span className="text-xs text-ink-muted">
-                Grade {app.student.gradeApplied} • {app.student.gender} • {age} yrs
-              </span>
-            </div>
+      header: 'Applicant',
+      cell: (app) => (
+        <div className="flex min-w-44 items-center gap-3">
+          <Avatar name={`${app.student.firstName} ${app.student.lastName}`} size="sm" />
+          <div className="min-w-0">
+            <p className="font-medium text-ink">
+              {app.student.firstName} {app.student.lastName}
+            </p>
+            <p className="text-sm text-ink-muted">
+              {app.student.gender} · {calculateApplicantAge(app.student.dateOfBirth)} yrs
+            </p>
           </div>
-        )
-      },
+        </div>
+      ),
+    },
+    {
+      key: 'grade',
+      header: 'Grade',
+      cell: (app) => <span className="whitespace-nowrap">Grade {app.student.gradeApplied}</span>,
     },
     {
       key: 'parent',
-      header: 'Parent / Guardian',
+      header: 'Parent / guardian',
       cell: (app) => (
-        <div className="flex flex-col text-xs">
-          <span className="font-medium text-ink">{app.parent.name}</span>
-          <span className="text-ink-muted capitalize">
-            {app.parent.guardianType} • {app.parent.phone}
-          </span>
+        <div className="min-w-40">
+          <p className="font-medium text-ink">{app.parent.name}</p>
+          <p className="text-sm whitespace-nowrap text-ink-muted">
+            <span className="capitalize">{app.parent.guardianType}</span> · {app.parent.phone}
+          </p>
         </div>
       ),
+    },
+    {
+      key: 'previousSchool',
+      header: 'Previous school',
+      cell: (app) =>
+        app.student.previousSchool ? (
+          <span className="block max-w-52 truncate" title={app.student.previousSchool}>
+            {app.student.previousSchool}
+          </span>
+        ) : (
+          <span className="text-ink-muted">—</span>
+        ),
     },
     {
       key: 'documents',
       header: 'Documents',
       cell: (app) => {
-        const docInfo = getVerifiedDocumentsCount(app.documents)
+        const { verified, total, isComplete } = getVerifiedDocumentsCount(app.documents)
         return (
-          <div className="flex items-center gap-1.5">
-            <span
-              className={`inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-xs font-medium ${
-                docInfo.isComplete
-                  ? 'bg-success-soft text-success border border-success/30'
-                  : 'bg-canvas text-ink-muted border border-line'
-              }`}
-            >
-              {docInfo.isComplete ? (
-                <CheckIcon className="h-3 w-3" weight="bold" />
-              ) : (
-                <ClockIcon className="h-3 w-3" />
-              )}
-              {docInfo.verified}/{docInfo.total} verified
-            </span>
-          </div>
+          <Badge tone={isComplete ? 'success' : 'planned'} className="gap-1 whitespace-nowrap">
+            {isComplete ? (
+              <CheckIcon className="size-3.5" weight="bold" aria-hidden="true" />
+            ) : (
+              <ClockIcon className="size-3.5" aria-hidden="true" />
+            )}
+            {verified}/{total} verified
+          </Badge>
         )
       },
+    },
+    {
+      key: 'appliedAt',
+      header: 'Applied',
+      cell: (app) => <span className="whitespace-nowrap text-ink-muted">{dateOnly(app.appliedAt)}</span>,
     },
     {
       key: 'status',
       header: 'Status',
       cell: (app) => (
-        <Badge tone={getAdmissionStatusTone(app.status)}>
-          {formatAdmissionStatus(app.status)}
-        </Badge>
+        <Badge tone={getAdmissionStatusTone(app.status)}>{formatAdmissionStatus(app.status)}</Badge>
       ),
     },
     {
       key: 'actions',
       header: 'Actions',
       align: 'end',
-      cell: (app) => (
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => onReview(app)}
-            className="flex items-center gap-1.5 text-xs"
-          >
-            <EyeIcon className="h-3.5 w-3.5" />
-            Review
-          </Button>
-
-          {app.status === 'approved' && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => onEnroll(app)}
-              className="flex items-center gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
-            >
-              <GraduationCapIcon className="h-3.5 w-3.5" weight="bold" />
-              Enroll
-            </Button>
-          )}
-        </div>
-      ),
+      cell: (app) => <AdmissionRowActions application={app} onAction={onAction} />,
     },
   ]
 
   return (
-    <Table
-      caption="Admission applications"
-      hideCaption
-      bordered={false}
-      columns={columns}
-      rows={applications}
-      getRowKey={(app) => app._id}
-      isLoading={isLoading}
-      empty={
-        <EmptyState
-          title="No applications match this view"
-          description="Try a different grade, clear the search, or pick another status above."
-        />
-      }
-    />
+    <div
+      aria-busy={isRefreshing || undefined}
+      className={cn('transition-opacity motion-reduce:transition-none', isRefreshing && 'opacity-60')}
+    >
+      <Table
+        caption="Admission applications"
+        hideCaption
+        bordered={false}
+        columns={columns}
+        rows={applications}
+        getRowKey={(app) => app._id}
+        isLoading={isLoading}
+        error={error}
+        onRetry={onRetry}
+        empty={empty ?? <EmptyState title="No applications" />}
+      />
+    </div>
   )
 }

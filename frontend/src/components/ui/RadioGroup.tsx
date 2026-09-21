@@ -41,7 +41,9 @@ export function RadioGroup({
   const labelId = `${id}-label`
 
   return (
-    <div className="grid gap-1.5">
+    // content-start: a grid item stretches to its row's height by default, so a neighbouring field
+    // with a hint would push this one's label and control down, out of line across the row.
+    <div className="grid content-start gap-1.5">
       <span id={labelId} className={fieldLabelClasses(hideLabel)}>
         {label}
       </span>

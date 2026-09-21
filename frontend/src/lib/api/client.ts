@@ -99,6 +99,14 @@ export const api = {
     metaSchema: M,
     options?: RequestOptions,
   ) => requestWithMeta('GET', path, schema, metaSchema, undefined, options),
+  /** For a write that answers with a list and its `meta`, such as reordering. */
+  putWithMeta: <S extends z.ZodType, M extends z.ZodType>(
+    path: string,
+    schema: S,
+    metaSchema: M,
+    body?: unknown,
+    options?: RequestOptions,
+  ) => requestWithMeta('PUT', path, schema, metaSchema, body, options),
   post: <S extends z.ZodType>(path: string, schema: S, body?: unknown, options?: RequestOptions) =>
     request('POST', path, schema, body, options),
   put: <S extends z.ZodType>(path: string, schema: S, body?: unknown, options?: RequestOptions) =>

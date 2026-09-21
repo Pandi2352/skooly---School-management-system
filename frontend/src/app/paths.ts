@@ -20,6 +20,11 @@ export const paths = {
   admissionsEnrollment: '/core-setup-administration/admissions-enrollment',
   /** Data Import & Export center under Core Setup & Administration. */
   dataImportExport: '/core-setup-administration/data-import-export',
+  // Admissions: the pipeline, the walk-in form, and what that form asks.
+  admissions: '/admissions',
+  admissionsOverview: '/admissions/overview',
+  admissionsApplications: '/admissions/applications',
+  admissionsSettings: '/admissions/settings',
   // Staff logins: who can sign in, with which role.
   users: '/users',
   user: (userId: string) => `/users/${userId}`,

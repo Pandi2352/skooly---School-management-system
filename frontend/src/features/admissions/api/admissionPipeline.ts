@@ -10,11 +10,14 @@ import {
   type EnrollApplicantInput,
   type EnrollApplicantResult,
   type UpdateAdmissionStatusInput,
+  deletedApplicationSchema,
 } from '../schemas/admissionPipeline.schema'
 import {
+  deleteSampleApplication,
   enrollSampleApplicant,
   readSampleApplications,
   readSampleStats,
+  updateSampleApplicationDetails,
   updateSampleApplicationStatus,
 } from './sample/samplePipeline'
 
@@ -24,6 +27,11 @@ export type AdmissionPipelineFilters = {
   status?: string
   search?: string
   grade?: number
+  /** Whether every document an applicant sent has been checked. */
+  documents?: 'all' | 'verified' | 'pending'
+  appliedFrom?: string
+  appliedTo?: string
+  sort?: 'newest' | 'oldest' | 'name' | 'grade'
   page?: number
   limit?: number
 }
@@ -51,6 +59,18 @@ export async function getAdmissionApplications(
   if (filters?.limit) {
     searchParams.set('limit', String(filters.limit))
   }
+  if (filters?.documents && filters.documents !== 'all') {
+    searchParams.set('documents', filters.documents)
+  }
+  if (filters?.appliedFrom) {
+    searchParams.set('appliedFrom', filters.appliedFrom)
+  }
+  if (filters?.appliedTo) {
+    searchParams.set('appliedTo', filters.appliedTo)
+  }
+  if (filters?.sort && filters.sort !== 'newest') {
+    searchParams.set('sort', filters.sort)
+  }
 
   const query = searchParams.toString()
   const path = query ? `/admissions?${query}` : '/admissions'
@@ -74,6 +94,31 @@ export async function updateAdmissionStatus(
     )
   }
   return api.patch(`/admissions/${id}/status`, admissionApplicationSchema, input)
+}
+
+/** Corrections to the applicant's own details: a misheard name, the wrong grade, a new number. */
+export type UpdateAdmissionDetailsInput = {
+  firstName?: string
+  lastName?: string
+  gradeApplied?: number
+  previousSchool?: string
+  parentName?: string
+  parentPhone?: string
+  parentEmail?: string
+}
+
+export async function updateAdmissionDetails(
+  id: string,
+  input: UpdateAdmissionDetailsInput,
+): Promise<AdmissionApplication> {
+  if (isTestMode) return admissionApplicationSchema.parse(updateSampleApplicationDetails(id, input))
+  return api.patch(`/admissions/${id}`, admissionApplicationSchema, input)
+}
+
+export async function deleteAdmissionApplication(id: string): Promise<string> {
+  if (isTestMode) return deleteSampleApplication(id)
+  const { applicationNo } = await api.delete(`/admissions/${id}`, deletedApplicationSchema)
+  return applicationNo
 }
 
 export async function enrollApplicant(

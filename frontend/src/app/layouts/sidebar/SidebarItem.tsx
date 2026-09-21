@@ -1,8 +1,9 @@
 import type { Icon } from '@phosphor-icons/react'
-import { NavLink, useMatch } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { cn } from '@/lib/cn'
 import { sidebarIcon, sidebarRow, sidebarRowLabel } from './sidebarStyles'
+import { useIsMenuItemActive } from './useIsMenuItemActive'
 
 type SidebarItemProps = {
   to: string
@@ -20,15 +21,16 @@ export function SidebarItem({
   collapsed,
   onNavigate,
 }: SidebarItemProps) {
-  // Active state comes from useMatch, not NavLink's className function: the tooltip trigger
-  // merges className as a string, which silently dropped the function and every row style.
-  const isActive = useMatch({ path: to, end: false }) !== null
+  // A plain Link, not NavLink: NavLink decides "current" by prefix and would mark this row on any
+  // address beneath it. useIsMenuItemActive picks the closest match instead.
+  const isActive = useIsMenuItemActive()(to)
 
   return (
     <Tooltip content={label} side="right" disabled={!collapsed}>
-      <NavLink
+      <Link
         to={to}
         onClick={onNavigate}
+        aria-current={isActive ? 'page' : undefined}
         className={sidebarRow(
           collapsed,
           cn('hover:bg-side-hover', isActive && 'font-semibold text-accent'),
@@ -40,7 +42,7 @@ export function SidebarItem({
           aria-hidden="true"
         />
         <span className={sidebarRowLabel(collapsed)}>{label}</span>
-      </NavLink>
+      </Link>
     </Tooltip>
   )
 }

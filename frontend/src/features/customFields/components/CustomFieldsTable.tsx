@@ -1,101 +1,111 @@
-import { PlusIcon, TextboxIcon } from '@phosphor-icons/react'
+import { TextboxIcon } from '@phosphor-icons/react'
+import type { ReactNode } from 'react'
 import { EmptyState } from '@/components/page/EmptyState'
 import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
 import { Table, type TableColumn } from '@/components/ui/Table'
-import { getErrorMessage } from '@/lib/api/getErrorMessage'
+import { cn } from '@/lib/cn'
 import { CUSTOM_FIELD_TYPE_LABELS } from '../constants'
-import { useCustomFields } from '../hooks/useCustomFields'
 import type { CustomField } from '../types/customField.types'
-import { CustomFieldRowActions } from './CustomFieldRowActions'
+import { CustomFieldRowActions, type CustomFieldAction } from './CustomFieldRowActions'
 
 type CustomFieldsTableProps = {
-  onAdd: () => void
-  onEdit: (field: CustomField) => void
+  fields: CustomField[]
+  isLoading: boolean
+  isRefreshing?: boolean
+  error?: string
+  onRetry?: () => void
+  onAction: (action: CustomFieldAction, field: CustomField) => void
+  empty: ReactNode
 }
 
-export function CustomFieldsTable({ onAdd, onEdit }: CustomFieldsTableProps) {
-  const fields = useCustomFields()
-  const rows = fields.data ?? []
-
+/** The questions in the order the form asks them. Order is the point, so the number leads. */
+export function CustomFieldsTable({
+  fields,
+  isLoading,
+  isRefreshing = false,
+  error,
+  onRetry,
+  onAction,
+  empty,
+}: CustomFieldsTableProps) {
   const columns: TableColumn<CustomField>[] = [
     {
-      key: 'order',
+      key: 'position',
       header: '#',
-      cell: (row) => <span className="text-ink-muted">{rows.indexOf(row) + 1}</span>,
+      cell: (field) => (
+        <span className="tabular-nums text-ink-muted">{fields.indexOf(field) + 1}</span>
+      ),
     },
     {
       key: 'label',
-      header: 'Field',
-      cell: (row) => (
-        <div className="grid gap-0.5">
-          <span className="font-semibold text-ink">{row.label}</span>
-          <span className="font-mono text-xs text-ink-muted">{row.key}</span>
+      header: 'Question',
+      cell: (field) => (
+        <div className="grid min-w-40 gap-0.5">
+          <span className={cn('font-semibold', field.active ? 'text-ink' : 'text-ink-muted')}>
+            {field.label}
+          </span>
+          {field.helpText && <span className="text-sm text-ink-muted">{field.helpText}</span>}
+          {/* The name answers are saved under. It never changes, so it is worth showing. */}
+          <span className="font-mono text-xs text-ink-muted">{field.key}</span>
         </div>
       ),
     },
     {
       key: 'type',
-      header: 'Type',
-      cell: (row) => (
-        <span className="whitespace-nowrap">
-          <Badge>{CUSTOM_FIELD_TYPE_LABELS[row.type]}</Badge>
-          {row.type === 'select' && (
-            <span className="ms-2 text-ink-muted">{row.options.length} options</span>
+      header: 'Answer',
+      cell: (field) => (
+        <span className="flex flex-wrap items-center gap-1.5">
+          <Badge tone="neutral">{CUSTOM_FIELD_TYPE_LABELS[field.type]}</Badge>
+          {field.type === 'select' && (
+            <span className="text-sm whitespace-nowrap text-ink-muted">
+              {field.options.length} choice{field.options.length === 1 ? '' : 's'}
+            </span>
           )}
         </span>
       ),
     },
     {
-      key: 'required',
-      header: 'Required',
-      cell: (row) => (row.required ? 'Required' : 'Optional'),
-    },
-    {
       key: 'status',
-      header: 'On form',
-      cell: (row) => (
-        <Badge tone={row.active ? 'success' : 'neutral'}>{row.active ? 'Shown' : 'Hidden'}</Badge>
+      header: 'On the form',
+      cell: (field) => (
+        <span className="flex flex-wrap items-center gap-1.5">
+          <Badge tone={field.active ? 'success' : 'neutral'}>{field.active ? 'Shown' : 'Hidden'}</Badge>
+          {field.active && field.required && <Badge tone="info">Required</Badge>}
+        </span>
       ),
     },
     {
       key: 'actions',
       header: 'Actions',
       align: 'end',
-      cell: (row) => (
+      cell: (field) => (
         <CustomFieldRowActions
-          field={row}
-          isFirst={rows.indexOf(row) === 0}
-          isLast={rows.indexOf(row) === rows.length - 1}
-          onEdit={onEdit}
+          field={field}
+          isFirst={fields.indexOf(field) === 0}
+          isLast={fields.indexOf(field) === fields.length - 1}
+          onAction={onAction}
         />
       ),
     },
   ]
 
   return (
-    <Table
-      caption="Custom fields"
-      hideCaption
-      columns={columns}
-      rows={rows}
-      getRowKey={(row) => row.id}
-      isLoading={fields.isPending}
-      error={fields.isError ? getErrorMessage(fields.error) : undefined}
-      onRetry={() => void fields.refetch()}
-      empty={
-        <EmptyState
-          icon={TextboxIcon}
-          title="No custom fields yet"
-          description="Add a field to ask something extra on the student admission form."
-          action={
-            <Button onClick={onAdd}>
-              <PlusIcon className="size-4.5" weight="bold" aria-hidden="true" />
-              Add field
-            </Button>
-          }
-        />
-      }
-    />
+    <div
+      aria-busy={isRefreshing || undefined}
+      className={cn('transition-opacity motion-reduce:transition-none', isRefreshing && 'opacity-60')}
+    >
+      <Table
+        caption="Extra questions on the admission form"
+        hideCaption
+        bordered={false}
+        columns={columns}
+        rows={fields}
+        getRowKey={(field) => field.id}
+        isLoading={isLoading}
+        error={error}
+        onRetry={onRetry}
+        empty={empty ?? <EmptyState icon={TextboxIcon} title="No extra questions yet" />}
+      />
+    </div>
   )
 }

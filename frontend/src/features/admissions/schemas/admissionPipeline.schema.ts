@@ -67,12 +67,19 @@ export const admissionApplicationListSchema = z.object({
   totalPages: z.number(),
 })
 
+export const admissionGradeCountSchema = z.object({ grade: z.number(), count: z.number() })
+export const admissionDayCountSchema = z.object({ day: z.string(), count: z.number() })
+
 export const admissionStatsSchema = z.object({
   total: z.number(),
   underReview: z.number(),
   approved: z.number(),
   enrolled: z.number(),
   rejected: z.number(),
+  byGrade: z.array(admissionGradeCountSchema),
+  /** One entry per day including quiet ones, so the trend line can't invent a busy week. */
+  byDay: z.array(admissionDayCountSchema),
+  windowDays: z.number(),
 })
 
 export const updateAdmissionStatusSchema = z.object({
@@ -104,3 +111,9 @@ export type AdmissionStats = z.infer<typeof admissionStatsSchema>
 export type UpdateAdmissionStatusInput = z.infer<typeof updateAdmissionStatusSchema>
 export type EnrollApplicantInput = z.infer<typeof enrollApplicantSchema>
 export type EnrollApplicantResult = z.infer<typeof enrollApplicantResultSchema>
+
+/** What the API answers with after a deletion: enough to name what went. */
+export const deletedApplicationSchema = z.object({ id: z.string(), applicationNo: z.string() })
+
+export type AdmissionGradeCount = z.infer<typeof admissionGradeCountSchema>
+export type AdmissionDayCount = z.infer<typeof admissionDayCountSchema>

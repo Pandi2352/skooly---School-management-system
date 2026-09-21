@@ -6,10 +6,19 @@ import { Card } from '@/components/ui/Card'
 import { featurePath, findFeature, findModule } from '@/config/navigation'
 import { NotFoundPage } from './NotFoundPage'
 
+type PlannedFeaturePageProps = {
+  /**
+   * The module this page belongs to. Needed when a module has its own routes: those capture every
+   * path beneath them, so the address never reaches the ":moduleSlug/:featureSlug" placeholder and
+   * the slug can't be read from the URL.
+   */
+  moduleSlug?: string
+}
+
 /** Stands in for each feature until it is built; routes replace it one feature at a time. */
-export function PlannedFeaturePage() {
+export function PlannedFeaturePage({ moduleSlug: fixedModuleSlug }: PlannedFeaturePageProps = {}) {
   const { moduleSlug = '', featureSlug = '' } = useParams()
-  const module = findModule(moduleSlug)
+  const module = findModule(fixedModuleSlug ?? moduleSlug)
   const feature = module && findFeature(module, featureSlug)
   if (!module || !feature) return <NotFoundPage />
   if (feature.alias) return <Navigate to={featurePath(module, feature)} replace />

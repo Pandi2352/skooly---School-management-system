@@ -62,3 +62,22 @@ describe('Sidebar', () => {
     expect(screen.getByRole('img', { name: 'Skooly' })).toBeInTheDocument()
   })
 })
+
+describe('the current page', () => {
+  it('marks only the closest match, not every menu row above it', () => {
+    renderSidebar('/students/new')
+
+    // "/students/new" starts with "/students", which used to light up Student List as well.
+    expect(screen.getByRole('link', { name: 'Walk-in Admission' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(screen.getByRole('link', { name: 'Student List' })).not.toHaveAttribute('aria-current')
+  })
+
+  it('marks the list itself when that is where you are', () => {
+    renderSidebar('/students')
+
+    expect(screen.getByRole('link', { name: 'Student List' })).toHaveAttribute('aria-current', 'page')
+  })
+})

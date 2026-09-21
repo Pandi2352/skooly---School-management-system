@@ -1,4 +1,4 @@
-import type { Feature, Module, NavSection } from '@/config/navigation'
+import { featurePermissionId, type Feature, type Module, type NavSection } from '@/config/navigation'
 import type { SignedInUser } from '../types/auth.types'
 import { canViewPage } from './permissions'
 
@@ -34,8 +34,7 @@ function visibleModule(module: Module, session: SignedInUser): Module[] {
 }
 
 function isFeatureVisible(module: Module, feature: Feature, session: SignedInUser): boolean {
-  // A feature listed under two modules is granted where it really lives.
-  const moduleSlug = feature.alias?.module ?? module.slug
-  const featureSlug = feature.alias?.feature ?? feature.slug
-  return canViewPage(session, moduleSlug, featureSlug)
+  // A page listed under two modules is granted once, under the module that lists it first.
+  const [moduleSlug, featureSlug] = featurePermissionId(module, feature).split('.')
+  return canViewPage(session, moduleSlug ?? module.slug, featureSlug ?? feature.slug)
 }

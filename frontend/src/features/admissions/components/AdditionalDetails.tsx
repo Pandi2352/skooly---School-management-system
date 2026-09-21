@@ -2,13 +2,13 @@ import { ListBulletsIcon } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
 import { paths } from '@/app/paths'
 import { SectionHeading } from '@/components/ui/SectionHeading'
-import { useCustomFields } from '@/features/customFields'
+import { useActiveCustomFields } from '@/features/customFields'
 import { CustomFieldControl } from './CustomFieldControl'
 
 /** The school's own questions (Settings → Custom Fields), shown in their saved order. */
 export function AdditionalDetails() {
-  const fields = useCustomFields()
-  const shown = (fields.data ?? []).filter((field) => field.active)
+  const fields = useActiveCustomFields()
+  const shown = fields.data ?? []
 
   if (fields.isPending) return null
   if (fields.isError) {

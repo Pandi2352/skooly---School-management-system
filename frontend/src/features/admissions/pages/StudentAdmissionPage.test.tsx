@@ -33,7 +33,7 @@ describe('StudentAdmissionPage', () => {
     renderPage()
     await userEvent.click(screen.getByRole('button', { name: /7\. Documents/ }))
     expect(await screen.findByRole('heading', { name: 'Additional details' })).toBeInTheDocument()
-    expect(screen.getByRole('textbox', { name: 'Birth Marks' })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Birth marks' })).toBeInTheDocument()
   })
 
   it('selects fee groups and counts them', async () => {

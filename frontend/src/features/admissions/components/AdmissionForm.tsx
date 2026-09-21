@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRef, useState, type ComponentType } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
-import { useCustomFields, validateCustomValues } from '@/features/customFields'
+import { useActiveCustomFields, validateCustomValues } from '@/features/customFields'
 import { useToast } from '@/hooks/useToast'
 import { getErrorMessage } from '@/lib/api/getErrorMessage'
 import { ADMISSION_STEP_LABELS } from '../constants'
@@ -56,7 +56,7 @@ export function AdmissionForm() {
   const columnRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const submitAdmission = useSubmitAdmission()
-  const activeCustomFields = (useCustomFields().data ?? []).filter((field) => field.active)
+  const activeCustomFields = useActiveCustomFields().data ?? []
   const { toast } = useToast()
 
   const goTo = (target: AdmissionStep) => {

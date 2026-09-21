@@ -5,6 +5,7 @@ import { parseOptions } from '../utils/customFields'
 /** A school-defined question on the admission form. The list order is the order on the form. */
 export const customFieldSchema = z.object({
   id: z.string(),
+  form: z.string(),
   /** Stable name answers are saved under; set once from the first label and never changed. */
   key: z.string(),
   label: z.string(),
@@ -16,11 +17,32 @@ export const customFieldSchema = z.object({
   required: z.boolean(),
   /** Hidden fields stay in settings but aren't asked on the form. */
   active: z.boolean(),
+  /** Where it sits on the form, counting from 0. */
+  position: z.number(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 })
 
 export const customFieldListSchema = z.array(customFieldSchema)
 
-export const customFieldInputSchema = customFieldSchema.omit({ id: true, key: true })
+export const customFieldInputSchema = customFieldSchema.omit({
+  id: true,
+  form: true,
+  key: true,
+  position: true,
+  createdAt: true,
+  updatedAt: true,
+})
+
+export const customFieldListMetaSchema = z.object({
+  total: z.number(),
+  active: z.number(),
+  required: z.number(),
+  /** How many questions one form can carry, so the page can say when it is nearly full. */
+  limit: z.number(),
+})
+
+export const deletedCustomFieldSchema = z.object({ id: z.string(), label: z.string() })
 
 const tooLong = (max: number) => `Use ${max} characters or fewer`
 

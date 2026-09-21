@@ -13,6 +13,7 @@ import {
 
 const field = (overrides: Partial<CustomField>): CustomField => ({
   id: 'f1',
+  form: 'admission',
   key: 'birth_marks',
   label: 'Birth Marks',
   type: 'text',
@@ -21,6 +22,9 @@ const field = (overrides: Partial<CustomField>): CustomField => ({
   helpText: '',
   required: false,
   active: true,
+  position: 0,
+  createdAt: '2026-09-01T09:00:00.000Z',
+  updatedAt: '2026-09-01T09:00:00.000Z',
   ...overrides,
 })
 

@@ -25,6 +25,15 @@ export const AUDIT_ACTIONS = [
   'user.temporary_password_set',
   'user.sessions_revoked',
   'user.two_factor_disabled',
+  'custom_field.created',
+  'custom_field.updated',
+  'custom_field.shown',
+  'custom_field.hidden',
+  'custom_field.reordered',
+  'custom_field.deleted',
+  'admission.updated',
+  'admission.deleted',
+  'admission_settings.updated',
 ] as const
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number]
@@ -53,6 +62,15 @@ export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   'user.temporary_password_set': 'Temporary password set',
   'user.sessions_revoked': 'Signed out of every device',
   'user.two_factor_disabled': 'Two-step sign-in switched off by an administrator',
+  'custom_field.created': 'Form question added',
+  'custom_field.updated': 'Form question edited',
+  'custom_field.shown': 'Form question shown again',
+  'custom_field.hidden': 'Form question hidden',
+  'custom_field.reordered': 'Form questions reordered',
+  'custom_field.deleted': 'Form question removed',
+  'admission.updated': 'Admission application corrected',
+  'admission.deleted': 'Admission application deleted',
+  'admission_settings.updated': 'Admission settings changed',
 }
 
 /** Permission key for reading the trail: Settings & Billing → Audit Trail in the menu. */

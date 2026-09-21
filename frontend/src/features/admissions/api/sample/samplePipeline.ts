@@ -215,12 +215,42 @@ export function readSampleStats(): AdmissionStats {
   const enrolled = mutableApplications.filter((a) => a.status === 'enrolled').length
   const rejected = mutableApplications.filter((a) => a.status === 'rejected').length
 
+  const byGradeCounts = new Map<number, number>()
+  for (const application of mutableApplications) {
+    const grade = application.student.gradeApplied
+    byGradeCounts.set(grade, (byGradeCounts.get(grade) ?? 0) + 1)
+  }
+
+  // The same shape the API sends: one entry per day, quiet days included.
+  const windowDays = 30
+  const since = new Date()
+  since.setUTCHours(0, 0, 0, 0)
+  since.setUTCDate(since.getUTCDate() - (windowDays - 1))
+
+  const dayCounts = new Map<string, number>()
+  for (const application of mutableApplications) {
+    const day = application.appliedAt.slice(0, 10)
+    dayCounts.set(day, (dayCounts.get(day) ?? 0) + 1)
+  }
+
+  const byDay = Array.from({ length: windowDays }, (_, offset) => {
+    const date = new Date(since)
+    date.setUTCDate(date.getUTCDate() + offset)
+    const day = date.toISOString().slice(0, 10)
+    return { day, count: dayCounts.get(day) ?? 0 }
+  })
+
   return {
     total,
     underReview,
     approved,
     enrolled,
     rejected,
+    byGrade: [...byGradeCounts.entries()]
+      .map(([grade, count]) => ({ grade, count }))
+      .sort((left, right) => left.grade - right.grade),
+    byDay,
+    windowDays,
   }
 }
 
@@ -244,6 +274,52 @@ export function updateSampleApplicationStatus(
 
   mutableApplications[idx] = updated
   return updated
+}
+
+export function updateSampleApplicationDetails(
+  id: string,
+  input: {
+    firstName?: string
+    lastName?: string
+    gradeApplied?: number
+    previousSchool?: string
+    parentName?: string
+    parentPhone?: string
+    parentEmail?: string
+  },
+): AdmissionApplication {
+  const idx = mutableApplications.findIndex((a) => a._id === id || a.applicationNo === id)
+  const target = idx >= 0 ? mutableApplications[idx] : undefined
+  if (!target) throw new Error(`Application ${id} not found`)
+
+  const updated: AdmissionApplication = {
+    ...target,
+    student: {
+      ...target.student,
+      firstName: input.firstName ?? target.student.firstName,
+      lastName: input.lastName ?? target.student.lastName,
+      gradeApplied: input.gradeApplied ?? target.student.gradeApplied,
+      previousSchool: input.previousSchool ?? target.student.previousSchool,
+    },
+    parent: {
+      ...target.parent,
+      name: input.parentName ?? target.parent.name,
+      phone: input.parentPhone ?? target.parent.phone,
+      email: input.parentEmail ?? target.parent.email,
+    },
+    updatedAt: new Date().toISOString(),
+  }
+
+  mutableApplications[idx] = updated
+  return updated
+}
+
+export function deleteSampleApplication(id: string): string {
+  const idx = mutableApplications.findIndex((a) => a._id === id || a.applicationNo === id)
+  const target = idx >= 0 ? mutableApplications[idx] : undefined
+  if (!target) throw new Error(`Application ${id} not found`)
+  mutableApplications.splice(idx, 1)
+  return target.applicationNo
 }
 
 export function enrollSampleApplicant(

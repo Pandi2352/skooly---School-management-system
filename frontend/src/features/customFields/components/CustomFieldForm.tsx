@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
 import { useToast } from '@/hooks/useToast'
+import { ApiError } from '@/lib/api/ApiError'
 import { getErrorMessage } from '@/lib/api/getErrorMessage'
 import { CUSTOM_FIELD_TYPE_OPTIONS } from '../constants'
 import { useCreateCustomField, useUpdateCustomField } from '../hooks/useCustomFields'
@@ -27,6 +28,7 @@ export function CustomFieldForm({ field, onDone }: CustomFieldFormProps) {
     register,
     control,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<CustomFieldFormValues>({
     resolver: zodResolver(customFieldFormSchema),
@@ -40,32 +42,40 @@ export function CustomFieldForm({ field, onDone }: CustomFieldFormProps) {
       const saved = field
         ? await updateField.mutateAsync({ id: field.id, input })
         : await createField.mutateAsync(input)
-      toast({
-        title: field ? 'Field updated' : 'Field added',
-        description: `“${saved.label}” is ${saved.active ? 'shown' : 'hidden'} on the admission form. Sample data: it resets when the page reloads.`,
-      })
+      toast.success(
+        field ? 'Question updated' : 'Question added',
+        saved.active
+          ? `“${saved.label}” is asked on the admission form.`
+          : `“${saved.label}” is saved but hidden, so the form doesn’t ask it yet.`,
+      )
       onDone()
     } catch (error) {
-      toast({
-        tone: 'error',
-        title: 'Couldn’t save the field',
-        description: getErrorMessage(error),
-      })
+      // The server checks the same things again; show its answer on the field it belongs to.
+      if (error instanceof ApiError && error.errorCode === 'CUSTOM_FIELD_LABEL_TAKEN') {
+        setError('label', { message: error.messages[0] }, { shouldFocus: true })
+        return
+      }
+      if (error instanceof ApiError && error.errorCode === 'CUSTOM_FIELD_OPTIONS_REQUIRED') {
+        setError('optionsText', { message: error.messages[0] }, { shouldFocus: true })
+        return
+      }
+      toast.error('Couldn’t save the question', getErrorMessage(error))
     }
   })
 
   return (
     <form
       noValidate
-      aria-label={field ? 'Edit custom field' : 'Add custom field'}
+      aria-label={field ? 'Edit question' : 'Add question'}
       onSubmit={(event) => void submit(event)}
     >
       <div className="grid gap-4">
         <Input
-          label="Label"
+          label="Question"
           required
           autoComplete="off"
-          placeholder="e.g. Birth Marks"
+          placeholder="e.g. Birth marks"
+          hint="What staff and parents read on the form. You can reword it later without losing past answers."
           error={errors.label?.message}
           {...register('label')}
         />
@@ -74,7 +84,7 @@ export function CustomFieldForm({ field, onDone }: CustomFieldFormProps) {
           name="type"
           render={({ field: typeField }) => (
             <Select
-              label="Field Type"
+              label="Answer type"
               required
               options={CUSTOM_FIELD_TYPE_OPTIONS}
               value={typeField.value}
@@ -86,11 +96,11 @@ export function CustomFieldForm({ field, onDone }: CustomFieldFormProps) {
         />
         {type === 'select' && (
           <Textarea
-            label="Options"
+            label="Choices"
             required
             rows={4}
             placeholder={'CBSE\nICSE\nState Board'}
-            hint="One option per line."
+            hint="One choice per line. At least two."
             error={errors.optionsText?.message}
             {...register('optionsText')}
           />
@@ -106,7 +116,7 @@ export function CustomFieldForm({ field, onDone }: CustomFieldFormProps) {
           />
         )}
         <Input
-          label="Help Text"
+          label="Help text"
           autoComplete="off"
           placeholder="e.g. Used to identify the student"
           hint="A short note shown under the field."
@@ -119,7 +129,7 @@ export function CustomFieldForm({ field, onDone }: CustomFieldFormProps) {
             name="required"
             render={({ field: requiredField }) => (
               <Checkbox
-                label="Required"
+                label="Must be answered"
                 checked={requiredField.value}
                 onCheckedChange={(checked) => requiredField.onChange(checked === true)}
               />
@@ -144,7 +154,7 @@ export function CustomFieldForm({ field, onDone }: CustomFieldFormProps) {
           Cancel
         </Button>
         <Button type="submit" loading={isSubmitting}>
-          {field ? 'Save changes' : 'Add field'}
+          {field ? 'Save changes' : 'Add question'}
         </Button>
       </div>
     </form>

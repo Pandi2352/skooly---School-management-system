@@ -24,7 +24,9 @@ export function Textarea({
   const textareaId = id ?? autoId
 
   return (
-    <div className="grid gap-1.5">
+    // content-start: a grid item stretches to its row's height by default, so a neighbouring field
+    // with a hint would push this one's label and control down, out of line across the row.
+    <div className="grid content-start gap-1.5">
       <label htmlFor={textareaId} className={fieldLabelClasses(hideLabel)}>
         {label}
         {props.required && (

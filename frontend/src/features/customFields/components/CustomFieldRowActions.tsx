@@ -1,101 +1,74 @@
-import { ArrowDownIcon, ArrowUpIcon, PencilSimpleIcon, TrashIcon } from '@phosphor-icons/react'
-import { useState } from 'react'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  DotsThreeVerticalIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  PencilSimpleIcon,
+  TrashIcon,
+} from '@phosphor-icons/react'
+import { Dropdown, DropdownItem, DropdownSeparator } from '@/components/ui/Dropdown'
 import { IconButton } from '@/components/ui/IconButton'
 import { Tooltip } from '@/components/ui/Tooltip'
-import { useToast } from '@/hooks/useToast'
-import { getErrorMessage } from '@/lib/api/getErrorMessage'
-import { useDeleteCustomField, useMoveCustomField } from '../hooks/useCustomFields'
 import type { CustomField } from '../types/customField.types'
+
+export type CustomFieldAction = 'edit' | 'move-up' | 'move-down' | 'toggle' | 'delete'
 
 type CustomFieldRowActionsProps = {
   field: CustomField
   isFirst: boolean
   isLast: boolean
-  onEdit: (field: CustomField) => void
+  onAction: (action: CustomFieldAction, field: CustomField) => void
 }
 
-export function CustomFieldRowActions({
-  field,
-  isFirst,
-  isLast,
-  onEdit,
-}: CustomFieldRowActionsProps) {
-  const { toast } = useToast()
-  const moveField = useMoveCustomField()
-  const deleteField = useDeleteCustomField()
-  const [confirmOpen, setConfirmOpen] = useState(false)
-
-  const move = (direction: 'up' | 'down') => {
-    moveField.mutate(
-      { id: field.id, direction },
-      {
-        onError: (error) =>
-          toast({
-            tone: 'error',
-            title: 'Couldn’t move the field',
-            description: getErrorMessage(error),
-          }),
-      },
-    )
-  }
-
+/**
+ * Moving is what people do most here, so the arrows sit in the row rather than inside a menu; the
+ * rest are one click further in.
+ */
+export function CustomFieldRowActions({ field, isFirst, isLast, onAction }: CustomFieldRowActionsProps) {
   return (
-    <div className="flex justify-end gap-0.5">
-      <Tooltip content="Move up">
+    <div className="flex items-center justify-end gap-1">
+      <Tooltip content={isFirst ? 'Already first' : `Ask ${field.label} earlier`}>
         <IconButton
-          size="sm"
-          icon={ArrowUpIcon}
           label={`Move ${field.label} up`}
-          disabled={isFirst || moveField.isPending}
-          onClick={() => move('up')}
+          icon={ArrowUpIcon}
+          size="sm"
+          disabled={isFirst}
+          onClick={() => onAction('move-up', field)}
         />
       </Tooltip>
-      <Tooltip content="Move down">
+      <Tooltip content={isLast ? 'Already last' : `Ask ${field.label} later`}>
         <IconButton
-          size="sm"
-          icon={ArrowDownIcon}
           label={`Move ${field.label} down`}
-          disabled={isLast || moveField.isPending}
-          onClick={() => move('down')}
-        />
-      </Tooltip>
-      <Tooltip content="Edit">
-        <IconButton
+          icon={ArrowDownIcon}
           size="sm"
-          icon={PencilSimpleIcon}
-          label={`Edit ${field.label}`}
-          onClick={() => onEdit(field)}
+          disabled={isLast}
+          onClick={() => onAction('move-down', field)}
         />
       </Tooltip>
-      <Tooltip content="Delete">
-        <IconButton
-          size="sm"
-          icon={TrashIcon}
-          label={`Delete ${field.label}`}
-          className="hover:text-danger"
-          onClick={() => setConfirmOpen(true)}
-        />
-      </Tooltip>
-      <ConfirmDialog
-        open={confirmOpen}
-        onOpenChange={setConfirmOpen}
-        title={`Delete ${field.label}?`}
-        description="The admission form stops asking for it. To keep it for later, edit the field and untick “Show on the admission form” instead."
-        confirmLabel="Delete field"
-        onConfirm={async () => {
-          try {
-            await deleteField.mutateAsync(field.id)
-            toast({ title: 'Field deleted', description: field.label })
-          } catch (error) {
-            toast({
-              tone: 'error',
-              title: 'Couldn’t delete the field',
-              description: getErrorMessage(error),
-            })
-          }
-        }}
-      />
+
+      <Dropdown
+        trigger={<IconButton label={`More actions for ${field.label}`} icon={DotsThreeVerticalIcon} size="sm" />}
+      >
+        <DropdownItem icon={PencilSimpleIcon} onSelect={() => onAction('edit', field)}>
+          <span>Edit question</span>
+        </DropdownItem>
+        <DropdownItem
+          icon={field.active ? EyeSlashIcon : EyeIcon}
+          onSelect={() => onAction('toggle', field)}
+        >
+          <span className="grid">
+            <span>{field.active ? 'Hide from the form' : 'Show on the form'}</span>
+            <span className="text-xs font-normal text-ink-muted">
+              {field.active ? 'Past answers are kept' : 'Asked again from now on'}
+            </span>
+          </span>
+        </DropdownItem>
+        <DropdownSeparator />
+        <DropdownItem icon={TrashIcon} tone="danger" onSelect={() => onAction('delete', field)}>
+          <span>Remove question</span>
+        </DropdownItem>
+      </Dropdown>
     </div>
   )
 }

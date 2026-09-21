@@ -1,8 +1,9 @@
 import { CaretRightIcon } from '@phosphor-icons/react'
-import { NavLink } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { moduleIcons } from '@/config/moduleIcons'
 import { featurePath, type Feature, type Module } from '@/config/navigation'
+import { useIsMenuItemActive } from './useIsMenuItemActive'
 import { cn } from '@/lib/cn'
 import { sidebarIcon, sidebarRow, sidebarRowLabel } from './sidebarStyles'
 
@@ -27,6 +28,7 @@ export function SidebarGroup({
 }: SidebarGroupProps) {
   const ModuleIcon = moduleIcons[module.slug]
   const listId = `nav-${module.slug}`
+  const isMenuItemActive = useIsMenuItemActive()
 
   return (
     <li>
@@ -60,38 +62,35 @@ export function SidebarGroup({
           id={listId} // The guide line sits under the centre of the 18px module icon.
           className="ms-[1.1875rem] mt-0.5 mb-1.5 border-s border-side-line ps-2"
         >
-          {features.map((feature) => (
-            <li key={feature.slug}>
-              <NavLink
-                to={featurePath(module, feature)}
-                onClick={onNavigate}
-                className={({ isActive }) =>
-                  cn(
+          {features.map((feature) => {
+            const to = featurePath(module, feature)
+            const isActive = isMenuItemActive(to)
+            return (
+              <li key={feature.slug}>
+                <Link
+                  to={to}
+                  onClick={onNavigate}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={cn(
                     'group/sub flex min-h-8 items-center gap-2 rounded-md px-2.5 py-1.5 text-[0.8125rem] leading-snug hover:bg-side-hover active:bg-side-active pointer-coarse:min-h-11',
                     // The current page is marked by its text alone: amber and bold.
                     isActive ? 'font-semibold text-accent' : 'text-side-muted hover:text-side-ink',
-                  )
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <span
-                      aria-hidden="true"
-                      className={cn(
-                        'text-[0.75rem] leading-none font-normal transition-colors select-none',
-                        isActive
-                          ? 'text-accent'
-                          : 'text-side-muted/60 group-hover/sub:text-side-ink',
-                      )}
-                    >
-                      »
-                    </span>
-                    <span className="truncate">{feature.shortLabel}</span>
-                  </>
-                )}
-              </NavLink>
-            </li>
-          ))}
+                  )}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      'text-[0.75rem] leading-none font-normal transition-colors select-none',
+                      isActive ? 'text-accent' : 'text-side-muted/60 group-hover/sub:text-side-ink',
+                    )}
+                  >
+                    »
+                  </span>
+                  <span className="truncate">{feature.shortLabel}</span>
+                </Link>
+              </li>
+            )
+          })}
         </ul>
       )}
     </li>

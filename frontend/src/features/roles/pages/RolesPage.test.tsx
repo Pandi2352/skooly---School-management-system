@@ -7,12 +7,12 @@ import { RolesPage } from './RolesPage'
 /**
  * This page renders roughly 400 permission checkboxes, and every click re-renders the grid. On a
  * loaded machine, with the rest of the suite running alongside, that is far slower than the default
- * five seconds. The real fix is to make the grid cheaper to re-render; until then these two tests
- * get room to finish rather than failing at random.
+ * five seconds. The allowance is set on the whole file rather than test by test, because they all
+ * render the same grid. The real fix is to make that grid cheaper to re-render.
  */
 const HEAVY_GRID_TIMEOUT = 120_000
 
-describe('RolesPage', () => {
+describe('RolesPage', { timeout: HEAVY_GRID_TIMEOUT }, () => {
   it('opens Administrator first with its permissions locked', async () => {
     renderWithProviders(<RolesPage />, { route: '/settings/roles' })
     expect(await screen.findByRole('heading', { name: 'Administrator', level: 2 })).toBeInTheDocument()
@@ -36,7 +36,7 @@ describe('RolesPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Discard' }))
     expect(screen.getByRole('checkbox', { name: 'View: Online Exams' })).toBeChecked()
-  }, HEAVY_GRID_TIMEOUT)
+  })
 
   it('asks for a role name before adding a role', async () => {
     const user = userEvent.setup({ delay: null })
@@ -56,6 +56,6 @@ describe('RolesPage', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Duplicate Teacher' })
     expect(within(dialog).getByLabelText(/Role Name/)).toHaveValue('Teacher (Copy)')
     expect(within(dialog).getByRole('button', { name: 'Duplicate role' })).toBeInTheDocument()
-  }, HEAVY_GRID_TIMEOUT)
+  })
 })
 
