@@ -23,6 +23,23 @@ export class AdmissionsRepository {
         ...item,
       }))
       await this.applicationModel.insertMany(docs)
+    } else {
+      for (const item of SEED_ADMISSION_APPLICATIONS) {
+        await this.applicationModel.updateOne(
+          { applicationNo: item.applicationNo },
+          {
+            $set: {
+              'student.photoUrl': item.student.photoUrl,
+              'student.firstName': item.student.firstName,
+              'student.lastName': item.student.lastName,
+              'student.gradeApplied': item.student.gradeApplied,
+              'student.gender': item.student.gender,
+              'student.bloodGroup': item.student.bloodGroup,
+              'student.previousSchool': item.student.previousSchool,
+            },
+          },
+        )
+      }
     }
   }
 

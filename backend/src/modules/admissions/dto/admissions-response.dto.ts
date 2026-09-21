@@ -25,6 +25,54 @@ export class ApplicantStudentResponseDto {
 
   @ApiProperty({ example: 'St. Xavier Kindergarten' })
   previousSchool?: string
+
+  @ApiProperty({ example: '/mock/student_photo_boy.jpg' })
+  photoUrl?: string
+
+  @ApiProperty({ example: '', required: false })
+  middleName?: string
+
+  @ApiProperty({ example: 'General', required: false })
+  category?: string
+
+  @ApiProperty({ example: 'red', required: false })
+  house?: string
+
+  @ApiProperty({ example: 'Hindu', required: false })
+  religion?: string
+
+  @ApiProperty({ example: '1234 5678 9012', required: false })
+  nationalId?: string
+
+  @ApiProperty({ example: 'PEN-123456', required: false })
+  penId?: string
+
+  @ApiProperty({ example: 'Brahmin', required: false })
+  caste?: string
+
+  @ApiProperty({ example: 'Kashyap', required: false })
+  subCaste?: string
+
+  @ApiProperty({ example: 'Hindi', required: false })
+  motherTongue?: string
+
+  @ApiProperty({ example: 'Bangalore', required: false })
+  placeOfBirth?: string
+
+  @ApiProperty({ example: 'Indian', required: false })
+  nationality?: string
+
+  @ApiProperty({ example: false, required: false })
+  belowPovertyLine?: boolean
+
+  @ApiProperty({ example: false, required: false })
+  rightToEducation?: boolean
+
+  @ApiProperty({ example: '+91 98450 11223', required: false })
+  phone?: string
+
+  @ApiProperty({ example: 'rohan.verma@example.com', required: false })
+  email?: string
 }
 
 export class ApplicantParentResponseDto {
@@ -45,6 +93,96 @@ export class ApplicantParentResponseDto {
 
   @ApiProperty({ example: '42 Orchid Residency' })
   address?: string
+
+  @ApiProperty({ example: 'Rajesh Verma', required: false })
+  fatherName?: string
+
+  @ApiProperty({ example: '+91 98450 11223', required: false })
+  fatherPhone?: string
+
+  @ApiProperty({ example: 'Software Architect', required: false })
+  fatherOccupation?: string
+
+  @ApiProperty({ example: 'B.Tech / M.Tech', required: false })
+  fatherQualification?: string
+
+  @ApiProperty({ example: '1234 5678 9012', required: false })
+  fatherAadhaar?: string
+
+  @ApiProperty({ example: 150000000, required: false })
+  fatherIncomePaise?: number | null
+
+  @ApiProperty({ example: 'Sunita Verma', required: false })
+  motherName?: string
+
+  @ApiProperty({ example: '+91 98450 44556', required: false })
+  motherPhone?: string
+
+  @ApiProperty({ example: 'Senior Professor', required: false })
+  motherOccupation?: string
+
+  @ApiProperty({ example: 'Ph.D. Mathematics', required: false })
+  motherQualification?: string
+
+  @ApiProperty({ example: '9876 5432 1098', required: false })
+  motherAadhaar?: string
+
+  @ApiProperty({ example: 'Mahesh Verma', required: false })
+  emergencyName?: string
+
+  @ApiProperty({ example: '+91 98450 99887', required: false })
+  emergencyPhone?: string
+
+  @ApiProperty({ example: '42 Orchid Residency, Indiranagar', required: false })
+  permanentAddress?: string
+}
+
+export class ApplicantAcademicResponseDto {
+  @ApiProperty({ example: 'ADM-2026-0001', required: false })
+  admissionNo?: string
+
+  @ApiProperty({ example: '001', required: false })
+  rollNo?: string
+
+  @ApiProperty({ example: '2026-04-01', required: false })
+  admissionDate?: string
+
+  @ApiProperty({ example: 'A', required: false })
+  section?: string
+
+  @ApiProperty({ example: 'BIO-991', required: false })
+  biometricId?: string
+
+  @ApiProperty({ example: 0, required: false })
+  openingDuePaise?: number
+}
+
+export class ApplicantHealthResponseDto {
+  @ApiProperty({ example: 'None', required: false })
+  medicalConditions?: string
+
+  @ApiProperty({ example: 'Peanuts', required: false })
+  allergies?: string
+
+  @ApiProperty({ example: '142', required: false })
+  heightCm?: string
+
+  @ApiProperty({ example: '36.5', required: false })
+  weightKg?: string
+}
+
+export class ApplicantBankResponseDto {
+  @ApiProperty({ example: 'Rohan Verma', required: false })
+  accountHolder?: string
+
+  @ApiProperty({ example: 'State Bank of India', required: false })
+  bankName?: string
+
+  @ApiProperty({ example: '123456789012', required: false })
+  accountNumber?: string
+
+  @ApiProperty({ example: 'SBIN0001234', required: false })
+  ifsc?: string
 }
 
 export class ApplicantDocumentResponseDto {
@@ -70,6 +208,21 @@ export class AdmissionApplicationResponseDto {
 
   @ApiProperty({ type: ApplicantParentResponseDto })
   parent: ApplicantParentResponseDto
+
+  @ApiProperty({ type: ApplicantAcademicResponseDto, required: false })
+  academic?: ApplicantAcademicResponseDto
+
+  @ApiProperty({ type: ApplicantHealthResponseDto, required: false })
+  health?: ApplicantHealthResponseDto
+
+  @ApiProperty({ type: ApplicantBankResponseDto, required: false })
+  bank?: ApplicantBankResponseDto
+
+  @ApiProperty({ example: ['admission-2026'], required: false })
+  feeGroupIds?: string[]
+
+  @ApiProperty({ example: {}, required: false })
+  customFields?: Record<string, string>
 
   @ApiProperty({ type: [ApplicantDocumentResponseDto] })
   documents: ApplicantDocumentResponseDto[]

@@ -74,7 +74,21 @@ export async function getAdmissionApplications(
 
   const query = searchParams.toString()
   const path = query ? `/admissions?${query}` : '/admissions'
-  return api.get(path, admissionApplicationListSchema)
+  const list = await api.get(path, admissionApplicationListSchema)
+  return {
+    ...list,
+    items: list.items.map((app) => ({
+      ...app,
+      student: {
+        ...app.student,
+        photoUrl:
+          app.student.photoUrl ??
+          (app.student.gender === 'female'
+            ? '/mock/student_photo_girl.jpg'
+            : '/mock/student_photo_boy.jpg'),
+      },
+    })),
+  }
 }
 
 export async function getAdmissionStats(): Promise<AdmissionStats> {

@@ -26,6 +26,7 @@ export const SEED_ADMISSION_APPLICATIONS = [
       gradeApplied: 5,
       bloodGroup: 'B+',
       previousSchool: 'St. Xavier Kindergarten, Bengaluru',
+      photoUrl: '/mock/student_photo_boy.jpg',
     },
     parent: {
       guardianType: 'father',
@@ -54,6 +55,7 @@ export const SEED_ADMISSION_APPLICATIONS = [
       gradeApplied: 3,
       bloodGroup: 'O+',
       previousSchool: 'National Public School, Indiranagar',
+      photoUrl: '/mock/student_photo_girl.jpg',
     },
     parent: {
       guardianType: 'mother',

@@ -38,7 +38,7 @@ export function toAdmissionRequest(
   customFields: CustomField[] = [],
 ): AdmissionRequest {
   const { classGrade, openingDue, ...academic } = values.academic
-  const { firstName, middleName, lastName, ...student } = values.personal
+  const { firstName, middleName, lastName } = values.personal
 
   return {
     academic: {
@@ -46,7 +46,10 @@ export function toAdmissionRequest(
       grade: Number(classGrade),
       openingDuePaise: rupeesToPaise(openingDue),
     },
-    student: { ...student, name: fullName([firstName, middleName, lastName]) },
+    student: {
+      ...values.personal,
+      name: fullName([firstName, middleName, lastName]),
+    },
     parents: toParentsRequest(values.parents),
     health: values.health,
     bank: { ...values.bank, ifsc: values.bank.ifsc.toUpperCase() },

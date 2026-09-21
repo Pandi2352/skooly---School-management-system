@@ -2,6 +2,7 @@ import {
   CaretDownIcon,
   QuestionIcon,
   SlidersHorizontalIcon,
+  SparkleIcon,
   TextboxIcon,
   UploadSimpleIcon,
 } from '@phosphor-icons/react'
@@ -13,12 +14,39 @@ import { Dropdown, DropdownItem, DropdownLabel, DropdownSeparator } from '@/comp
 import { Tooltip } from '@/components/ui/Tooltip'
 import { useToast } from '@/hooks/useToast'
 
-export function AdmissionPageActions() {
+type AdmissionPageActionsProps = {
+  onFillMock?: (preset: 1 | 2) => void
+}
+
+export function AdmissionPageActions({ onFillMock }: AdmissionPageActionsProps = {}) {
   const { toast } = useToast()
   const navigate = useNavigate()
 
   return (
     <>
+      <Dropdown
+        trigger={
+          <Button variant="secondary">
+            <SparkleIcon className="size-4.5 text-primary" weight="fill" aria-hidden="true" />
+            Fill Mock Data
+            <CaretDownIcon className="size-4" aria-hidden="true" />
+          </Button>
+        }
+      >
+        <DropdownLabel>Fill test admission</DropdownLabel>
+        <DropdownItem
+          icon={SparkleIcon}
+          onSelect={() => onFillMock?.(1)}
+        >
+          Preset 1: Rohan Verma (Class 5 Boy · Photo)
+        </DropdownItem>
+        <DropdownItem
+          icon={SparkleIcon}
+          onSelect={() => onFillMock?.(2)}
+        >
+          Preset 2: Ananya Sharma (Class 8 Girl · Photo)
+        </DropdownItem>
+      </Dropdown>
       <Dropdown
         trigger={
           <Button variant="secondary">

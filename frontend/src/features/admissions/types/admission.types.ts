@@ -27,13 +27,12 @@ export type ParentsRequest =
       fatherIncomePaise: number | null
     })
 
-/** The request body sent to the API: numbers as numbers, money in paise, files as metadata. */
 export type AdmissionRequest = {
   academic: Omit<AdmissionFormValues['academic'], 'classGrade' | 'openingDue'> & {
     grade: number
     openingDuePaise: number
   }
-  student: Omit<AdmissionFormValues['personal'], 'firstName' | 'middleName' | 'lastName'> & {
+  student: AdmissionFormValues['personal'] & {
     name: string
   }
   parents: ParentsRequest

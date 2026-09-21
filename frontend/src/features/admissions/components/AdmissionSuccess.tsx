@@ -18,13 +18,16 @@ export function AdmissionSuccess({ result, onAdmitAnother }: AdmissionSuccessPro
         and roll number <strong className="font-semibold text-ink">{result.rollNo}</strong>.
       </p>
       <p className="max-w-lg text-sm text-ink-muted">
-        Sample data: this admission isn’t sent to a server and resets when the page reloads.
+        The admission record and pipeline application have been created with complete student, academic, family, health, and bank details.
       </p>
       <div className="mt-2 flex flex-wrap justify-center gap-2">
         <Button onClick={onAdmitAnother}>
           <PlusIcon className="size-4.5" weight="bold" aria-hidden="true" />
           Admit another student
         </Button>
+        <Link to={paths.admissionsApplications} className={buttonClasses({ variant: 'primary' })}>
+          View in Applications Pipeline
+        </Link>
         <Link to={paths.students} className={buttonClasses({ variant: 'secondary' })}>
           Go to Student List
         </Link>

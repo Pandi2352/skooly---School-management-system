@@ -3,12 +3,9 @@ import {
   CheckCircleIcon,
   FileTextIcon,
   GraduationCapIcon,
-  IdentificationCardIcon,
-  MapPinIcon,
-  PhoneIcon,
-  UserIcon,
   XCircleIcon,
 } from '@phosphor-icons/react'
+import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Drawer } from '@/components/ui/Drawer'
@@ -19,6 +16,7 @@ import {
   formatAdmissionStatus,
   getAdmissionStatusTone,
 } from '../utils/admissionsPipelineUtils'
+import { AdmissionReviewDetails } from './AdmissionReviewDetails'
 
 type Props = {
   application: AdmissionApplication | null
@@ -137,93 +135,33 @@ export function AdmissionReviewDrawer({
       }
     >
       <div className="flex flex-col gap-6 text-sm">
-        {/* Status banner */}
-        <div className="flex items-center justify-between rounded-md border border-line bg-canvas p-3">
-          <span className="text-xs font-semibold text-ink-muted uppercase tracking-wider">
-            Current Status
-          </span>
-          <Badge tone={getAdmissionStatusTone(application.status)}>
-            {formatAdmissionStatus(application.status)}
-          </Badge>
-        </div>
-
-        {/* Student Information Section */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2 font-semibold text-ink">
-            <IdentificationCardIcon className="h-4 w-4 text-primary" weight="bold" />
-            <span>Applicant Details</span>
-          </div>
-          <div className="rounded-md border border-line bg-surface p-3 grid grid-cols-2 gap-3 text-xs">
-            <div>
-              <span className="text-ink-muted">Full Name:</span>
-              <p className="font-semibold text-ink text-sm">
-                {application.student.firstName} {application.student.lastName}
+        {/* Applicant Header Card */}
+        <div className="flex items-center gap-3.5 rounded-lg border border-line bg-surface p-3.5">
+          <Avatar
+            name={`${application.student.firstName} ${application.student.lastName}`}
+            src={application.student.photoUrl}
+            size="lg"
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center justify-between gap-1.5">
+              <p className="font-bold text-ink text-base">
+                {application.student.firstName}{' '}
+                {application.student.middleName ? `${application.student.middleName} ` : ''}
+                {application.student.lastName}
               </p>
+              <Badge tone={getAdmissionStatusTone(application.status)}>
+                {formatAdmissionStatus(application.status)}
+              </Badge>
             </div>
-            <div>
-              <span className="text-ink-muted">Grade Applied:</span>
-              <p className="font-semibold text-ink text-sm">
-                Grade {application.student.gradeApplied}
-              </p>
-            </div>
-            <div>
-              <span className="text-ink-muted">Date of Birth:</span>
-              <p className="font-medium text-ink">
-                {application.student.dateOfBirth} ({age} years)
-              </p>
-            </div>
-            <div>
-              <span className="text-ink-muted">Gender:</span>
-              <p className="font-medium text-ink capitalize">{application.student.gender}</p>
-            </div>
-            <div>
-              <span className="text-ink-muted">Blood Group:</span>
-              <p className="font-medium text-ink">{application.student.bloodGroup || '—'}</p>
-            </div>
-            <div>
-              <span className="text-ink-muted">Previous School:</span>
-              <p className="font-medium text-ink truncate">
-                {application.student.previousSchool || 'None / Direct Admission'}
-              </p>
-            </div>
+            <p className="mt-0.5 text-xs text-ink-muted">
+              Grade {application.student.gradeApplied} · {application.student.gender} · {age} years
+              {application.academic?.admissionNo ? ` · ${application.academic.admissionNo}` : ''}
+            </p>
           </div>
         </div>
 
-        {/* Parent / Guardian Information */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2 font-semibold text-ink">
-            <UserIcon className="h-4 w-4 text-primary" weight="bold" />
-            <span>Parent / Guardian</span>
-          </div>
-          <div className="rounded-md border border-line bg-surface p-3 flex flex-col gap-2 text-xs">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-ink text-sm">{application.parent.name}</span>
-              <span className="capitalize text-ink-muted">
-                Relation: {application.parent.guardianType}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-ink">
-              <PhoneIcon className="h-3.5 w-3.5 text-ink-muted" />
-              <span>{application.parent.phone}</span>
-            </div>
-            <div className="flex items-center gap-2 text-ink">
-              <span className="text-ink-muted">Email:</span>
-              <span>{application.parent.email}</span>
-            </div>
-            {application.parent.occupation && (
-              <div className="flex items-center gap-2 text-ink">
-                <span className="text-ink-muted">Occupation:</span>
-                <span>{application.parent.occupation}</span>
-              </div>
-            )}
-            {application.parent.address && (
-              <div className="flex items-start gap-2 text-ink pt-1 border-t border-line">
-                <MapPinIcon className="h-3.5 w-3.5 text-ink-muted shrink-0 mt-0.5" />
-                <span className="text-ink-muted">{application.parent.address}</span>
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Complete 7-Step Details (Academic, Personal, Parents, Health, Bank, Fees, Custom Fields) */}
+        <AdmissionReviewDetails application={application} />
 
         {/* Documents Checklist */}
         <div className="flex flex-col gap-3">

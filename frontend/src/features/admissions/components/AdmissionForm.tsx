@@ -1,6 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useRef, useState, type ComponentType } from 'react'
+import { SparkleIcon } from '@phosphor-icons/react'
+import { useCallback, useEffect, useRef, useState, type ComponentType } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
+import { Button } from '@/components/ui/Button'
 import { useActiveCustomFields, validateCustomValues } from '@/features/customFields'
 import { useToast } from '@/hooks/useToast'
 import { getErrorMessage } from '@/lib/api/getErrorMessage'
@@ -9,6 +11,7 @@ import { useSubmitAdmission } from '../hooks/useSubmitAdmission'
 import { admissionFormSchema } from '../schemas/admission.schema'
 import type { AdmissionFormValues, AdmissionResult, AdmissionStep } from '../types/admission.types'
 import { createEmptyAdmission, toAdmissionRequest } from '../utils/admissionRequest'
+import { getMockAdmissionBoy, getMockAdmissionGirl } from '../utils/mockAdmissionPresets'
 import {
   firstStepWithErrors,
   isLastStep,
@@ -45,7 +48,11 @@ const NAVBAR_CLEARANCE_PX = 72
  * One form across all the steps. Only the current step is shown, but every value stays in the
  * form, so going back never loses anything. Values live in memory only; a reload starts again.
  */
-export function AdmissionForm() {
+type AdmissionFormProps = {
+  onRegisterFill?: (fn: (preset: 1 | 2) => void) => void
+}
+
+export function AdmissionForm({ onRegisterFill }: AdmissionFormProps = {}) {
   const form = useForm<AdmissionFormValues>({
     resolver: zodResolver(admissionFormSchema),
     defaultValues: createEmptyAdmission(new Date()),
@@ -58,6 +65,25 @@ export function AdmissionForm() {
   const submitAdmission = useSubmitAdmission()
   const activeCustomFields = useActiveCustomFields().data ?? []
   const { toast } = useToast()
+
+  const fillWithPreset = useCallback(
+    (preset: 1 | 2) => {
+      const data = preset === 1 ? getMockAdmissionBoy() : getMockAdmissionGirl()
+      form.reset(data)
+      // Unlock all steps so the reviewer/tester can jump directly to any step to inspect fields
+      setFurthestIndex(6)
+      toast({
+        tone: 'success',
+        title: `Filled with ${preset === 1 ? 'Rohan Verma (Class 5 Boy)' : 'Ananya Sharma (Class 8 Girl)'}`,
+        description: 'All 7 steps including student photo and documents are populated for testing.',
+      })
+    },
+    [form, toast],
+  )
+
+  useEffect(() => {
+    onRegisterFill?.(fillWithPreset)
+  }, [onRegisterFill, fillWithPreset])
 
   const goTo = (target: AdmissionStep) => {
     setStep(target)
@@ -150,6 +176,34 @@ export function AdmissionForm() {
         className="grid min-w-0 scroll-mt-[calc(var(--spacing-navbar)+1rem)] gap-3"
       >
         <AdmissionProgress step={step} complete={result !== null} />
+
+        {!result && (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-line bg-surface p-2.5 text-xs">
+            <div className="flex items-center gap-1.5 font-medium text-ink">
+              <SparkleIcon className="size-4 text-primary" weight="fill" aria-hidden="true" />
+              <span>Test data: Auto-fill every field with mock student data & photo</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                type="button"
+                onClick={() => fillWithPreset(1)}
+              >
+                Preset 1: Rohan (Class 5 Boy)
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                type="button"
+                onClick={() => fillWithPreset(2)}
+              >
+                Preset 2: Ananya (Class 8 Girl)
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* @container: field grids follow the panel's own width, not the window's. */}
         <div
           ref={panelRef}

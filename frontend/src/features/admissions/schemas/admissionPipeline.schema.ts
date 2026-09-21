@@ -17,12 +17,28 @@ export const admissionDocumentSchema = z.object({
 
 export const applicantStudentSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
+  middleName: z.string().optional(),
   lastName: z.string().min(1, 'Last name is required'),
   dateOfBirth: z.string(),
   gender: z.enum(['male', 'female', 'other']),
   gradeApplied: z.number(),
   bloodGroup: z.string().optional().default(''),
   previousSchool: z.string().optional().default(''),
+  photoUrl: z.string().optional(),
+  category: z.string().optional(),
+  house: z.string().optional(),
+  religion: z.string().optional(),
+  nationalId: z.string().optional(),
+  penId: z.string().optional(),
+  caste: z.string().optional(),
+  subCaste: z.string().optional(),
+  motherTongue: z.string().optional(),
+  placeOfBirth: z.string().optional(),
+  nationality: z.string().optional(),
+  belowPovertyLine: z.boolean().optional(),
+  rightToEducation: z.boolean().optional(),
+  phone: z.string().optional(),
+  email: z.string().optional(),
 })
 
 export const applicantParentSchema = z.object({
@@ -32,6 +48,43 @@ export const applicantParentSchema = z.object({
   phone: z.string().min(6, 'Valid phone number is required'),
   occupation: z.string().optional().default(''),
   address: z.string().optional().default(''),
+  fatherName: z.string().optional(),
+  fatherPhone: z.string().optional(),
+  fatherOccupation: z.string().optional(),
+  fatherQualification: z.string().optional(),
+  fatherAadhaar: z.string().optional(),
+  fatherIncomePaise: z.number().nullable().optional(),
+  motherName: z.string().optional(),
+  motherPhone: z.string().optional(),
+  motherOccupation: z.string().optional(),
+  motherQualification: z.string().optional(),
+  motherAadhaar: z.string().optional(),
+  emergencyName: z.string().optional(),
+  emergencyPhone: z.string().optional(),
+  permanentAddress: z.string().optional(),
+})
+
+export const applicantAcademicSchema = z.object({
+  admissionNo: z.string().optional(),
+  rollNo: z.string().optional(),
+  admissionDate: z.string().optional(),
+  section: z.string().optional(),
+  biometricId: z.string().optional(),
+  openingDuePaise: z.number().optional(),
+})
+
+export const applicantHealthSchema = z.object({
+  medicalConditions: z.string().optional(),
+  allergies: z.string().optional(),
+  heightCm: z.string().optional(),
+  weightKg: z.string().optional(),
+})
+
+export const applicantBankSchema = z.object({
+  accountHolder: z.string().optional(),
+  bankName: z.string().optional(),
+  accountNumber: z.string().optional(),
+  ifsc: z.string().optional(),
 })
 
 export const admissionApplicationStatusSchema = z.enum([
@@ -48,6 +101,11 @@ export const admissionApplicationSchema = z.object({
   applicationNo: z.string(),
   student: applicantStudentSchema,
   parent: applicantParentSchema,
+  academic: applicantAcademicSchema.optional(),
+  health: applicantHealthSchema.optional(),
+  bank: applicantBankSchema.optional(),
+  feeGroupIds: z.array(z.string()).optional(),
+  customFields: z.record(z.string(), z.string()).optional(),
   documents: z.array(admissionDocumentSchema).default([]),
   status: admissionApplicationStatusSchema,
   appliedAt: z.string(),
@@ -104,6 +162,9 @@ export type AdmissionDocumentStatus = z.infer<typeof admissionDocumentStatusSche
 export type AdmissionDocument = z.infer<typeof admissionDocumentSchema>
 export type ApplicantStudent = z.infer<typeof applicantStudentSchema>
 export type ApplicantParent = z.infer<typeof applicantParentSchema>
+export type ApplicantAcademic = z.infer<typeof applicantAcademicSchema>
+export type ApplicantHealth = z.infer<typeof applicantHealthSchema>
+export type ApplicantBank = z.infer<typeof applicantBankSchema>
 export type AdmissionApplicationStatus = z.infer<typeof admissionApplicationStatusSchema>
 export type AdmissionApplication = z.infer<typeof admissionApplicationSchema>
 export type AdmissionApplicationList = z.infer<typeof admissionApplicationListSchema>

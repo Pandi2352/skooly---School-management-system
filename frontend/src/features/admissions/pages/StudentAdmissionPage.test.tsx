@@ -67,4 +67,24 @@ describe('StudentAdmissionPage', () => {
       expect(input.value).toMatch(/0001$/)
     }
   })
+
+  it('populates all form fields and photo with mock test preset', async () => {
+    renderPage()
+    const fillPreset1Btn = screen.getByRole('button', { name: /Preset 1: Rohan/i })
+    await userEvent.click(fillPreset1Btn)
+
+    // Academic step check
+    const admissionNoInput = screen.getByRole('textbox', { name: /Admission No/i })
+    expect(admissionNoInput).toHaveValue('ADM-2026-001')
+
+    // Personal step check
+    await userEvent.click(screen.getByRole('button', { name: /2\. Personal Info/i }))
+    const firstNameInput = screen.getByRole('textbox', { name: /First Name/i })
+    expect(firstNameInput).toHaveValue('Rohan')
+
+    // Photo preview check
+    const photoPreview = screen.getByAltText(/Student photo preview/i)
+    expect(photoPreview).toBeInTheDocument()
+    expect(photoPreview).toHaveAttribute('src', '/mock/student_photo_boy.jpg')
+  })
 })

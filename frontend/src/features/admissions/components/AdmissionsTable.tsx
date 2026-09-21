@@ -51,7 +51,11 @@ export function AdmissionsTable({
       header: 'Applicant',
       cell: (app) => (
         <div className="flex min-w-44 items-center gap-3">
-          <Avatar name={`${app.student.firstName} ${app.student.lastName}`} size="sm" />
+          <Avatar
+            name={`${app.student.firstName} ${app.student.lastName}`}
+            src={app.student.photoUrl}
+            size="sm"
+          />
           <div className="min-w-0">
             <p className="font-medium text-ink">
               {app.student.firstName} {app.student.lastName}
