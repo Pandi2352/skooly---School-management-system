@@ -18,7 +18,7 @@ import { StudentListActions } from '../components/StudentListActions'
 import { StudentRecordsToolbar } from '../components/StudentRecordsToolbar'
 import { StudentsEmptyState } from '../components/StudentsEmptyState'
 import { StudentStats } from '../components/StudentStats'
-import { StudentSummaryChips } from '../components/StudentSummaryChips'
+import { StudentSummaryRail } from '../components/StudentSummaryRail'
 import { StudentTable } from '../components/StudentTable'
 import { StudentViewToggle } from '../components/StudentViewToggle'
 import { useClassOptions } from '../hooks/useClassOptions'
@@ -116,23 +116,20 @@ export function StudentListPage() {
     <PageContainer
       title="Student List"
       status={
-        <ul aria-label="Student totals" className="flex flex-wrap gap-1.5">
-          <li>
-            <Tooltip content="Rows come from a sample file until the student API is connected.">
-              <Badge tone="planned" tabIndex={0}>
-                Sample data
-              </Badge>
-            </Tooltip>
-          </li>
-          {summary.data && <StudentSummaryChips summary={summary.data} />}
-        </ul>
+        <Tooltip content="Rows come from a sample file until the student API is connected.">
+          <Badge tone="planned" tabIndex={0}>
+            Sample data
+          </Badge>
+        </Tooltip>
       }
       actions={<StudentListActions />}
       fullWidth
     >
       {/* grid-cols-1 is minmax(0, 1fr): without it the column grows to the table's full width
           and the whole page scrolls sideways instead of the table. */}
-      <div className="grid min-w-0 grid-cols-1 gap-5">
+      <div className="grid min-w-0 grid-cols-1 gap-4">
+        {summary.data && <StudentSummaryRail summary={summary.data} />}
+
         <StudentFilterPanel
           key={JSON.stringify(applied)}
           applied={applied}

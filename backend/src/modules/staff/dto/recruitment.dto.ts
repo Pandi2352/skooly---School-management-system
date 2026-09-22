@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { IsIn, IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator'
+import { IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator'
 import { APPLICANT_STATUSES, DEPARTMENTS, JOB_STATUSES, type ApplicantStatus, type Department, type JobStatus } from '../constants/staff.constants'
 
 export class CreateJobPostingDto {

@@ -81,6 +81,7 @@ export function StudentTable({
         hideCaption
         bordered={false}
         columns={columns}
+        primaryKey="name"
         rows={students}
         getRowKey={(s) => s.id}
         isLoading={isLoading}

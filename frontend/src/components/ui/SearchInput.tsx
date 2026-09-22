@@ -2,9 +2,11 @@ import { MagnifyingGlassIcon } from '@phosphor-icons/react'
 import type { ComponentProps } from 'react'
 import { Input } from './Input'
 
-type SearchInputProps = Omit<ComponentProps<'input'>, 'type' | 'value' | 'onChange'> & {
+type SearchInputProps = Omit<ComponentProps<'input'>, 'type' | 'value' | 'onChange' | 'size'> & {
   /** Read by screen readers; the field shows only the icon and placeholder. */
   label: string
+  /** `sm` matches the small Select, so a filter row lines up on one height. */
+  size?: 'md' | 'sm'
   value: string
   onValueChange: (value: string) => void
 }

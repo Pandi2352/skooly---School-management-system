@@ -11,7 +11,13 @@ import type { CreateStaffDto } from './dto/create-staff.dto'
 import type { UpdateStaffDto } from './dto/update-staff.dto'
 import type { CreateLeaveApplicationDto, UpdateLeaveStatusDto } from './dto/leave.dto'
 import type { CreateEvaluationDto } from './dto/evaluation.dto'
-import type { CreateJobApplicantDto, CreateJobPostingDto, UpdateApplicantStatusDto, UpdateJobPostingDto } from './dto/recruitment.dto'
+import type {
+  CreateJobApplicantDto,
+  CreateJobPostingDto,
+  UpdateApplicantStatusDto,
+  UpdateJobPostingDto,
+} from './dto/recruitment.dto'
+import type { PaginatedStaffResponse } from './dto/staff-response.dto'
 
 const DEFAULT_PAGE_SIZE = 20
 
@@ -27,7 +33,7 @@ export class StaffRepository {
 
   // ── Staff ──────────────────────────────────────────────────────────────────
 
-  async findAll(query: QueryStaffDto) {
+  async findAll(query: QueryStaffDto): Promise<PaginatedStaffResponse> {
     const { search, department, status, page = 1, limit = DEFAULT_PAGE_SIZE } = query
     const filter: FilterQuery<StaffDocument> = {}
     if (department) filter['employment.department'] = department
@@ -35,35 +41,36 @@ export class StaffRepository {
     if (search) filter.$text = { $search: search }
     const skip = (page - 1) * limit
     const [rows, total] = await Promise.all([
-      this.staffModel.find(filter).sort({ 'personalInfo.firstName': 1 }).skip(skip).limit(limit).lean().exec(),
+      this.staffModel.find(filter).sort({ 'personalInfo.firstName': 1 }).skip(skip).limit(limit).lean<Staff[]>().exec(),
       this.staffModel.countDocuments(filter).exec(),
     ])
     return { rows, total, page, pageCount: Math.max(1, Math.ceil(total / limit)) }
   }
 
-  async findById(id: string) {
-    return this.staffModel.findById(id).lean().exec()
+  async findById(id: string): Promise<Staff | null> {
+    return this.staffModel.findById(id).lean<Staff>().exec()
   }
 
-  async create(dto: CreateStaffDto) {
-    return this.staffModel.create(dto)
+  async create(dto: CreateStaffDto): Promise<Staff> {
+    const created = await this.staffModel.create(dto)
+    return created.toObject() as unknown as Staff
   }
 
-  async update(id: string, dto: UpdateStaffDto) {
-    return this.staffModel.findByIdAndUpdate(id, { $set: dto }, { new: true, runValidators: true }).lean().exec()
+  async update(id: string, dto: UpdateStaffDto): Promise<Staff | null> {
+    return this.staffModel.findByIdAndUpdate(id, { $set: dto }, { new: true, runValidators: true }).lean<Staff>().exec()
   }
 
-  async updatePhoto(id: string, photoUrl: string) {
-    return this.staffModel.findByIdAndUpdate(id, { $set: { photoUrl } }, { new: true }).lean().exec()
+  async updatePhoto(id: string, photoUrl: string): Promise<Staff | null> {
+    return this.staffModel.findByIdAndUpdate(id, { $set: { photoUrl } }, { new: true }).lean<Staff>().exec()
   }
 
-  async countByStatus() {
+  async countByStatus(): Promise<{ _id: string; count: number }[]> {
     return this.staffModel.aggregate<{ _id: string; count: number }>([
       { $group: { _id: '$employment.status', count: { $sum: 1 } } },
     ]).exec()
   }
 
-  async countByDepartment() {
+  async countByDepartment(): Promise<{ _id: string; count: number }[]> {
     return this.staffModel.aggregate<{ _id: string; count: number }>([
       { $group: { _id: '$employment.department', count: { $sum: 1 } } },
     ]).exec()
@@ -71,76 +78,80 @@ export class StaffRepository {
 
   // ── Leaves ─────────────────────────────────────────────────────────────────
 
-  async findLeaves(filter: FilterQuery<LeaveApplicationDocument>) {
-    return this.leaveModel.find(filter).sort({ fromDate: -1 }).lean().exec()
+  async findLeaves(filter: FilterQuery<LeaveApplicationDocument>): Promise<LeaveApplication[]> {
+    return this.leaveModel.find(filter).sort({ fromDate: -1 }).lean<LeaveApplication[]>().exec()
   }
 
-  async findLeaveById(id: string) {
-    return this.leaveModel.findById(id).lean().exec()
+  async findLeaveById(id: string): Promise<LeaveApplication | null> {
+    return this.leaveModel.findById(id).lean<LeaveApplication>().exec()
   }
 
-  async createLeave(dto: CreateLeaveApplicationDto) {
-    return this.leaveModel.create(dto)
+  async createLeave(dto: CreateLeaveApplicationDto): Promise<LeaveApplication> {
+    const created = await this.leaveModel.create(dto)
+    return created.toObject() as unknown as LeaveApplication
   }
 
-  async updateLeaveStatus(id: string, dto: UpdateLeaveStatusDto, approvedBy: string) {
+  async updateLeaveStatus(id: string, dto: UpdateLeaveStatusDto, approvedBy: string): Promise<LeaveApplication | null> {
     return this.leaveModel.findByIdAndUpdate(
       id,
       { $set: { status: dto.status, remarks: dto.remarks ?? '', approvedBy, approvedAt: new Date() } },
       { new: true },
-    ).lean().exec()
+    ).lean<LeaveApplication>().exec()
   }
 
-  async deleteLeave(id: string) {
-    return this.leaveModel.findByIdAndDelete(id).lean().exec()
+  async deleteLeave(id: string): Promise<LeaveApplication | null> {
+    return this.leaveModel.findByIdAndDelete(id).lean<LeaveApplication>().exec()
   }
 
-  async countPendingLeaves() {
+  async countPendingLeaves(): Promise<number> {
     return this.leaveModel.countDocuments({ status: 'pending' }).exec()
   }
 
   // ── Evaluations ────────────────────────────────────────────────────────────
 
-  async findEvaluations(staffId?: string) {
+  async findEvaluations(staffId?: string): Promise<StaffEvaluation[]> {
     const filter: FilterQuery<StaffEvaluationDocument> = staffId ? { staffId } : {}
-    return this.evalModel.find(filter).sort({ createdAt: -1 }).lean().exec()
+    return this.evalModel.find(filter).sort({ createdAt: -1 }).lean<StaffEvaluation[]>().exec()
   }
 
-  async createEvaluation(dto: CreateEvaluationDto) {
-    return this.evalModel.create(dto)
+  async createEvaluation(dto: CreateEvaluationDto): Promise<StaffEvaluation> {
+    const created = await this.evalModel.create(dto)
+    return created.toObject() as unknown as StaffEvaluation
   }
 
   // ── Recruitment ────────────────────────────────────────────────────────────
 
-  async findJobs() {
-    return this.jobModel.find().sort({ createdAt: -1 }).lean().exec()
+  async findJobs(): Promise<JobPosting[]> {
+    return this.jobModel.find().sort({ createdAt: -1 }).lean<JobPosting[]>().exec()
   }
 
-  async findJobById(id: string) {
-    return this.jobModel.findById(id).lean().exec()
+  async findJobById(id: string): Promise<JobPosting | null> {
+    return this.jobModel.findById(id).lean<JobPosting>().exec()
   }
 
-  async createJob(dto: CreateJobPostingDto) {
-    return this.jobModel.create(dto)
+  async createJob(dto: CreateJobPostingDto): Promise<JobPosting> {
+    const created = await this.jobModel.create(dto)
+    return created.toObject() as unknown as JobPosting
   }
 
-  async updateJob(id: string, dto: UpdateJobPostingDto) {
-    return this.jobModel.findByIdAndUpdate(id, { $set: dto }, { new: true }).lean().exec()
+  async updateJob(id: string, dto: UpdateJobPostingDto): Promise<JobPosting | null> {
+    return this.jobModel.findByIdAndUpdate(id, { $set: dto }, { new: true }).lean<JobPosting>().exec()
   }
 
-  async findApplicants(jobId: string) {
-    return this.applicantModel.find({ jobId }).sort({ createdAt: -1 }).lean().exec()
+  async findApplicants(jobId: string): Promise<JobApplicant[]> {
+    return this.applicantModel.find({ jobId }).sort({ createdAt: -1 }).lean<JobApplicant[]>().exec()
   }
 
-  async createApplicant(dto: CreateJobApplicantDto) {
-    return this.applicantModel.create(dto)
+  async createApplicant(dto: CreateJobApplicantDto): Promise<JobApplicant> {
+    const created = await this.applicantModel.create(dto)
+    return created.toObject() as unknown as JobApplicant
   }
 
-  async updateApplicantStatus(id: string, dto: UpdateApplicantStatusDto) {
-    return this.applicantModel.findByIdAndUpdate(id, { $set: dto }, { new: true }).lean().exec()
+  async updateApplicantStatus(id: string, dto: UpdateApplicantStatusDto): Promise<JobApplicant | null> {
+    return this.applicantModel.findByIdAndUpdate(id, { $set: dto }, { new: true }).lean<JobApplicant>().exec()
   }
 
-  async countOpenJobs() {
+  async countOpenJobs(): Promise<number> {
     return this.jobModel.countDocuments({ status: 'open' }).exec()
   }
 }

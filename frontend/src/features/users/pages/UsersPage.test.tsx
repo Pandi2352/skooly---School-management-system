@@ -27,10 +27,12 @@ describe('UsersPage', () => {
   it('counts every account in the school under the title, not just the page', async () => {
     renderWithProviders(<UsersPage />, { route: '/users' })
 
+    // Each segment of the rail is a filter: the label names the state, the figure sits above it.
     const totals = await screen.findByRole('list', { name: 'Account totals' })
-    expect(within(totals).getByText('1 Active')).toBeInTheDocument()
-    expect(within(totals).getByText('1 Invited')).toBeInTheDocument()
-    expect(within(totals).getByText('1 Suspended')).toBeInTheDocument()
+    for (const state of ['Active', 'Invited', 'Suspended']) {
+      const segment = within(totals).getByRole('button', { name: new RegExp(`1\s*${state}`) })
+      expect(segment).toBeInTheDocument()
+    }
   })
 
   it('explains why an invited account cannot be sent a password reset', async () => {

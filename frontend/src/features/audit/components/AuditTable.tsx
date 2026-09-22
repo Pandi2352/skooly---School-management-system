@@ -79,6 +79,7 @@ export function AuditTable({ events, isLoading, isRefreshing = false, error, onR
         hideCaption
         bordered={false}
         columns={columns}
+        primaryKey="label"
         rows={events}
         getRowKey={(event) => event.id}
         isLoading={isLoading}

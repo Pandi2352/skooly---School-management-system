@@ -26,7 +26,7 @@ const columns: TableColumn<StudentInvoice>[] = [
   },
   {
     key: 'title',
-    header: 'Fee Description',
+    header: 'Fee description',
     cell: (inv) => <span className="font-medium text-ink">{inv.title}</span>,
   },
   {
@@ -128,10 +128,11 @@ export function StudentFeesTab({ student }: { student: StudentDetail }) {
         description="Term-wise schedule of tuition, laboratory, and institutional charges."
       >
         <Table
-          caption="Fee Invoices"
+          caption="Fee invoices"
           hideCaption
           bordered={false}
           columns={columns}
+          primaryKey="title"
           rows={invoices}
           getRowKey={(inv) => inv.id}
           isLoading={false}

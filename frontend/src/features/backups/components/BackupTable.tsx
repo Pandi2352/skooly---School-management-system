@@ -49,6 +49,7 @@ export function BackupTable({ backups }: { backups: Backup[] }) {
       caption="Available backups"
       hideCaption
       columns={columns}
+      primaryKey="fileName"
       rows={backups}
       getRowKey={(row) => row.id}
       empty={null}

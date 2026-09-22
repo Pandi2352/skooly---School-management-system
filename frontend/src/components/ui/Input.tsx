@@ -4,8 +4,10 @@ import { cn } from '@/lib/cn'
 import { FieldMessages } from './FieldMessages'
 import { fieldDescribedBy, fieldLabelClasses } from './fieldStyles'
 
-type InputProps = ComponentProps<'input'> & {
+type InputProps = Omit<ComponentProps<'input'>, 'size'> & {
   label: string
+  /** `sm` matches the small Select, so a filter row lines up on one height. */
+  size?: 'md' | 'sm'
   hideLabel?: boolean
   hint?: string
   error?: string
@@ -22,6 +24,7 @@ export function Input({
   error,
   startIcon: StartIcon,
   endAddon,
+  size = 'md',
   id,
   className,
   ...props
@@ -44,7 +47,10 @@ export function Input({
       <div className={cn('relative', endAddon !== undefined && 'flex')}>
         {StartIcon && (
           <StartIcon
-            className="pointer-events-none absolute start-3 top-1/2 size-4.5 -translate-y-1/2 text-ink-muted"
+            className={cn(
+              'pointer-events-none absolute top-1/2 -translate-y-1/2 text-ink-muted',
+              size === 'md' ? 'start-3 size-4.5' : 'start-2.5 size-4',
+            )}
             aria-hidden="true"
           />
         )}
@@ -53,12 +59,13 @@ export function Input({
           aria-invalid={error ? true : undefined}
           aria-describedby={fieldDescribedBy(inputId, hint, error)}
           className={cn(
-            'h-10 w-full rounded-md border bg-surface px-3 text-sm text-ink placeholder:text-ink-muted disabled:cursor-not-allowed disabled:opacity-60 pointer-coarse:h-11',
+            'w-full rounded-md border bg-surface text-ink placeholder:text-ink-muted disabled:cursor-not-allowed disabled:opacity-60 pointer-coarse:h-11',
+            size === 'md' ? 'h-10 px-3 text-sm' : 'h-8 px-2.5 text-[0.8125rem]',
             // Focus colours the field's own border, instead of the app-wide outline that sat 2px
             // outside and looked like a second border.
             'focus-visible:border-primary focus-visible:outline-none!',
             error ? 'border-danger focus-visible:border-danger' : 'border-field',
-            StartIcon && 'ps-10',
+            StartIcon && (size === 'md' ? 'ps-10' : 'ps-9'),
             endAddon !== undefined && 'min-w-0 rounded-e-none',
             className,
           )}

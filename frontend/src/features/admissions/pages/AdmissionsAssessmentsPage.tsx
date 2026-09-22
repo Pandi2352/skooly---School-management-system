@@ -166,7 +166,7 @@ export function AdmissionsAssessmentsPage() {
   const columns: TableColumn<AdmissionAssessment>[] = [
     {
       key: 'student',
-      header: 'Applicant & Grade',
+      header: 'Applicant & grade',
       cell: (asm) => (
         <div>
           <div className="font-semibold text-ink">{asm.studentName}</div>
@@ -176,7 +176,7 @@ export function AdmissionsAssessmentsPage() {
     },
     {
       key: 'type',
-      header: 'Assessment Type',
+      header: 'Assessment type',
       cell: (asm) => (
         <div>
           <div className="font-medium text-ink">{asm.testType}</div>
@@ -186,7 +186,7 @@ export function AdmissionsAssessmentsPage() {
     },
     {
       key: 'written',
-      header: 'Written Exam',
+      header: 'Written exam',
       cell: (asm) => (
         <div className="tabular-nums">
           {asm.writtenScore != null ? (
@@ -201,7 +201,7 @@ export function AdmissionsAssessmentsPage() {
     },
     {
       key: 'interview',
-      header: 'Interview Rating',
+      header: 'Interview rating',
       cell: (asm) => (
         <div className="tabular-nums">
           {asm.interviewRating != null ? (
@@ -225,7 +225,7 @@ export function AdmissionsAssessmentsPage() {
     },
     {
       key: 'remarks',
-      header: 'Evaluator Remarks',
+      header: 'Evaluator remarks',
       cell: (asm) => (
         <div className="max-w-xs truncate text-xs text-ink-muted" title={asm.facultyRemarks}>
           {asm.facultyRemarks}
@@ -326,9 +326,10 @@ export function AdmissionsAssessmentsPage() {
 
         <Card title="Assessment & Evaluation Ledger" description={`${filtered.length} candidates in assessment phase`}>
           <Table
-            caption="Assessment & Evaluation Ledger"
+            caption="Assessment & evaluation"
             hideCaption
             columns={columns}
+            primaryKey="student"
             rows={filtered}
             getRowKey={(asm) => asm.id}
             empty={<div className="p-6 text-center text-xs text-ink-muted">No assessment records found.</div>}

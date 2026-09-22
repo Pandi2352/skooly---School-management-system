@@ -99,6 +99,7 @@ export function CustomFieldsTable({
         hideCaption
         bordered={false}
         columns={columns}
+        primaryKey="label"
         rows={fields}
         getRowKey={(field) => field.id}
         isLoading={isLoading}

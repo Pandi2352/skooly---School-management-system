@@ -30,7 +30,7 @@ export class StaffQualificationEmbedded {
   year: string
 
   @ApiProperty({ example: 'First Class', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   grade?: string
 }
 
@@ -49,7 +49,7 @@ export class StaffExperienceEmbedded {
   from: string
 
   @ApiProperty({ example: '2018-03-31' })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   to?: string
 
   @ApiProperty({ example: false })
@@ -64,7 +64,7 @@ export class StaffPersonalInfoEmbedded {
   firstName: string
 
   @ApiProperty({ example: '', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   middleName?: string
 
   @ApiProperty({ example: 'Sharma' })
@@ -80,23 +80,23 @@ export class StaffPersonalInfoEmbedded {
   gender: string
 
   @ApiProperty({ example: 'B+', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   bloodGroup?: string
 
   @ApiProperty({ example: '1234 5678 9012', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   aadhaarNumber?: string
 
   @ApiProperty({ example: 'ABCDE1234F', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   panNumber?: string
 
   @ApiProperty({ example: 'Hindu', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   religion?: string
 
   @ApiProperty({ example: 'General', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   category?: string
 }
 
@@ -107,15 +107,15 @@ export class StaffContactInfoEmbedded {
   phone: string
 
   @ApiProperty({ example: '+91 90000 22334', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   altPhone?: string
 
   @ApiProperty({ example: 'priya.sharma@schoolerp.in', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   email?: string
 
   @ApiProperty({ example: '12 MG Road, Bengaluru 560001', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   address?: string
 }
 
@@ -150,11 +150,11 @@ export class StaffEmploymentEmbedded {
   salaryPaise?: number
 
   @ApiProperty({ example: '', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   reportingTo?: string
 
   @ApiProperty({ example: '', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   dateOfLeaving?: string
 }
 
@@ -206,11 +206,11 @@ export class Staff extends BaseSchema {
   experience: StaffExperienceEmbedded[]
 
   @ApiProperty({ example: '/uploads/staff/photo-uuid.jpg', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   photoUrl?: string
 
   @ApiProperty({ required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   resumeUrl?: string
 
   @ApiProperty()
@@ -226,7 +226,7 @@ export class Staff extends BaseSchema {
   classes: string[]
 
   @ApiProperty({ example: 'Some notes about the staff member', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   notes?: string
 }
 

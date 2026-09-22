@@ -1,8 +1,18 @@
-import { ArrowClockwiseIcon, TextboxIcon, UserPlusIcon, UsersThreeIcon } from '@phosphor-icons/react'
+import {
+  ArrowClockwiseIcon,
+  CheckCircleIcon,
+  GraduationCapIcon,
+  HourglassMediumIcon,
+  TextboxIcon,
+  TrayIcon,
+  UserPlusIcon,
+  UsersThreeIcon,
+  XCircleIcon,
+} from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { paths } from '@/app/paths'
-import { CountChips, type CountChip } from '@/components/page/CountChips'
+import { CountRail, type CountSegment } from '@/components/page/CountRail'
 import { EmptyState } from '@/components/page/EmptyState'
 import { PageContainer } from '@/components/page/PageContainer'
 import { RecordsCard } from '@/components/page/RecordsCard'
@@ -105,12 +115,49 @@ export function AdmissionsEnrollmentPage() {
   }
 
   const counts = stats.data
-  const chips: CountChip[] = [
-    { id: 'all', label: 'Applications', count: counts?.total ?? 0, tone: 'info', hint: 'Show every application' },
-    { id: 'under-review', label: 'Under review', count: counts?.underReview ?? 0, tone: 'planned' },
-    { id: 'approved', label: 'Approved', count: counts?.approved ?? 0, tone: 'success' },
-    { id: 'enrolled', label: 'Enrolled', count: counts?.enrolled ?? 0, tone: 'primary' },
-    { id: 'rejected', label: 'Rejected', count: counts?.rejected ?? 0, tone: 'danger', hideWhenZero: true },
+  // Icons name the step of the pipeline, and the colour is the state each step is in.
+  const segments: CountSegment[] = [
+    {
+      id: 'all',
+      label: 'Applications',
+      count: counts?.total ?? 0,
+      icon: TrayIcon,
+      tone: 'primary',
+      hint: 'Show every application',
+    },
+    {
+      id: 'under-review',
+      label: 'Under review',
+      count: counts?.underReview ?? 0,
+      icon: HourglassMediumIcon,
+      tone: 'warning',
+      hint: 'Waiting on the school: documents to check, a decision to make',
+    },
+    {
+      id: 'approved',
+      label: 'Approved',
+      count: counts?.approved ?? 0,
+      icon: CheckCircleIcon,
+      tone: 'success',
+      hint: 'Offered a place, not yet enrolled',
+    },
+    {
+      id: 'enrolled',
+      label: 'Enrolled',
+      count: counts?.enrolled ?? 0,
+      icon: GraduationCapIcon,
+      tone: 'primary',
+      hint: 'Now a student on the roll',
+    },
+    {
+      id: 'rejected',
+      label: 'Rejected',
+      count: counts?.rejected ?? 0,
+      icon: XCircleIcon,
+      tone: 'danger',
+      hint: 'Turned down',
+      hideWhenZero: true,
+    },
   ]
 
   return (
@@ -124,16 +171,6 @@ export function AdmissionsEnrollmentPage() {
             { label: 'Admissions & Enrollment' },
           ]}
         />
-      }
-      status={
-        !stats.isPending && (
-          <CountChips
-            label="Application totals"
-            chips={chips}
-            activeId={filters.status}
-            onSelect={(status) => update({ status })}
-          />
-        )
       }
       actions={
         <>
@@ -158,7 +195,16 @@ export function AdmissionsEnrollmentPage() {
     >
       {/* grid-cols-1 is minmax(0, 1fr): without it the column grows to the table's full width
           and the whole page scrolls sideways instead of the table. */}
-      <div className="grid min-w-0 grid-cols-1 gap-5">
+      <div className="grid min-w-0 grid-cols-1 gap-4">
+        {counts && (
+          <CountRail
+            label="Application totals"
+            segments={segments}
+            activeId={filters.status}
+            onSelect={(status) => update({ status })}
+          />
+        )}
+
         <RecordsCard
           title="Applications"
           icon={UsersThreeIcon}

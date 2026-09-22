@@ -33,7 +33,7 @@ export function StaffTable({
   const columns: TableColumn<StaffSummary>[] = [
     {
       key: 'name',
-      header: 'Staff Member',
+      header: 'Staff member',
       cell: (member) => {
         const fullName = staffFullName(member.personalInfo)
         return (
@@ -69,7 +69,7 @@ export function StaffTable({
     },
     {
       key: 'designation',
-      header: 'Role & Dept',
+      header: 'Role & department',
       cell: (member) => (
         <div>
           <div className="font-medium text-ink">{member.employment.designation}</div>
@@ -149,6 +149,7 @@ export function StaffTable({
         caption="Staff members"
         hideCaption
         columns={columns}
+        primaryKey="name"
         rows={staff}
         getRowKey={(member) => member.id}
         isLoading={isLoading}

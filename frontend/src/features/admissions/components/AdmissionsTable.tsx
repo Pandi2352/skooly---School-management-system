@@ -143,6 +143,7 @@ export function AdmissionsTable({
         hideCaption
         bordered={false}
         columns={columns}
+        primaryKey="student"
         rows={applications}
         getRowKey={(app) => app._id}
         isLoading={isLoading}

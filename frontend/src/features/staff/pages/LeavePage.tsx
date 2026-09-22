@@ -42,7 +42,7 @@ export function LeavePage() {
   const columns: TableColumn<LeaveApplication>[] = [
     {
       key: 'staffName',
-      header: 'Staff Member',
+      header: 'Staff member',
       cell: (leave) => (
         <div>
           <div className="font-semibold text-ink">{leave.staffName ?? 'Staff Member'}</div>
@@ -52,7 +52,7 @@ export function LeavePage() {
     },
     {
       key: 'type',
-      header: 'Leave Type',
+      header: 'Leave type',
       cell: (leave) => (
         <span className="font-medium text-ink">{leaveTypeLabel(leave.leaveType)}</span>
       ),
@@ -98,7 +98,7 @@ export function LeavePage() {
     },
     {
       key: 'actions',
-      header: 'Action / Review',
+      header: 'Action',
       align: 'end',
       cell: (leave) => (
         <div className="flex justify-end">
@@ -255,6 +255,7 @@ export function LeavePage() {
           caption="Staff leave applications"
           hideCaption
           columns={columns}
+          primaryKey="staffName"
           rows={filteredLeaves}
           getRowKey={(leave) => leave.id}
           isLoading={isLoading}

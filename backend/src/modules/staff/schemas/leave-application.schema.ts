@@ -50,7 +50,7 @@ export class LeaveApplication extends BaseSchema {
   approvedAt?: Date | null
 
   @ApiProperty({ example: 'Approved. Enjoy.', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   remarks?: string
 }
 

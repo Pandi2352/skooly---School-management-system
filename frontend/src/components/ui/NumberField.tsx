@@ -3,7 +3,7 @@ import { Input } from './Input'
 
 type NumberFieldProps = Omit<
   ComponentProps<'input'>,
-  'type' | 'value' | 'onChange' | 'min' | 'max'
+  'type' | 'value' | 'onChange' | 'min' | 'max' | 'size'
 > & {
   label: string
   hideLabel?: boolean

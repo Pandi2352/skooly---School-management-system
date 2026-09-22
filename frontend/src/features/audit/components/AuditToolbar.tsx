@@ -28,44 +28,43 @@ export function AuditToolbar({ query, isFiltered, onChange, onReset }: AuditTool
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="w-44">
-          <Select
-            label="Period"
-            hideLabel
-            size="sm"
-            value={query.period}
-            onValueChange={(period) => onChange({ period: period as AuditPeriod })}
-            options={AUDIT_PERIODS.map((period) => ({ value: period, label: AUDIT_PERIOD_LABELS[period] }))}
-          />
-        </div>
-
-        <div className="w-64">
-          <Select
-            label="Event type"
-            hideLabel
-            size="sm"
-            value={query.action}
-            onValueChange={(action) => onChange({ action: action as AuditListQuery['action'] })}
-            options={actionOptions}
-          />
-        </div>
-
-        {isFiltered && (
-          <Button variant="ghost" size="sm" onClick={onReset}>
-            Clear filters
-          </Button>
-        )}
-      </div>
-
-      <div className="lg:w-72">
+      <div className="w-full sm:w-64">
         <SearchInput
           label="Search the trail by person or account"
+          size="sm"
           placeholder="Search person or account"
           value={query.search}
           onValueChange={(search) => onChange({ search })}
         />
       </div>
+
+      <div className="w-44">
+        <Select
+          label="Period"
+          hideLabel
+          size="sm"
+          value={query.period}
+          onValueChange={(period) => onChange({ period: period as AuditPeriod })}
+          options={AUDIT_PERIODS.map((period) => ({ value: period, label: AUDIT_PERIOD_LABELS[period] }))}
+        />
+      </div>
+
+      <div className="w-64">
+        <Select
+          label="Event type"
+          hideLabel
+          size="sm"
+          value={query.action}
+          onValueChange={(action) => onChange({ action: action as AuditListQuery['action'] })}
+          options={actionOptions}
+        />
+      </div>
+
+      {isFiltered && (
+        <Button variant="ghost" size="sm" onClick={onReset}>
+          Clear filters
+        </Button>
+      )}
     </>
   )
 }

@@ -1,5 +1,12 @@
-import { PlusIcon, UsersThreeIcon } from '@phosphor-icons/react'
-import { CountChips, type CountChip } from '@/components/page/CountChips'
+import {
+  ArchiveIcon,
+  CheckCircleIcon,
+  EnvelopeSimpleIcon,
+  PlusIcon,
+  ProhibitIcon,
+  UsersThreeIcon,
+} from '@phosphor-icons/react'
+import { CountRail, type CountSegment } from '@/components/page/CountRail'
 import { EmptyState } from '@/components/page/EmptyState'
 import { PageContainer } from '@/components/page/PageContainer'
 import { RecordsCard } from '@/components/page/RecordsCard'
@@ -30,11 +37,38 @@ export function UsersPage() {
 
   const meta = users.data?.meta
   // Counts cover the whole school, not the page, and each one filters the list.
-  const chips: CountChip[] = [
-    { id: 'active', label: 'Active', count: meta?.active ?? 0, tone: 'info', hint: 'Show only accounts that can sign in' },
-    { id: 'invited', label: 'Invited', count: meta?.invited ?? 0, tone: 'planned', hint: 'Show only accounts waiting to set a password' },
-    { id: 'suspended', label: 'Suspended', count: meta?.suspended ?? 0, tone: 'danger', hideWhenZero: true },
-    { id: 'archived', label: 'Archived', count: meta?.archived ?? 0, hideWhenZero: true },
+  const segments: CountSegment[] = [
+    {
+      id: 'active',
+      label: 'Active',
+      count: meta?.active ?? 0,
+      icon: CheckCircleIcon,
+      tone: 'success',
+      hint: 'Show only accounts that can sign in',
+    },
+    {
+      id: 'invited',
+      label: 'Invited',
+      count: meta?.invited ?? 0,
+      icon: EnvelopeSimpleIcon,
+      tone: 'warning',
+      hint: 'Show only accounts waiting to set a password',
+    },
+    {
+      id: 'suspended',
+      label: 'Suspended',
+      count: meta?.suspended ?? 0,
+      icon: ProhibitIcon,
+      tone: 'danger',
+      hideWhenZero: true,
+    },
+    {
+      id: 'archived',
+      label: 'Archived',
+      count: meta?.archived ?? 0,
+      icon: ArchiveIcon,
+      hideWhenZero: true,
+    },
   ]
 
   const context = {
@@ -46,16 +80,6 @@ export function UsersPage() {
     <PageContainer
       title="User Accounts"
       description="Who can sign in to your school’s system, and what each person is allowed to do."
-      status={
-        meta && (
-          <CountChips
-            label="Account totals"
-            chips={chips}
-            activeId={query.status}
-            onSelect={(status) => update({ status: status as typeof query.status })}
-          />
-        )
-      }
       actions={
         // Someone with view-only access isn't offered a button the API would refuse.
         mayAdd && (
@@ -69,7 +93,16 @@ export function UsersPage() {
     >
       {/* grid-cols-1 is minmax(0, 1fr): without it the column grows to the table's full width
           and the whole page scrolls sideways instead of the table. */}
-      <div className="grid min-w-0 grid-cols-1 gap-5">
+      <div className="grid min-w-0 grid-cols-1 gap-4">
+        {meta && (
+          <CountRail
+            label="Account totals"
+            segments={segments}
+            activeId={query.status}
+            onSelect={(status) => update({ status: status as typeof query.status })}
+          />
+        )}
+
         <RecordsCard
           title="Staff accounts"
           icon={UsersThreeIcon}

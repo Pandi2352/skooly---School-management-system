@@ -26,7 +26,7 @@ export class JobPosting extends BaseSchema {
   description: string
 
   @ApiProperty({ example: 'M.Sc. Physics, B.Ed., minimum 3 years experience', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   requirements?: string
 
   @ApiProperty({ example: 'open', enum: JOB_STATUSES })
@@ -34,7 +34,7 @@ export class JobPosting extends BaseSchema {
   status: JobStatus
 
   @ApiProperty({ example: '2026-05-31', required: false })
-  @Prop({ default: null })
+  @Prop({ type: String, default: null })
   closingDate?: string | null
 
   @ApiProperty({ example: 2 })

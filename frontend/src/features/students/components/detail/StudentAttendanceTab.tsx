@@ -29,7 +29,7 @@ const columns: TableColumn<AttendanceRecord>[] = [
   },
   {
     key: 'status',
-    header: 'Attendance Status',
+    header: 'Attendance',
     cell: (rec) => <Badge tone={statusTones[rec.status]}>{statusLabels[rec.status]}</Badge>,
   },
   {
@@ -113,10 +113,11 @@ export function StudentAttendanceTab({ student }: { student: StudentDetail }) {
         description="Daily period and classroom check-in records for the past two weeks."
       >
         <Table
-          caption="Recent Attendance"
+          caption="Recent attendance"
           hideCaption
           bordered={false}
           columns={columns}
+          primaryKey="date"
           rows={recentAttendance}
           getRowKey={(rec) => rec.date}
           isLoading={false}

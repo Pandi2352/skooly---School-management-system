@@ -10,7 +10,7 @@ describe('AdmissionsEnrollmentPage', () => {
 
     expect(screen.getByRole('heading', { name: /admissions & enrollment/i })).toBeInTheDocument()
 
-    // Counts sit under the title as chips, each one a filter, like every other list page.
+    // Counts sit in the rail above the list, each segment a filter, like every other list page.
     const totals = await screen.findByRole('list', { name: 'Application totals' })
     expect(within(totals).getByText(/Applications$/)).toBeInTheDocument()
     expect(within(totals).getByText(/Under review$/)).toBeInTheDocument()

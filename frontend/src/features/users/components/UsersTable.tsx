@@ -105,6 +105,7 @@ export function UsersTable({
         hideCaption
         bordered={false}
         columns={columns}
+        primaryKey="person"
         rows={users}
         getRowKey={(user) => user.id}
         isLoading={isLoading}

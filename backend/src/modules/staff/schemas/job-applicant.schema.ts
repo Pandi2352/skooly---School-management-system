@@ -25,7 +25,7 @@ export class JobApplicant extends BaseSchema {
   phone: string
 
   @ApiProperty({ example: '/uploads/resumes/resume-uuid.pdf', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   resumeUrl?: string
 
   @ApiProperty({ example: 'received', enum: APPLICANT_STATUSES })
@@ -37,7 +37,7 @@ export class JobApplicant extends BaseSchema {
   interviewDate?: Date | null
 
   @ApiProperty({ example: 'Good communication skills.', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   notes?: string
 }
 

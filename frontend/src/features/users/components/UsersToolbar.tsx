@@ -20,50 +20,49 @@ type UsersToolbarProps = {
 export function UsersToolbar({ query, roles, isFiltered, onChange, onReset }: UsersToolbarProps) {
   return (
     <>
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="w-40">
-          <Select
-            label="Status"
-            hideLabel
-            size="sm"
-            value={query.status}
-            onValueChange={(status) => onChange({ status: status as UserListQuery['status'] })}
-            options={[
-              { value: 'all', label: 'All statuses' },
-              ...USER_STATUSES.map((status) => ({ value: status, label: USER_STATUS_LABELS[status] })),
-            ]}
-          />
-        </div>
-
-        <div className="w-44">
-          <Select
-            label="Role"
-            hideLabel
-            size="sm"
-            value={query.roleId}
-            onValueChange={(roleId) => onChange({ roleId })}
-            options={[
-              { value: 'all', label: 'All roles' },
-              ...roles.map((role) => ({ value: role.id, label: role.name })),
-            ]}
-          />
-        </div>
-
-        {isFiltered && (
-          <Button variant="ghost" size="sm" onClick={onReset}>
-            Clear filters
-          </Button>
-        )}
-      </div>
-
-      <div className="lg:w-72">
+      <div className="w-full sm:w-64">
         <SearchInput
           label="Search accounts by name or email"
+          size="sm"
           placeholder="Search name or email"
           value={query.search}
           onValueChange={(search) => onChange({ search })}
         />
       </div>
+
+      <div className="w-40">
+        <Select
+          label="Status"
+          hideLabel
+          size="sm"
+          value={query.status}
+          onValueChange={(status) => onChange({ status: status as UserListQuery['status'] })}
+          options={[
+            { value: 'all', label: 'All statuses' },
+            ...USER_STATUSES.map((status) => ({ value: status, label: USER_STATUS_LABELS[status] })),
+          ]}
+        />
+      </div>
+
+      <div className="w-44">
+        <Select
+          label="Role"
+          hideLabel
+          size="sm"
+          value={query.roleId}
+          onValueChange={(roleId) => onChange({ roleId })}
+          options={[
+            { value: 'all', label: 'All roles' },
+            ...roles.map((role) => ({ value: role.id, label: role.name })),
+          ]}
+        />
+      </div>
+
+      {isFiltered && (
+        <Button variant="ghost" size="sm" onClick={onReset}>
+          Clear filters
+        </Button>
+      )}
     </>
   )
 }

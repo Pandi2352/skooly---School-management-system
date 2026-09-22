@@ -1,8 +1,8 @@
-import { PlusIcon, TextboxIcon } from '@phosphor-icons/react'
+import { AsteriskIcon, EyeSlashIcon, ListChecksIcon, PlusIcon, TextboxIcon } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { paths } from '@/app/paths'
-import { CountChips, type CountChip } from '@/components/page/CountChips'
+import { CountRail, type CountSegment } from '@/components/page/CountRail'
 import { EmptyState } from '@/components/page/EmptyState'
 import { PageContainer } from '@/components/page/PageContainer'
 import { RecordsCard } from '@/components/page/RecordsCard'
@@ -44,10 +44,27 @@ export function CustomFieldsPage() {
   const mayAdd = can(CUSTOM_FIELD_PERMISSIONS.create)
   const isFull = meta !== undefined && meta.total >= meta.limit
 
-  const chips: CountChip[] = [
-    { id: 'active', label: 'asked on the form', count: meta?.active ?? 0, tone: 'success' },
-    { id: 'required', label: 'must be answered', count: meta?.required ?? 0, tone: 'info', hideWhenZero: true },
-    { id: 'hidden', label: 'hidden', count: (meta?.total ?? 0) - (meta?.active ?? 0), hideWhenZero: true },
+  const segments: CountSegment[] = [
+    {
+      id: 'active',
+      label: 'Asked on the form',
+      count: meta?.active ?? 0,
+      icon: ListChecksIcon,
+      tone: 'success',
+    },
+    {
+      id: 'required',
+      label: 'Must be answered',
+      count: meta?.required ?? 0,
+      icon: AsteriskIcon,
+      tone: 'primary',
+    },
+    {
+      id: 'hidden',
+      label: 'Hidden',
+      count: (meta?.total ?? 0) - (meta?.active ?? 0),
+      icon: EyeSlashIcon,
+    },
   ]
 
   const runAction = async (action: CustomFieldAction, field: CustomField) => {
@@ -95,7 +112,6 @@ export function CustomFieldsPage() {
     <PageContainer
       title="Custom Fields"
       description="Extra questions your school asks on the student admission form, in the order they are asked."
-      status={meta && <CountChips label="Question totals" chips={chips} />}
       actions={
         mayAdd && (
           <Button onClick={() => setEditing('new')} disabled={isFull}>
@@ -107,7 +123,9 @@ export function CustomFieldsPage() {
       fullWidth
     >
       <div className="grid min-w-0 grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-        <div className="grid min-w-0 gap-5">
+        <div className="grid min-w-0 gap-4">
+          {meta && <CountRail label="Question totals" segments={segments} />}
+
           {isFull && (
             <Alert tone="warning" title="This form is full">
               It already has {meta.limit} extra questions. Remove or hide one before adding another.
@@ -129,7 +147,7 @@ export function CustomFieldsPage() {
                   </Link>
                   .
                 </p>
-                <p className="text-sm text-ink-muted">Use the arrows to change the order.</p>
+                <p className="ms-auto text-sm text-ink-muted">Use the arrows to change the order.</p>
               </>
             }
           >

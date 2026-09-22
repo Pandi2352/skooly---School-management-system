@@ -55,7 +55,7 @@ export class StaffEvaluation extends BaseSchema {
   overallRating: number
 
   @ApiProperty({ example: 'Excellent classroom engagement.', required: false })
-  @Prop({ default: '' })
+  @Prop({ type: String, default: '' })
   comments?: string
 }
 

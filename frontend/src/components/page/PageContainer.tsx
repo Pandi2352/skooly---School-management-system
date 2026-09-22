@@ -30,16 +30,19 @@ export function PageContainer({
   return (
     <div className={cn('w-full min-w-0', !fullWidth && 'max-w-6xl')}>
       <title>{`${title} · ${APP_NAME}`}</title>
-      <header className="mb-6 flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
-        <div className="grid min-w-0 justify-items-start gap-2">
+      <header className="mb-4 flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+        {/* Grows into the row: sized to its content it wrapped the description after half a line
+            while the rest of the header sat empty. */}
+        <div className="grid min-w-0 flex-1 basis-80 justify-items-start gap-1.5">
           {eyebrow}
           <h1 className="text-[clamp(1.375rem,1.2rem+0.5vw,1.625rem)] leading-tight font-bold tracking-tight wrap-anywhere text-ink">
             {title}
           </h1>
           {status}
-          {description && <p className="max-w-prose text-ink-muted">{description}</p>}
+          {/* Wide enough for a one-line summary, short enough that it never runs the full screen. */}
+          {description && <p className="max-w-4xl text-ink-muted">{description}</p>}
         </div>
-        {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+        {actions && <div className="flex flex-wrap justify-end gap-2">{actions}</div>}
       </header>
       {children}
     </div>

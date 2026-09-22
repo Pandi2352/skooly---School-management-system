@@ -66,7 +66,17 @@ export function StudentRecordsToolbar({
   const hasSelection = selectedCount > 0
 
   return (
-    <div className="flex flex-col gap-3 border-b border-line px-4 py-2.5 lg:flex-row lg:items-center lg:justify-between print:hidden">
+    <>
+      <div className="w-full sm:w-72">
+        <SearchInput
+          label="Search students"
+          size="sm"
+          placeholder="Search by name, admission no., roll no. or father"
+          value={search}
+          onValueChange={onSearchChange}
+        />
+      </div>
+
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex items-center gap-2 text-sm text-ink-muted">
           <span aria-hidden="true">Show</span>
@@ -170,15 +180,6 @@ export function StudentRecordsToolbar({
           </span>
         )}
       </div>
-
-      <div className="w-full lg:w-80 xl:w-96">
-        <SearchInput
-          label="Search students"
-          placeholder="Search by name, admission no., roll no. or father"
-          value={search}
-          onValueChange={onSearchChange}
-        />
-      </div>
-    </div>
+    </>
   )
 }

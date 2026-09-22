@@ -155,7 +155,7 @@ export function AdmissionsInquiriesPage() {
   const columns: TableColumn<AdmissionInquiry>[] = [
     {
       key: 'child',
-      header: 'Child & Grade',
+      header: 'Child & grade',
       cell: (inq) => (
         <div>
           <div className="font-semibold text-ink">{inq.childName}</div>
@@ -165,7 +165,7 @@ export function AdmissionsInquiriesPage() {
     },
     {
       key: 'parent',
-      header: 'Parent / Contact',
+      header: 'Parent / contact',
       cell: (inq) => (
         <div>
           <div className="font-medium text-ink">{inq.parentName}</div>
@@ -175,17 +175,17 @@ export function AdmissionsInquiriesPage() {
     },
     {
       key: 'source',
-      header: 'Lead Source',
+      header: 'Lead source',
       cell: (inq) => <span className="text-xs font-medium text-ink">{inq.source}</span>,
     },
     {
       key: 'date',
-      header: 'Inquiry Date',
+      header: 'Inquiry date',
       cell: (inq) => <span className="tabular-nums text-xs text-ink">{inq.inquiryDate}</span>,
     },
     {
       key: 'followUp',
-      header: 'Follow-up Due',
+      header: 'Follow-up due',
       cell: (inq) => (
         <span className="tabular-nums text-xs font-semibold text-ink">
           {inq.followUpDate}
@@ -321,9 +321,10 @@ export function AdmissionsInquiriesPage() {
         {/* Table list */}
         <Card title="Prospect Inquiries Ledger" description={`${filtered.length} prospective applicant records`}>
           <Table
-            caption="Prospect Inquiries Ledger"
+            caption="Prospect inquiries"
             hideCaption
             columns={columns}
+            primaryKey="child"
             rows={filtered}
             getRowKey={(inq) => inq.id}
             empty={<div className="p-6 text-center text-xs text-ink-muted">No inquiries match your criteria.</div>}
