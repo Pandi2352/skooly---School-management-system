@@ -1,78 +1,145 @@
+import {
+  Bar,
+  BarChart,
+  Cell,
+  LabelList,
+  Legend,
+  PolarAngleAxis,
+  RadialBar,
+  RadialBarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import { Card } from '@/components/ui/Card'
 
+type GenderRow = { name: string; value: number; fill: string }
+type QuotaRow = { name: string; value: number; fill: string }
+
+const GENDER_DATA: GenderRow[] = [
+  { name: 'Boys',  value: 54, fill: '#6366f1' },
+  { name: 'Girls', value: 44, fill: '#ec4899' },
+  { name: 'Other', value: 2,  fill: '#10b981' },
+]
+
+const QUOTA_DATA: QuotaRow[] = [
+  { name: 'General / Open',   value: 88, fill: '#6366f1' },
+  { name: 'RTE (Right to Ed)', value: 31, fill: '#f59e0b' },
+  { name: 'BPL / Fee Concession', value: 7, fill: '#10b981' },
+]
+
+function QuotaTooltip(props: Record<string, unknown>) {
+  const { active, payload } = props as {
+    active?: boolean
+    payload?: { name?: string; value?: number }[]
+  }
+  if (!active || !payload?.length) return null
+  const item = payload[0]
+  if (!item) return null
+  return (
+    <div className="rounded-lg border border-line bg-surface/95 px-3 py-2 text-xs shadow-lg backdrop-blur-sm">
+      <p className="font-semibold text-ink">{item.name}</p>
+      <p className="mt-0.5 tabular-nums font-black text-ink">{item.value} applicants</p>
+    </div>
+  )
+}
+
 export function DemographicBalanceCard() {
-  const genderData = [
-    { label: 'Boys', count: 68, pct: 54, color: 'bg-primary' },
-    { label: 'Girls', count: 55, pct: 44, color: 'bg-purple-600' },
-    { label: 'Other', count: 3, pct: 2, color: 'bg-teal-600' },
-  ]
-
-  const quotaData = [
-    { label: 'General / Open Intake', count: 88, pct: 70, barClass: 'bg-primary' },
-    { label: 'Right to Education (RTE)', count: 31, pct: 25, barClass: 'bg-accent' },
-    { label: 'BPL / Fee Concession', count: 7, pct: 5, barClass: 'bg-emerald-600' },
-  ]
-
   return (
     <Card
       title="Intake Demographics & Statutory Quotas"
       description="Gender parity and statutory quota allocation for the active academic cycle"
       className="min-w-0"
     >
-      <div className="grid gap-5">
-        {/* Gender Distribution Bar */}
+      <div className="grid gap-6">
+        {/* Gender — Radial Bar */}
         <div>
-          <div className="flex items-center justify-between text-xs mb-1.5">
-            <span className="font-semibold text-ink">Gender Distribution</span>
-            <span className="text-ink-muted">126 Applicants</span>
-          </div>
-          {/* Multi-color segmented progress */}
-          <div className="flex h-3.5 w-full overflow-hidden rounded-md bg-canvas ring-1 ring-line">
-            {genderData.map((item) => (
-              <div
-                key={item.label}
-                className={`${item.color} transition-all duration-500`}
-                style={{ width: `${item.pct}%` }}
-                title={`${item.label}: ${item.pct}% (${item.count})`}
+          <p className="mb-1 text-xs font-semibold text-ink">Gender Distribution</p>
+          <ResponsiveContainer width="100%" height={160}>
+            <RadialBarChart
+              cx="50%"
+              cy="55%"
+              innerRadius={28}
+              outerRadius={70}
+              data={GENDER_DATA}
+              startAngle={90}
+              endAngle={-270}
+              barSize={14}
+            >
+              <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
+              <RadialBar
+                dataKey="value"
+                cornerRadius={6}
+                background={{ fill: 'rgba(128,128,128,0.08)' }}
+                isAnimationActive={true}
+                animationDuration={900}
+                animationEasing="ease-out"
+              >
+                {GENDER_DATA.map((entry) => (
+                  /* eslint-disable-next-line @typescript-eslint/no-deprecated */
+                  <Cell key={entry.name} fill={entry.fill} />
+                ))}
+                <LabelList
+                  dataKey="value"
+                  position="insideStart"
+                  formatter={(v: unknown) => `${String(v)}%`}
+                  style={{ fontSize: 10, fontWeight: 700, fill: '#fff' }}
+                />
+              </RadialBar>
+              <Legend
+                iconType="circle"
+                iconSize={8}
+                layout="vertical"
+                align="right"
+                verticalAlign="middle"
+                formatter={(value: string) => (
+                  <span style={{ fontSize: 11, color: '#6b7280' }}>{value}</span>
+                )}
               />
-            ))}
-          </div>
-          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs">
-            {genderData.map((item) => (
-              <div key={item.label} className="flex items-center gap-1.5">
-                <span className={`size-2.5 rounded-full ${item.color}`} aria-hidden="true" />
-                <span className="text-ink-muted">{item.label}</span>
-                <span className="font-bold tabular-nums text-ink">{item.pct}%</span>
-              </div>
-            ))}
-          </div>
+            </RadialBarChart>
+          </ResponsiveContainer>
         </div>
 
-        {/* Quota Allocations */}
+        {/* Quota — Horizontal BarChart */}
         <div className="border-t border-line pt-4">
-          <div className="flex items-center justify-between text-xs mb-2">
-            <span className="font-semibold text-ink">Statutory Quota Distribution</span>
-            <span className="text-ink-muted">Mandated vs Filled</span>
-          </div>
-          <div className="grid gap-2.5">
-            {quotaData.map((q) => (
-              <div key={q.label} className="grid gap-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-ink">{q.label}</span>
-                  <span className="tabular-nums">
-                    <strong className="font-bold text-ink">{q.count}</strong>
-                    <span className="text-ink-muted"> ({q.pct}%)</span>
-                  </span>
-                </div>
-                <div className="h-2 w-full overflow-hidden rounded-sm bg-canvas">
-                  <div
-                    className={`h-2 rounded-sm ${q.barClass} transition-all duration-500`}
-                    style={{ width: `${q.pct}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+          <p className="mb-2 text-xs font-semibold text-ink">Statutory Quota Distribution</p>
+          <ResponsiveContainer width="100%" height={110}>
+            <BarChart
+              data={QUOTA_DATA}
+              layout="vertical"
+              margin={{ top: 2, right: 48, left: 4, bottom: 2 }}
+              barCategoryGap="30%"
+            >
+              <XAxis type="number" hide />
+              <YAxis
+                type="category"
+                dataKey="name"
+                tick={{ fontSize: 10, fill: '#6b7280' }}
+                tickLine={false}
+                axisLine={false}
+                width={110}
+              />
+              <Tooltip content={<QuotaTooltip />} cursor={{ fill: 'rgba(128,128,128,0.06)' }} />
+              <Bar
+                dataKey="value"
+                radius={[0, 6, 6, 0]}
+                isAnimationActive={true}
+                animationDuration={800}
+                animationEasing="ease-out"
+              >
+                {QUOTA_DATA.map((entry) => (
+                  /* eslint-disable-next-line @typescript-eslint/no-deprecated */
+                  <Cell key={entry.name} fill={entry.fill} />
+                ))}
+                <LabelList
+                  dataKey="value"
+                  position="right"
+                  style={{ fontSize: 10, fontWeight: 700, fill: '#6b7280' }}
+                />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
     </Card>

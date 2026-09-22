@@ -459,8 +459,9 @@ Strict TypeScript, `@/` alias, Prettier, strict lint, Vitest; folder structure; 
 ### Phase 2: login (needs D2, D3 and the NestJS auth endpoints)
 `AuthLayout`, `LoginPage`, `AuthProvider` + `useAuth`, `RequireAuth`, sidebar account section, navbar user menu, logout, profile route, menu per role.
 
-### Phase 3: first real module
-TanStack Query, react-hook-form + zod; build one module end to end (Students or Admissions) as the pattern for the rest.
+### Phase 3: core modules
+- **Students & Admissions:** Built end-to-end with TanStack Query, Zod schemas, filter state in URL, Recharts animated analytics, and full unit test suites.
+- **HR & Staff Management:** **Done** (2026-09-22). Built end-to-end: Staff Directory, Profile Details (Personal, Academic, Employment, Leave, Evaluations), Add/Edit Staff, Leave Management with approval workflow, Faculty Appraisals & Scoring, Recruitment & Hiring pipeline with job postings and candidate tracking, and 4 animated Recharts analytics components. Zero lint/type errors, 100% unit tests passing.
 
 ### Phase 4: platform features
 Notifications, record search (`Ctrl+K`), translations if needed, dashboard with real figures.

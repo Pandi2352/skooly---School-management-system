@@ -1,0 +1,55 @@
+import type { LeaveApplication } from '../../types/staff.types'
+
+// Labelled sample leave applications — delete when GET /staff/leaves exists.
+
+export const SAMPLE_LEAVES: LeaveApplication[] = [
+  {
+    id: 'leave-001',
+    staffId: 'staff-003',
+    leaveType: 'maternity',
+    fromDate: '2026-09-01',
+    toDate: '2026-11-29',
+    days: 90,
+    reason: 'Maternity leave',
+    status: 'approved',
+    approvedBy: 'admin-001',
+    approvedAt: '2026-08-25T10:00:00.000Z',
+    remarks: 'Approved as per policy.',
+    createdAt: '2026-08-20T09:00:00.000Z',
+  },
+  {
+    id: 'leave-002',
+    staffId: 'staff-001',
+    leaveType: 'casual',
+    fromDate: '2026-09-25',
+    toDate: '2026-09-26',
+    days: 2,
+    reason: 'Family function',
+    status: 'pending',
+    createdAt: '2026-09-20T11:30:00.000Z',
+  },
+  {
+    id: 'leave-003',
+    staffId: 'staff-002',
+    leaveType: 'medical',
+    fromDate: '2026-09-10',
+    toDate: '2026-09-11',
+    days: 2,
+    reason: 'Fever and rest',
+    status: 'approved',
+    approvedBy: 'admin-001',
+    approvedAt: '2026-09-09T08:00:00.000Z',
+    createdAt: '2026-09-09T07:00:00.000Z',
+  },
+  {
+    id: 'leave-004',
+    staffId: 'staff-004',
+    leaveType: 'casual',
+    fromDate: '2026-10-02',
+    toDate: '2026-10-02',
+    days: 1,
+    reason: 'Personal work',
+    status: 'pending',
+    createdAt: '2026-09-22T09:00:00.000Z',
+  },
+]

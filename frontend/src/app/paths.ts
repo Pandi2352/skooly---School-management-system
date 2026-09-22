@@ -52,6 +52,15 @@ export const paths = {
   canvasDesignerBlank: (sizeId: string) =>
     `/template-gallery/designer?size=${encodeURIComponent(sizeId)}`,
   cardDesigns: '/id-cards/card-designs',
+  // HR & Staff Management
+  staffOverview: '/hr-staff-management',
+  staff: '/hr-staff-management/staff-management',
+  staffNew: '/hr-staff-management/staff-management/new',
+  staffMember: (id: string) => `/hr-staff-management/staff-management/${id}`,
+  staffMemberEdit: (id: string) => `/hr-staff-management/staff-management/${id}/edit`,
+  staffLeave: '/hr-staff-management/staff-leave-management',
+  staffEvaluations: '/hr-staff-management/teacher-evaluations',
+  staffRecruitment: '/hr-staff-management/recruitment-hiring',
   module: (moduleSlug: string) => `/${moduleSlug}`,
   feature: (moduleSlug: string, featureSlug: string) => `/${moduleSlug}/${featureSlug}`,
 } as const

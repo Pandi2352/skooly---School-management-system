@@ -255,26 +255,10 @@ export const modules: Module[] = [
     ),
   ]),
   defineModule('HR & Staff Management', 'HR & Staff', [
-    feature(
-      'Staff Management',
-      ['Staff Profiles', 'Staff Qualifications', 'Staff Document Storage'],
-      'Staff',
-    ),
-    feature(
-      'Staff Leave Management',
-      ['Leave Application', 'Leave Approval', 'Leave Balance Calculation'],
-      'Leave',
-    ),
-    feature(
-      'Teacher Evaluations',
-      ['Anonymous Teacher Ratings', 'Parent Feedback', 'Teacher Feedback'],
-      'Evaluations',
-    ),
-    feature(
-      'Recruitment & Hiring',
-      ['Job Postings', 'Applicant Resume Management', 'Interview Scheduling'],
-      'Recruitment',
-    ),
+    builtFeature('Staff Management', 'Staff', paths.staff),
+    builtFeature('Staff Leave Management', 'Leave', paths.staffLeave),
+    builtFeature('Teacher Evaluations', 'Evaluations', paths.staffEvaluations),
+    builtFeature('Recruitment & Hiring', 'Recruitment', paths.staffRecruitment),
     alias('Staff ID Cards', 'ID Cards', 'ID Cards'),
   ]),
   defineModule('ID Cards', 'ID Cards', [

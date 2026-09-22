@@ -1,4 +1,15 @@
+/* eslint-disable @typescript-eslint/no-deprecated */
 import { useState } from 'react'
+import {
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Sector,
+  type SectorProps,
+  Tooltip,
+} from 'recharts'
 import { Card } from '@/components/ui/Card'
 
 type SourceSegment = {
@@ -6,42 +17,85 @@ type SourceSegment = {
   label: string
   count: number
   color: string
-  bgClass: string
 }
 
 const SOURCES: SourceSegment[] = [
-  { id: 'walkin', label: 'Walk-in & Reception', count: 42, color: '#1f3a5f', bgClass: 'bg-primary' },
-  { id: 'portal', label: 'Online School Portal', count: 34, color: '#0060df', bgClass: 'bg-blue-600' },
-  { id: 'referral', label: 'Sibling / Parent Referral', count: 21, color: '#0d9488', bgClass: 'bg-teal-600' },
-  { id: 'campaign', label: 'Education Fair & Outreach', count: 15, color: '#f0a500', bgClass: 'bg-accent' },
+  { id: 'walkin',   label: 'Walk-in & Reception',      count: 42, color: '#6366f1' },
+  { id: 'portal',   label: 'Online Portal',             count: 34, color: '#0ea5e9' },
+  { id: 'referral', label: 'Parent Referral',           count: 21, color: '#10b981' },
+  { id: 'campaign', label: 'Education Fair',            count: 15, color: '#f59e0b' },
 ]
 
-function getComputedSegments(sources: SourceSegment[], total: number, circumference: number) {
-  let runningPercent = 0
-  return sources.map((segment) => {
-    const share = segment.count / total
-    const strokeDasharray = `${share * circumference} ${circumference}`
-    const strokeDashoffset = -runningPercent * circumference
-    runningPercent += share
-    return {
-      ...segment,
-      share,
-      strokeDasharray,
-      strokeDashoffset,
-    }
-  })
+function PieTooltip(props: Record<string, unknown>) {
+  const { active, payload } = props as {
+    active?: boolean
+    payload?: { name?: string; value?: number }[]
+  }
+  if (!active || !payload?.length) return null
+  const item = payload[0]
+  if (!item) return null
+  const total = SOURCES.reduce((s, x) => s + x.count, 0)
+  const pct = Math.round(((item.value ?? 0) / total) * 100)
+  return (
+    <div className="rounded-lg border border-line bg-surface/95 px-3 py-2 text-xs shadow-lg backdrop-blur-sm">
+      <p className="font-semibold text-ink">{item.name}</p>
+      <p className="mt-0.5 tabular-nums text-ink-muted">
+        <span className="text-base font-black text-ink">{item.value}</span> leads &bull; {pct}%
+      </p>
+    </div>
+  )
+}
+
+// recharts active shape for inner text
+function ActiveShape(props: SectorProps & { total?: number }) {
+  const {
+    cx = 0, cy = 0, innerRadius = 0, outerRadius = 0,
+    startAngle, endAngle, payload, total,
+  } = props as SectorProps & { payload?: { label: string; count: number }; total: number }
+  const sectorFill = typeof props.fill === 'string' ? props.fill : '#6366f1'
+
+  const count = payload?.count ?? 0
+  const pct = Math.round((count / total) * 100)
+
+  return (
+    <g>
+      <text x={cx} y={cy - 10} textAnchor="middle" fill="currentColor" className="fill-ink text-base font-black" style={{ fontSize: 22, fontWeight: 900 }}>
+        {pct}%
+      </text>
+      <text x={cx} y={cy + 14} textAnchor="middle" fill="currentColor" style={{ fontSize: 10, fill: '#9ca3af' }}>
+        {payload?.label ?? ''}
+      </text>
+      <Sector
+        cx={cx} cy={cy}
+        innerRadius={(innerRadius) - 4}
+        outerRadius={(outerRadius) + 6}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={sectorFill}
+        opacity={1}
+      />
+      <Sector
+        cx={cx} cy={cy}
+        innerRadius={(outerRadius) + 10}
+        outerRadius={(outerRadius) + 14}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={sectorFill}
+        opacity={0.35}
+      />
+    </g>
+  )
+}
+
+function IdleShape(props: SectorProps) {
+  return <Sector {...props} />
 }
 
 export function AdmissionSourceDonutChart() {
-  const [hoveredId, setHoveredId] = useState<string | null>(null)
-  const total = SOURCES.reduce((sum, s) => sum + s.count, 0)
+  const [activeIndex, setActiveIndex] = useState<number>(0)
+  const total = SOURCES.reduce((s, x) => s + x.count, 0)
 
-  // Calculate SVG donut stroke-dasharray & dashoffset
-  const radius = 60
-  const circumference = 2 * Math.PI * radius
-  const computedSegments = getComputedSegments(SOURCES, total, circumference)
-
-  const activeSegment = hoveredId ? SOURCES.find((s) => s.id === hoveredId) : null
+  const data = SOURCES.map((s) => ({ ...s, name: s.label, value: s.count }))
 
   return (
     <Card
@@ -49,95 +103,40 @@ export function AdmissionSourceDonutChart() {
       description="Where prospective families discover and apply to the school"
       className="min-w-0"
     >
-      <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
-        {/* SVG Donut */}
-        <div className="relative flex size-44 flex-none items-center justify-center">
-          <svg viewBox="0 0 160 160" className="size-full -rotate-90">
-            {/* Background circle */}
-            <circle
-              cx="80"
-              cy="80"
-              r={radius}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="18"
-              className="text-canvas"
-            />
-            {/* Segments */}
-            {computedSegments.map((segment) => {
-              const isHovered = hoveredId === segment.id
-
-              return (
-                <circle
-                  key={segment.id}
-                  cx="80"
-                  cy="80"
-                  r={radius}
-                  fill="none"
-                  stroke={segment.color}
-                  strokeWidth={isHovered ? 22 : 18}
-                  strokeDasharray={segment.strokeDasharray}
-                  strokeDashoffset={segment.strokeDashoffset}
-                  className="cursor-pointer transition-all duration-300"
-                  onMouseEnter={() => setHoveredId(segment.id)}
-                  onMouseLeave={() => setHoveredId(null)}
-                />
-              )
-            })}
-          </svg>
-
-          {/* Center Callout */}
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-            {activeSegment ? (
-              <>
-                <span className="text-xl font-bold tabular-nums text-ink">
-                  {Math.round((activeSegment.count / total) * 100)}%
-                </span>
-                <span className="max-w-[70px] truncate text-[10px] font-medium text-ink-muted">
-                  {activeSegment.label}
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="text-2xl font-bold tabular-nums text-ink">{total}</span>
-                <span className="text-[11px] font-medium text-ink-muted">Total Leads</span>
-              </>
+      <ResponsiveContainer width="100%" height={260}>
+        <PieChart>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="48%"
+            innerRadius={68}
+            outerRadius={100}
+            dataKey="value"
+            nameKey="name"
+            paddingAngle={3}
+            activeIndex={activeIndex}
+            activeShape={(props: SectorProps) => <ActiveShape {...props} total={total} />}
+            inactiveShape={(props: SectorProps) => <IdleShape {...props} />}
+            onMouseEnter={(_, index) => setActiveIndex(index)}
+            isAnimationActive={true}
+            animationBegin={0}
+            animationDuration={900}
+            animationEasing="ease-out"
+          >
+            {data.map((entry) => (
+              <Cell key={entry.id} fill={entry.color} stroke="transparent" />
+            ))}
+          </Pie>
+          <Tooltip content={<PieTooltip />} />
+          <Legend
+            iconType="circle"
+            iconSize={8}
+            formatter={(value: string) => (
+              <span style={{ fontSize: 11, color: '#6b7280' }}>{value}</span>
             )}
-          </div>
-        </div>
-
-        {/* Legend */}
-        <div className="grid w-full gap-2.5 sm:max-w-xs">
-          {SOURCES.map((segment) => {
-            const pct = Math.round((segment.count / total) * 100)
-            const isHovered = hoveredId === segment.id
-
-            return (
-              <div
-                key={segment.id}
-                onMouseEnter={() => setHoveredId(segment.id)}
-                onMouseLeave={() => setHoveredId(null)}
-                className={`flex cursor-pointer items-center justify-between rounded-md p-1.5 transition-colors ${
-                  isHovered ? 'bg-canvas ring-1 ring-line' : 'hover:bg-canvas/50'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    className="size-3 rounded-full"
-                    style={{ backgroundColor: segment.color }}
-                    aria-hidden="true"
-                  />
-                  <span className="text-xs font-medium text-ink">{segment.label}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="tabular-nums text-ink-muted">{segment.count} leads</span>
-                  <span className="font-bold tabular-nums text-ink">{pct}%</span>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
+          />
+        </PieChart>
+      </ResponsiveContainer>
     </Card>
   )
 }

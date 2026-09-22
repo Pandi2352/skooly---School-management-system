@@ -14,6 +14,7 @@ import { UsersModule } from './modules/users/users.module'
 import { AdmissionSettingsModule } from './modules/admission-settings/admission-settings.module'
 import { AdmissionsModule } from './modules/admissions/admissions.module'
 import { DataTransferModule } from './modules/data-transfer/data-transfer.module'
+import { StaffModule } from './modules/staff/staff.module'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 
@@ -34,6 +35,7 @@ import { AppService } from './app.service'
     AdmissionSettingsModule,
     CustomFieldsModule,
     DataTransferModule,
+    StaffModule,
     MailModule,
     UsersModule,
     AuthModule,

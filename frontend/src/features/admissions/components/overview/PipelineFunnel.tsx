@@ -1,3 +1,13 @@
+import {
+  Bar,
+  BarChart,
+  Cell,
+  LabelList,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import { Link } from 'react-router-dom'
 import { paths } from '@/app/paths'
 import { Card } from '@/components/ui/Card'
@@ -7,60 +17,72 @@ type PipelineFunnelProps = {
   stats: AdmissionStats
 }
 
+type FunnelRow = {
+  label: string
+  count: number
+  color: string
+  to: string
+  hint: string
+}
+
+function FunnelTooltip(props: Record<string, unknown>) {
+  const { active, payload } = props as {
+    active?: boolean
+    payload?: { payload?: FunnelRow }[]
+  }
+  if (!active || !payload?.length) return null
+  const row = payload[0]?.payload
+  if (!row) return null
+  return (
+    <div className="rounded-lg border border-line bg-surface/95 px-3 py-2 text-xs shadow-lg backdrop-blur-sm max-w-[200px]">
+      <p className="font-semibold text-ink">{row.label}</p>
+      <p className="mt-0.5 text-ink-muted">{row.hint}</p>
+      <p className="mt-1 text-base font-black tabular-nums text-ink">{row.count}</p>
+    </div>
+  )
+}
+
 export function PipelineFunnel({ stats }: PipelineFunnelProps) {
-  // Model full funnel pipeline
   const estimatedInquiries = Math.max(stats.total + 25, 45)
   const conversionRate = stats.total > 0 ? Math.round((stats.enrolled / stats.total) * 100) : 0
 
-  const stages = [
+  const stages: FunnelRow[] = [
     {
-      id: 'inquiries',
-      label: '1. Inquiries & Prospective Leads',
+      label: 'Inquiries & Leads',
       count: estimatedInquiries,
+      color: '#818cf8',
       to: paths.admissionsInquiries,
-      color: 'bg-indigo-600',
-      textColor: 'text-indigo-600 dark:text-indigo-400',
       hint: 'Campus walk-ins, phone calls, portal leads',
     },
     {
-      id: 'applications',
-      label: '2. Applications Submitted',
+      label: 'Applications',
       count: stats.total,
+      color: '#38bdf8',
       to: paths.admissionsApplications,
-      color: 'bg-blue-600',
-      textColor: 'text-blue-600 dark:text-blue-400',
       hint: 'Completed 7-step admission submissions',
     },
     {
-      id: 'under-review',
-      label: '3. Under Review & Diagnostic Assessment',
+      label: 'Under Review',
       count: stats.underReview,
+      color: '#fbbf24',
       to: `${paths.admissionsApplications}?status=under-review`,
-      color: 'bg-amber-500',
-      textColor: 'text-amber-600 dark:text-amber-400',
       hint: 'Awaiting faculty evaluation or documents',
     },
     {
-      id: 'approved',
-      label: '4. Merit Approved & Cleared',
+      label: 'Approved',
       count: stats.approved,
+      color: '#2dd4bf',
       to: `${paths.admissionsApplications}?status=approved`,
-      color: 'bg-teal-600',
-      textColor: 'text-teal-600 dark:text-teal-400',
       hint: 'Verified and ready for class sectioning',
     },
     {
-      id: 'enrolled',
-      label: '5. Successfully Enrolled Students',
+      label: 'Enrolled',
       count: stats.enrolled,
+      color: '#34d399',
       to: `${paths.admissionsApplications}?status=enrolled`,
-      color: 'bg-emerald-600',
-      textColor: 'text-emerald-600 dark:text-emerald-400',
       hint: 'Active students with ID & Fee structures',
     },
   ]
-
-  const maxCount = Math.max(1, estimatedInquiries)
 
   return (
     <section role="region" aria-label="Where applications stand" className="min-w-0">
@@ -68,56 +90,67 @@ export function PipelineFunnel({ stats }: PipelineFunnelProps) {
         title="Intake Pipeline & Conversion Funnel"
         description={`Overall inquiry-to-enrolment conversion rate: ${conversionRate}%`}
       >
-        <div className="grid gap-3">
-          {stages.map((stage) => {
-            const share = Math.round((stage.count / maxCount) * 100)
+        <ResponsiveContainer width="100%" height={240}>
+          <BarChart
+            data={stages}
+            layout="vertical"
+            margin={{ top: 4, right: 56, left: 8, bottom: 4 }}
+            barCategoryGap="25%"
+          >
+            <XAxis type="number" hide />
+            <YAxis
+              type="category"
+              dataKey="label"
+              tick={{ fontSize: 11, fill: '#6b7280', fontWeight: 600 }}
+              tickLine={false}
+              axisLine={false}
+              width={96}
+            />
+            <Tooltip content={<FunnelTooltip />} cursor={{ fill: 'rgba(128,128,128,0.06)' }} />
+            <Bar
+              dataKey="count"
+              radius={[0, 6, 6, 0]}
+              isAnimationActive={true}
+              animationDuration={900}
+              animationEasing="ease-out"
+            >
+              {stages.map((stage) => (
+                /* eslint-disable-next-line @typescript-eslint/no-deprecated */
+                <Cell key={stage.label} fill={stage.color} />
+              ))}
+              <LabelList
+                dataKey="count"
+                position="right"
+                style={{ fontSize: 11, fontWeight: 700, fill: '#6b7280' }}
+              />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
 
-            return (
-              <Link
-                key={stage.id}
-                to={stage.to}
-                className="group block rounded-lg border border-line bg-surface p-2.5 transition-all hover:border-primary/50 hover:bg-canvas/40"
-              >
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="font-semibold text-ink group-hover:text-primary transition-colors">
-                    {stage.label}
-                  </span>
-                  <span className="tabular-nums">
-                    <strong className="text-sm font-bold text-ink">{stage.count}</strong>
-                    <span className="text-ink-muted text-[11px] ml-1">({share}%)</span>
-                  </span>
-                </div>
-
-                {/* Progress bar */}
-                <div className="h-2 w-full overflow-hidden rounded-sm bg-canvas ring-1 ring-line/40">
-                  <div
-                    className={`h-2 rounded-sm ${stage.color} transition-all duration-500`}
-                    style={{ width: `${Math.max(share, 3)}%` }}
-                  />
-                </div>
-
-                <div className="mt-1 flex items-center justify-between text-[11px] text-ink-muted">
-                  <span>{stage.hint}</span>
-                  <span className="text-primary opacity-0 transition-opacity group-hover:opacity-100 font-medium">
-                    View →
-                  </span>
-                </div>
-              </Link>
-            )
-          })}
-
-          {stats.rejected > 0 && (
-            <div className="flex items-center justify-between rounded-md border border-line/60 bg-canvas/60 px-3 py-1.5 text-xs text-ink-muted">
-              <span>Rejected / Withdrawn Applicants</span>
-              <Link
-                to={`${paths.admissionsApplications}?status=rejected`}
-                className="font-bold tabular-nums text-danger hover:underline"
-              >
-                {stats.rejected} records
-              </Link>
-            </div>
-          )}
+        <div className="mt-3 flex flex-wrap gap-2 pt-2 border-t border-line/40">
+          {stages.map((stage) => (
+            <Link
+              key={stage.label}
+              to={stage.to}
+              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-canvas px-2.5 py-1 text-xs font-semibold text-ink transition-colors hover:border-primary/60 hover:text-primary"
+            >
+              <span className="size-2 rounded-full" style={{ backgroundColor: stage.color }} />
+              {stage.label}: {stage.count}
+            </Link>
+          ))}
         </div>
+
+        {stats.rejected > 0 && (
+          <div className="mt-2 flex items-center justify-between rounded-md border border-line/60 bg-canvas/60 px-3 py-1.5 text-xs text-ink-muted">
+            <span>Rejected / Withdrawn Applicants</span>
+            <Link
+              to={`${paths.admissionsApplications}?status=rejected`}
+              className="font-bold tabular-nums text-danger hover:underline"
+            >
+              {stats.rejected} records
+            </Link>
+          </div>
+        )}
       </Card>
     </section>
   )
